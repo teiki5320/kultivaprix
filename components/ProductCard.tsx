@@ -13,22 +13,33 @@ export function ProductCard({ slug, name, imageUrl, minPrice, merchantCount }: P
   return (
     <Link
       href={`/produit/${slug}`}
-      className="card-kawaii flex flex-col gap-2 no-underline hover:shadow-leaf transition"
+      className="group card-cream flex flex-col gap-3 no-underline transition hover:-translate-y-1 hover:shadow-leaf"
     >
-      <div className="aspect-square bg-kawaii-cream rounded-xl overflow-hidden flex items-center justify-center">
+      <div
+        className="aspect-square rounded-2xl overflow-hidden flex items-center justify-center"
+        style={{ background: 'var(--cream)' }}
+      >
         {imageUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={imageUrl} alt={name} className="w-full h-full object-cover" loading="lazy" />
+          <img
+            src={imageUrl}
+            alt={name}
+            loading="lazy"
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+          />
         ) : (
           <span className="text-5xl">🌱</span>
         )}
       </div>
-      <p className="font-semibold line-clamp-2 text-kawaii-ink">{name}</p>
-      <div className="flex items-center justify-between">
-        <span className="font-display text-lg text-kawaii-pink-600">
+      <p className="font-body font-bold text-sm leading-snug line-clamp-2 text-fg">{name}</p>
+      <div className="flex items-center justify-between mt-auto">
+        <span className="font-display text-lg font-bold" style={{ color: 'var(--terracotta-deep)' }}>
           {minPrice ? `dès ${formatPrice(minPrice)}` : '—'}
         </span>
-        <span className="pill bg-kawaii-green-100 text-kawaii-green-600">
+        <span
+          className="pill"
+          style={{ background: 'color-mix(in oklab, var(--brand) 14%, white)', color: 'var(--brand-dark)' }}
+        >
           {merchantCount} marchand{merchantCount > 1 ? 's' : ''}
         </span>
       </div>

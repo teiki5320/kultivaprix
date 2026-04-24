@@ -111,49 +111,62 @@ export default async function ProductPage({ params }: { params: { slug: string }
     <div className="flex flex-col gap-6">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
-      <header className="grid md:grid-cols-2 gap-6 items-start">
-        <div className="card-kawaii aspect-square flex items-center justify-center p-2">
+      <header className="grid md:grid-cols-2 gap-8 items-start">
+        <div
+          className="card-cream aspect-square flex items-center justify-center p-4"
+          style={{ background: 'var(--cream-surface)' }}
+        >
           {product.image_url ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={product.image_url} alt={product.name} className="w-full h-full object-contain rounded-xl" />
+            <img src={product.image_url} alt={product.name} className="w-full h-full object-contain rounded-2xl" />
           ) : (
             <span className="text-7xl">🌱</span>
           )}
         </div>
-        <div className="flex flex-col gap-3">
-          <h1 className="font-display text-3xl md:text-4xl font-extrabold text-kawaii-green-600">
+        <div className="flex flex-col gap-4 pt-2">
+          <span className="kicker self-start">🌱 Produit suivi</span>
+          <h1 className="font-display text-4xl md:text-5xl font-bold text-fg leading-tight">
             {product.name}
           </h1>
           {product.brand && (
-            <span className="pill bg-kawaii-pink-100 text-kawaii-pink-600 self-start">
+            <span
+              className="pill self-start"
+              style={{ background: 'color-mix(in oklab, var(--terracotta-deep) 14%, white)', color: 'var(--terracotta-deep)' }}
+            >
               {product.brand}
             </span>
           )}
           {minPrice && (
-            <p className="text-xl">
-              À partir de <strong className="text-kawaii-pink-600">{formatPrice(minPrice)}</strong>
-              {' '}chez <strong>{offerRows.length}</strong> marchand(s).
+            <p className="font-body text-xl text-fg-muted">
+              À partir de{' '}
+              <strong className="font-display text-3xl" style={{ color: 'var(--terracotta-deep)' }}>
+                {formatPrice(minPrice)}
+              </strong>{' '}
+              chez <strong className="text-fg">{offerRows.length}</strong> marchand(s).
             </p>
           )}
         </div>
       </header>
 
       <section>
-        <h2 className="font-display text-2xl font-extrabold mb-3">💰 Comparer les prix</h2>
+        <span className="kicker">💰 Offres</span>
+        <h2 className="font-display text-3xl font-bold mt-3 mb-4 text-fg">Comparer les prix</h2>
         <PriceTable offers={offerRows} />
       </section>
 
       <section>
-        <h2 className="font-display text-2xl font-extrabold mb-3">📈 Historique des prix</h2>
+        <span className="kicker kicker-terra">📈 Tendance</span>
+        <h2 className="font-display text-3xl font-bold mt-3 mb-4 text-fg">Historique des prix</h2>
         <PriceHistoryChart points={points} />
       </section>
 
       <section>
-        <h2 className="font-display text-2xl font-extrabold mb-3">📝 À savoir</h2>
-        <article className="card-kawaii prose max-w-none">
+        <span className="kicker">📝 Repères</span>
+        <h2 className="font-display text-3xl font-bold mt-3 mb-4 text-fg">À savoir</h2>
+        <article className="card-cream prose max-w-none">
           {body.split('\n\n').map((p, i) =>
             p.startsWith('##') ? (
-              <h3 key={i} className="font-display text-lg font-extrabold text-kawaii-green-600">
+              <h3 key={i} className="font-display text-xl font-bold" style={{ color: 'var(--brand-dark)' }}>
                 {p.replace(/^##\s*/, '')}
               </h3>
             ) : (

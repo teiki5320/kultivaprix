@@ -68,15 +68,16 @@ export default async function CategoryPage({ params }: { params: { category: str
   });
 
   return (
-    <div className="flex flex-col gap-8">
-      <header className="text-center">
-        <div className="text-5xl">{cat.icon ?? '🌿'}</div>
-        <h1 className="font-display text-3xl md:text-4xl font-extrabold text-kawaii-green-600">
+    <div className="flex flex-col gap-10">
+      <header className="text-center pt-4">
+        <span className="kicker">🌿 Catégorie</span>
+        <div className="text-6xl mt-4">{cat.icon ?? '🌿'}</div>
+        <h1 className="font-display text-4xl md:text-5xl font-bold text-fg mt-2">
           {cat.name}
         </h1>
       </header>
 
-      <article className="prose max-w-none card-kawaii">
+      <article className="prose max-w-none card-cream">
         {intro.split('\n\n').map((p, i) => (
           <p key={i}>{p}</p>
         ))}

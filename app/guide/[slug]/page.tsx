@@ -24,13 +24,17 @@ function mdToNodes(md: string): React.ReactNode[] {
   md.split('\n').forEach((line, i) => {
     if (line.startsWith('## ')) {
       nodes.push(
-        <h2 key={i} className="font-display text-2xl font-extrabold text-kawaii-green-600 mt-6">
+        <h2 key={i} className="font-display text-2xl font-bold mt-6" style={{ color: 'var(--brand-dark)' }}>
           {line.slice(3)}
         </h2>,
       );
     } else if (line.startsWith('> ')) {
       nodes.push(
-        <blockquote key={i} className="border-l-4 border-kawaii-pink-300 pl-4 italic my-3">
+        <blockquote
+          key={i}
+          className="pl-4 italic my-3"
+          style={{ borderLeft: '4px solid var(--terracotta-deep)' }}
+        >
           {line.slice(2)}
         </blockquote>,
       );
@@ -47,14 +51,14 @@ export default async function GuidePage({ params }: { params: { slug: string } }
   const a = await getArticle(params.slug);
   if (!a) notFound();
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-8">
       <header>
-        <span className="pill bg-kawaii-pink-100 text-kawaii-pink-600">📖 Guide</span>
-        <h1 className="font-display text-3xl md:text-4xl font-extrabold text-kawaii-green-600 mt-2">
+        <span className="kicker">📖 Guide</span>
+        <h1 className="font-display text-4xl md:text-5xl font-bold text-fg mt-3 leading-tight">
           {a.title}
         </h1>
       </header>
-      <article className="card-kawaii prose max-w-none">{mdToNodes(a.body_md)}</article>
+      <article className="card-cream prose max-w-none">{mdToNodes(a.body_md)}</article>
       <CTAKultiva context={`guide-${a.slug}`} />
     </div>
   );

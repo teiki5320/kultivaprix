@@ -2,34 +2,173 @@
 @tailwind components;
 @tailwind utilities;
 
+/* === Kultiva design tokens ===
+   Mirrors the variables from the kultiva.app presentation site so both
+   products share the exact same design language. */
+:root {
+  --brand: #4A9B5A;
+  --brand-dark: #357A44;
+  --light-green: #BCE5C1;
+  --mint-green: #A8D5A2;
+  --spring-a: #FBD8E6;
+  --terracotta: #D8A881;
+  --terracotta-deep: #D17A4E;
+  --butter-yellow: #FFE7A0;
+  --butter-soft: #FFF3D0;
+  --peach: #F8CBA6;
+  --sky: #E0EEFB;
+  --sky-muted: #C6D8E3;
+
+  --cream-warm: #FAF3DE;
+  --cream-surface: #FFF8E8;
+  --cream: #F3EDD8;
+
+  --fg: #3D4A3F;
+  --fg-muted: #6B7A6F;
+  --fg-subtle: #8E9C92;
+  --ink-deep: #2A3A2E;
+
+  --font-display: 'Fraunces', 'Baloo 2', ui-serif, Georgia, serif;
+  --font-body: 'Nunito', system-ui, -apple-system, sans-serif;
+
+  --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 12px 32px rgba(0, 0, 0, 0.08);
+  --shadow-logo: 0 6px 16px rgba(74, 155, 90, 0.25);
+
+  --dur-quick: 150ms;
+  --dur-normal: 280ms;
+  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
 @layer base {
   html {
-    background: #FFFBF2;           /* kawaii-cream */
-    color: #3B2A3A;                /* kawaii-ink */
-    font-family: 'Nunito', system-ui, -apple-system, sans-serif;
+    background: var(--cream-warm);
+    color: var(--fg);
+    font-family: var(--font-body);
     -webkit-font-smoothing: antialiased;
   }
+  body { background: var(--cream-warm); }
   h1, h2, h3, h4 {
-    font-family: 'Baloo 2', system-ui, sans-serif;
-    letter-spacing: -0.01em;
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+    color: var(--fg);
   }
-  a { color: #E63B77; }
-  a:hover { color: #2B8A45; }
+  a {
+    color: var(--terracotta-deep);
+    text-decoration: none;
+  }
+  a:hover { color: var(--brand-dark); }
 }
 
 @layer components {
+  /* === Buttons === */
+  .btn-primary {
+    @apply inline-flex items-center gap-2 px-6 py-3 rounded-bubble font-display font-semibold text-white
+           transition;
+    background: var(--terracotta-deep);
+    box-shadow: 0 10px 24px rgba(209, 122, 78, 0.35);
+  }
+  .btn-primary:hover { transform: translateY(-2px); }
+
+  .btn-ghost {
+    @apply inline-flex items-center gap-2 px-6 py-3 rounded-bubble font-display font-semibold
+           bg-white text-fg transition;
+    box-shadow: var(--shadow-sm);
+  }
+  .btn-ghost:hover { transform: translateY(-2px); }
+
+  .btn-brand {
+    @apply inline-flex items-center gap-2 px-6 py-3 rounded-bubble font-display font-semibold text-white transition;
+    background: var(--brand);
+    box-shadow: 0 10px 24px rgba(74, 155, 90, 0.30);
+  }
+  .btn-brand:hover { transform: translateY(-2px); background: var(--brand-dark); }
+
+  /* Legacy aliases so existing markup keeps working with the new palette */
   .btn-kawaii {
-    @apply inline-flex items-center gap-2 px-5 py-2.5 rounded-bubble font-semibold text-white
-           bg-kawaii-pink-500 hover:bg-kawaii-pink-400 shadow-soft transition;
+    @apply inline-flex items-center gap-2 px-6 py-3 rounded-bubble font-display font-semibold text-white transition;
+    background: var(--terracotta-deep);
+    box-shadow: 0 10px 24px rgba(209, 122, 78, 0.35);
   }
+  .btn-kawaii:hover { transform: translateY(-2px); }
   .btn-kawaii-green {
-    @apply inline-flex items-center gap-2 px-5 py-2.5 rounded-bubble font-semibold text-white
-           bg-kawaii-green-500 hover:bg-kawaii-green-400 shadow-leaf transition;
+    @apply inline-flex items-center gap-2 px-6 py-3 rounded-bubble font-display font-semibold text-white transition;
+    background: var(--brand);
+    box-shadow: 0 10px 24px rgba(74, 155, 90, 0.30);
   }
+  .btn-kawaii-green:hover { transform: translateY(-2px); background: var(--brand-dark); }
+
+  /* === Eyebrow / kicker pills === */
+  .eyebrow-pill {
+    @apply inline-flex items-center gap-2 bg-white font-body font-extrabold text-xs;
+    color: var(--brand-dark);
+    padding: 8px 16px;
+    border-radius: 999px;
+    box-shadow: var(--shadow-sm);
+  }
+  .kicker {
+    @apply inline-block font-body font-extrabold text-xs uppercase;
+    letter-spacing: 0.12em;
+    color: var(--brand);
+    background: color-mix(in oklab, var(--brand) 10%, white);
+    padding: 6px 14px;
+    border-radius: 999px;
+  }
+  .kicker-terra {
+    color: var(--terracotta-deep);
+    background: color-mix(in oklab, var(--terracotta-deep) 12%, white);
+  }
+
+  /* === Cards === */
   .card-kawaii {
-    @apply bg-white/90 rounded-bubble p-5 shadow-soft border border-kawaii-pink-100;
+    @apply rounded-bubble p-6 transition;
+    background: var(--cream-surface);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid color-mix(in oklab, var(--cream) 80%, transparent);
   }
+  .card-cream {
+    @apply rounded-bubble p-6;
+    background: var(--cream-surface);
+    box-shadow: var(--shadow-sm);
+  }
+  .card-white {
+    @apply rounded-bubble p-6 bg-white;
+    box-shadow: var(--shadow-md);
+  }
+  .card-gradient-a { background: linear-gradient(135deg, #FBD8E6, #BCE5C1); }
+  .card-gradient-b { background: linear-gradient(135deg, #FFE7A0, #F8CBA6); }
+  .card-gradient-c { background: linear-gradient(135deg, #E0EEFB, #C6D8E3); }
+
+  /* === Pill === */
   .pill {
-    @apply inline-block px-3 py-1 rounded-full text-xs font-semibold;
+    @apply inline-block font-body font-extrabold text-xs;
+    padding: 4px 12px;
+    border-radius: 999px;
+  }
+
+  /* === Hero highlight (em under the h1 title) === */
+  .hero-em {
+    position: relative;
+    display: inline-block;
+    color: var(--terracotta-deep);
+    font-style: normal;
+  }
+  .hero-em::after {
+    content: '';
+    position: absolute;
+    left: 0; right: 0; bottom: 4px;
+    height: 14px;
+    background: color-mix(in oklab, var(--butter-yellow) 70%, transparent);
+    border-radius: 4px;
+    z-index: -1;
+  }
+
+  /* Decorative soft blobs for hero backgrounds */
+  .blob {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(60px);
+    opacity: 0.55;
+    pointer-events: none;
   }
 }

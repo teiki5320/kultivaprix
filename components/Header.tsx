@@ -2,19 +2,39 @@ import Link from 'next/link';
 
 export function Header() {
   return (
-    <header className="bg-kawaii-pink-50 border-b border-kawaii-pink-100">
-      <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between gap-4">
-        <Link href="/" className="flex items-center gap-2 no-underline">
-          <span aria-hidden className="text-3xl">🌷</span>
-          <span className="font-display text-2xl font-extrabold text-kawaii-green-600">
-            Kultiva<span className="text-kawaii-pink-500">prix</span>
+    <header className="sticky top-0 z-50 backdrop-blur-md bg-cream-warm/85 border-b border-cream">
+      <div className="max-w-6xl mx-auto px-4 md:px-6 py-4 flex items-center justify-between gap-4">
+        <Link href="/" className="flex items-center gap-3 no-underline">
+          <span
+            aria-hidden
+            className="w-10 h-10 rounded-2xl flex items-center justify-center text-2xl shadow-logo"
+            style={{ background: 'linear-gradient(135deg, #FFE7A0, #A8D5A2)' }}
+          >
+            🌷
+          </span>
+          <span className="font-display text-2xl font-bold tracking-tight" style={{ color: 'var(--brand-dark)' }}>
+            Kultiva<span style={{ color: 'var(--terracotta-deep)' }}>prix</span>
           </span>
         </Link>
-        <nav className="flex items-center gap-3 text-sm">
-          <Link href="/graines" className="hover:underline">Graines</Link>
-          <Link href="/plants" className="hover:underline">Plants</Link>
-          <Link href="/outils" className="hover:underline">Outils</Link>
-          <Link href="/recherche" className="pill bg-kawaii-green-100 text-kawaii-green-600 hover:bg-kawaii-green-200">🔎 Rechercher</Link>
+        <nav className="flex items-center gap-1 md:gap-5 text-sm">
+          <Link href="/graines" className="hidden md:inline font-body font-bold text-fg hover:text-brand-dark transition">
+            Graines
+          </Link>
+          <Link href="/plants" className="hidden md:inline font-body font-bold text-fg hover:text-brand-dark transition">
+            Plants
+          </Link>
+          <Link href="/outils" className="hidden md:inline font-body font-bold text-fg hover:text-brand-dark transition">
+            Outils
+          </Link>
+          <Link
+            href="/recherche"
+            className="font-body font-bold text-fg hover:text-brand-dark transition hidden sm:inline"
+          >
+            Rechercher
+          </Link>
+          <Link href="/recherche" className="btn-primary !py-2 !px-5 !text-sm">
+            🔎 <span className="hidden sm:inline">Chercher</span>
+          </Link>
         </nav>
       </div>
     </header>

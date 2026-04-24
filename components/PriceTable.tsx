@@ -15,61 +15,76 @@ interface OfferRow {
 export function PriceTable({ offers }: { offers: OfferRow[] }) {
   const sorted = [...offers].sort((a, b) => (a.price ?? 9e9) - (b.price ?? 9e9));
   return (
-    <div className="card-kawaii overflow-x-auto p-0">
-      <table className="w-full text-sm">
-        <thead className="bg-kawaii-pink-50 text-kawaii-ink/80">
-          <tr>
-            <th className="text-left px-4 py-3">Marchand</th>
-            <th className="text-left px-4 py-3">Produit</th>
-            <th className="text-right px-4 py-3">Prix</th>
-            <th className="text-right px-4 py-3">Livraison</th>
-            <th className="text-right px-4 py-3">Stock</th>
-            <th className="text-right px-4 py-3"></th>
-          </tr>
-        </thead>
-        <tbody>
-          {sorted.map((o, i) => (
-            <tr key={o.offer_id} className={i % 2 === 0 ? 'bg-white' : 'bg-kawaii-pink-50/30'}>
-              <td className="px-4 py-3 font-semibold text-kawaii-green-600">{o.merchant_name}</td>
-              <td className="px-4 py-3 max-w-xs truncate" title={o.title}>{o.title}</td>
-              <td className="px-4 py-3 text-right font-semibold">
-                {formatPrice(o.price ?? undefined, o.currency)}
-              </td>
-              <td className="px-4 py-3 text-right text-kawaii-ink/60">
-                {o.shipping_cost != null ? formatPrice(o.shipping_cost, o.currency) : '—'}
-              </td>
-              <td className="px-4 py-3 text-right">
-                <span
-                  className={`pill ${
-                    o.in_stock
-                      ? 'bg-kawaii-green-100 text-kawaii-green-600'
-                      : 'bg-kawaii-pink-100 text-kawaii-pink-600'
-                  }`}
-                >
-                  {o.in_stock ? 'En stock' : 'Rupture'}
-                </span>
-              </td>
-              <td className="px-4 py-3 text-right">
-                <a
-                  href={`/api/click?offer=${o.offer_id}`}
-                  className="btn-kawaii !py-1.5 !px-4"
-                  rel="sponsored nofollow noopener"
-                  target="_blank"
-                >
-                  Voir ↗
-                </a>
-              </td>
-            </tr>
-          ))}
-          {sorted.length === 0 && (
+    <div
+      className="rounded-bubble overflow-hidden bg-white"
+      style={{ boxShadow: 'var(--shadow-md)' }}
+    >
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm font-body">
+          <thead style={{ background: 'var(--cream)' }} className="text-fg">
             <tr>
-              <td colSpan={6} className="px-4 py-8 text-center text-kawaii-ink/60">
-                Aucune offre trouvée pour le moment.
-              </td>
+              <th className="text-left px-5 py-4 font-display font-bold">Marchand</th>
+              <th className="text-left px-5 py-4 font-display font-bold">Produit</th>
+              <th className="text-right px-5 py-4 font-display font-bold">Prix</th>
+              <th className="text-right px-5 py-4 font-display font-bold">Livraison</th>
+              <th className="text-right px-5 py-4 font-display font-bold">Stock</th>
+              <th className="text-right px-5 py-4"></th>
             </tr>
-          )}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {sorted.map((o, i) => (
+              <tr
+                key={o.offer_id}
+                className="transition hover:bg-cream-warm"
+                style={i % 2 === 0 ? { background: 'white' } : { background: 'var(--cream-surface)' }}
+              >
+                <td className="px-5 py-4 font-bold" style={{ color: 'var(--brand-dark)' }}>
+                  {o.merchant_name}
+                </td>
+                <td className="px-5 py-4 max-w-xs truncate text-fg" title={o.title}>{o.title}</td>
+                <td
+                  className="px-5 py-4 text-right font-display font-bold text-lg"
+                  style={{ color: 'var(--terracotta-deep)' }}
+                >
+                  {formatPrice(o.price ?? undefined, o.currency)}
+                </td>
+                <td className="px-5 py-4 text-right text-fg-muted">
+                  {o.shipping_cost != null ? formatPrice(o.shipping_cost, o.currency) : '—'}
+                </td>
+                <td className="px-5 py-4 text-right">
+                  <span
+                    className="pill"
+                    style={
+                      o.in_stock
+                        ? { background: 'color-mix(in oklab, var(--brand) 16%, white)', color: 'var(--brand-dark)' }
+                        : { background: 'color-mix(in oklab, var(--terracotta-deep) 14%, white)', color: 'var(--terracotta-deep)' }
+                    }
+                  >
+                    {o.in_stock ? 'En stock' : 'Rupture'}
+                  </span>
+                </td>
+                <td className="px-5 py-4 text-right">
+                  <a
+                    href={`/api/click?offer=${o.offer_id}`}
+                    className="btn-primary !py-2 !px-4 !text-sm"
+                    rel="sponsored nofollow noopener"
+                    target="_blank"
+                  >
+                    Voir ↗
+                  </a>
+                </td>
+              </tr>
+            ))}
+            {sorted.length === 0 && (
+              <tr>
+                <td colSpan={6} className="px-5 py-10 text-center text-fg-muted">
+                  Aucune offre trouvée pour le moment.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
