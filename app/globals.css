@@ -1,0 +1,35 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    background: #FFFBF2;           /* kawaii-cream */
+    color: #3B2A3A;                /* kawaii-ink */
+    font-family: 'Nunito', system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, h3, h4 {
+    font-family: 'Baloo 2', system-ui, sans-serif;
+    letter-spacing: -0.01em;
+  }
+  a { color: #E63B77; }
+  a:hover { color: #2B8A45; }
+}
+
+@layer components {
+  .btn-kawaii {
+    @apply inline-flex items-center gap-2 px-5 py-2.5 rounded-bubble font-semibold text-white
+           bg-kawaii-pink-500 hover:bg-kawaii-pink-400 shadow-soft transition;
+  }
+  .btn-kawaii-green {
+    @apply inline-flex items-center gap-2 px-5 py-2.5 rounded-bubble font-semibold text-white
+           bg-kawaii-green-500 hover:bg-kawaii-green-400 shadow-leaf transition;
+  }
+  .card-kawaii {
+    @apply bg-white/90 rounded-bubble p-5 shadow-soft border border-kawaii-pink-100;
+  }
+  .pill {
+    @apply inline-block px-3 py-1 rounded-full text-xs font-semibold;
+  }
+}

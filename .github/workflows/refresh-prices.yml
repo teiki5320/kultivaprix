@@ -1,0 +1,49 @@
+name: refresh-prices
+
+on:
+  schedule:
+    # Toutes les 6 heures
+    - cron: '7 */6 * * *'
+  workflow_dispatch: {}
+
+concurrency:
+  group: refresh-prices
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - name: Ingest (affiliate feeds)
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          AWIN_API_TOKEN: ${{ secrets.AWIN_API_TOKEN }}
+          AWIN_PUBLISHER_ID: ${{ secrets.AWIN_PUBLISHER_ID }}
+          AWIN_ADVERTISER_IDS: ${{ secrets.AWIN_ADVERTISER_IDS }}
+          EFFILIATION_API_KEY: ${{ secrets.EFFILIATION_API_KEY }}
+          EFFILIATION_PROGRAM_IDS: ${{ secrets.EFFILIATION_PROGRAM_IDS }}
+          AMAZON_PA_ACCESS_KEY: ${{ secrets.AMAZON_PA_ACCESS_KEY }}
+          AMAZON_PA_SECRET_KEY: ${{ secrets.AMAZON_PA_SECRET_KEY }}
+          AMAZON_PA_PARTNER_TAG: ${{ secrets.AMAZON_PA_PARTNER_TAG }}
+          MANOMANO_FEED_URL: ${{ secrets.MANOMANO_FEED_URL }}
+        run: npm run ingest:all
+      - name: Normalize & rebuild content
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: npm run normalize
+      - name: Trigger Vercel redeploy
+        env:
+          HOOK: ${{ secrets.VERCEL_DEPLOY_HOOK_URL }}
+        if: env.HOOK != ''
+        run: curl -fsSL -X POST "$HOOK"

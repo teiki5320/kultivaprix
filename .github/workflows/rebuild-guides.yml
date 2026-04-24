@@ -1,0 +1,29 @@
+name: rebuild-guides
+
+on:
+  schedule:
+    - cron: '13 4 * * 1'   # chaque lundi à 04:13 UTC
+  workflow_dispatch: {}
+
+jobs:
+  guides:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - name: Rebuild guides (via normalize phase D)
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: npm run normalize
+      - name: Trigger Vercel redeploy
+        env:
+          HOOK: ${{ secrets.VERCEL_DEPLOY_HOOK_URL }}
+        if: env.HOOK != ''
+        run: curl -fsSL -X POST "$HOOK"

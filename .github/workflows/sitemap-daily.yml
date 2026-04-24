@@ -1,0 +1,38 @@
+name: sitemap-daily
+
+on:
+  schedule:
+    - cron: '47 3 * * *'   # tous les jours à 03:47 UTC
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  sitemap:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - name: Generate sitemap & robots
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          NEXT_PUBLIC_SITE_URL: ${{ secrets.SITE_URL }}
+        run: npm run sitemap
+      - name: Commit sitemap if changed
+        run: |
+          git config user.name "kultivaprix-bot"
+          git config user.email "bot@kultivaprix.com"
+          git add public/sitemap.xml public/robots.txt
+          if git diff --cached --quiet; then
+            echo "no sitemap changes"
+          else
+            git commit -m "chore(sitemap): daily refresh"
+            git push
+          fi
