@@ -2,151 +2,282 @@
 @tailwind components;
 @tailwind utilities;
 
-/* === Kultiva design tokens ===
-   Mirrors the variables from the kultiva.app presentation site so both
-   products share the exact same design language. */
+/* ====================================================================
+   Kultiva Design System — 1:1 with lib/theme/app_theme.dart + landing
+   (sourced from the shared colors_and_type.css)
+   ==================================================================== */
+
 :root {
-  --brand: #4A9B5A;
-  --brand-dark: #357A44;
-  --light-green: #BCE5C1;
-  --mint-green: #A8D5A2;
-  --spring-a: #FBD8E6;
-  --terracotta: #D8A881;
-  --terracotta-deep: #D17A4E;
-  --butter-yellow: #FFE7A0;
-  --butter-soft: #FFF3D0;
-  --peach: #F8CBA6;
-  --sky: #E0EEFB;
-  --sky-muted: #C6D8E3;
+  /* Greens */
+  --sage-green:        #A8C3A0;
+  --primary-green:     #4A9B5A;
+  --light-green:       #A8D5A2;
+  --mint-green:        #C8E6C9;
+  --dark-green:        #2F7A3E;
 
-  --cream-warm: #FAF3DE;
-  --cream-surface: #FFF8E8;
-  --cream: #F3EDD8;
+  /* Warm neutrals */
+  --cream:             #FFF8E7;
+  --cream-warm:        #FCF4E1;
+  --cream-soft:        #F4E8D0;
+  --cream-surface:     #F5FAF8;
+  --white:             #FFFFFF;
 
-  --fg: #3D4A3F;
-  --fg-muted: #6B7A6F;
-  --fg-subtle: #8E9C92;
-  --ink-deep: #2A3A2E;
+  /* Accents */
+  --terracotta:        #E8A87C;
+  --terracotta-deep:   #D17A4E;
+  --terracotta-darker: #B85A32;
+  --blush-pink:        #F4C2C2;
+  --butter-yellow:     #FFE8A3;
+  --sky-blue:          #7BAFD4;
+  --sky-pastel:        #D6ECFA;
 
-  --font-display: 'Fraunces', 'Baloo 2', ui-serif, Georgia, serif;
-  --font-body: 'Nunito', system-ui, -apple-system, sans-serif;
+  /* Text */
+  --text-primary:      #3D4A3D;
+  --text-secondary:    #8AAB8A;
+  --text-muted:        #6E7A6E;
+  --text-legal:        #8A8C80;
 
-  --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.06);
-  --shadow-md: 0 12px 32px rgba(0, 0, 0, 0.08);
-  --shadow-logo: 0 6px 16px rgba(74, 155, 90, 0.25);
+  /* Seasonal gradients */
+  --spring-a:          #FBD8E6;
+  --spring-b:          #BCE5C1;
+  --summer-a:          #FFE7A0;
+  --summer-b:          #A8D5A2;
+  --autumn-a:          #F8CBA6;
+  --autumn-b:          #E8A87C;
+  --winter-a:          #E0EEFB;
+  --winter-b:          #C6D8E3;
 
-  --dur-quick: 150ms;
-  --dur-normal: 280ms;
-  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+  /* Dark-mode companions (+ landing footer fg) */
+  --dark-bg:           #0F1F18;
+  --dark-surface:      #1A2E22;
+  --dark-card:         #1F3528;
+  --dark-primary:      #5ABD6A;
+  --ink-deep:          #2A3A2E; /* landing footer background */
+
+  /* Semantic */
+  --bg:                var(--cream-surface);
+  --bg-warm:           var(--cream-warm);
+  --surface:           var(--white);
+  --surface-soft:      color-mix(in oklab, var(--light-green) 20%, white);
+  --fg:                var(--text-primary);
+  --fg-muted:          var(--text-secondary);
+  --fg-subtle:         color-mix(in oklab, var(--text-primary) 55%, transparent);
+
+  --brand:             var(--primary-green);
+  --brand-dark:        var(--dark-green);
+  --brand-soft:        color-mix(in oklab, var(--primary-green) 12%, white);
+  --accent:            var(--terracotta-deep);
+  --accent-soft:       var(--terracotta);
+  --favorite:          var(--terracotta);
+
+  --success:           var(--primary-green);
+  --warning:           var(--terracotta);
+  --danger:            #D97A6C;
+  --info:              var(--sky-blue);
+
+  --border:            var(--light-green);
+  --border-soft:       color-mix(in oklab, var(--light-green) 50%, transparent);
+
+  /* Type */
+  --font-display:      'Fredoka', 'Quicksand', 'Nunito', system-ui, sans-serif;
+  --font-body:         'Quicksand', 'Nunito', system-ui, sans-serif;
+  --font-native:       'Nunito', 'Quicksand', system-ui, sans-serif;
+
+  --fw-regular:        400;
+  --fw-medium:         500;
+  --fw-semibold:       600;
+  --fw-bold:           700;
+  --fw-heavy:          800;
+
+  --text-display:      clamp(40px, 6vw, 56px);
+  --text-h1:           32px;
+  --text-h2:           24px;
+  --text-h3:           20px;
+  --text-h4:           17px;
+  --text-body:         15px;
+  --text-small:        13px;
+  --text-micro:        11px;
+  --text-mono:         13px;
+
+  --lh-tight:          1.2;
+  --lh-snug:           1.35;
+  --lh-normal:         1.55;
+  --tracking-eyebrow:  0.5px;
+
+  /* Radii */
+  --r-xs:              8px;
+  --r-sm:              12px;
+  --r-md:              18px;
+  --r-lg:              20px;
+  --r-xl:              22px;
+  --r-2xl:             28px;
+  --r-pill:            999px;
+
+  /* Spacing (reference) */
+  --s-1: 4px;  --s-2: 8px;  --s-3: 12px;  --s-4: 16px;
+  --s-5: 20px; --s-6: 24px; --s-8: 32px;  --s-10: 40px;
+  --s-12: 48px; --s-16: 64px;
+
+  /* Shadows — soft & brand-tinted */
+  --shadow-xs:    0 1px 2px rgba(74, 155, 90, 0.06);
+  --shadow-sm:    0 4px 14px rgba(0, 0, 0, 0.06);
+  --shadow-md:    0 6px 18px rgba(0, 0, 0, 0.06);
+  --shadow-lg:    0 10px 26px rgba(0, 0, 0, 0.10);
+  --shadow-xl:    0 14px 34px rgba(74, 155, 90, 0.15);
+  --shadow-card:  0 4px 14px rgba(74, 155, 90, 0.12);
+  --shadow-logo:  0 10px 30px rgba(0, 0, 0, 0.08);
+  --shadow-press: inset 0 2px 6px rgba(74, 155, 90, 0.18);
+
+  /* Motion */
+  --ease-soft:    cubic-bezier(.4, 0, .2, 1);
+  --ease-bounce:  cubic-bezier(.34, 1.56, .64, 1);
+  --ease-out:     cubic-bezier(0, 0, .2, 1);
+  --dur-quick:    150ms;
+  --dur-normal:   250ms;
+  --dur-slow:     400ms;
 }
 
 @layer base {
-  html {
-    background: var(--cream-warm);
-    color: var(--fg);
+  html, body {
     font-family: var(--font-body);
+    font-weight: var(--fw-medium);
+    color: var(--fg);
+    background: var(--bg-warm);
+    line-height: var(--lh-normal);
     -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
   }
-  body { background: var(--cream-warm); }
-  h1, h2, h3, h4 {
+
+  h1 {
     font-family: var(--font-display);
-    letter-spacing: -0.02em;
+    font-weight: var(--fw-bold);
+    font-size: var(--text-h1);
+    line-height: var(--lh-tight);
+    letter-spacing: -0.01em;
     color: var(--fg);
   }
-  a {
-    color: var(--terracotta-deep);
-    text-decoration: none;
+  h2 {
+    font-family: var(--font-display);
+    font-weight: var(--fw-bold);
+    font-size: var(--text-h2);
+    line-height: var(--lh-tight);
+    color: var(--fg);
   }
+  h3 {
+    font-family: var(--font-display);
+    font-weight: var(--fw-bold);
+    font-size: var(--text-h3);
+    line-height: var(--lh-snug);
+    color: var(--fg);
+  }
+  h4 {
+    font-family: var(--font-body);
+    font-weight: var(--fw-heavy);
+    font-size: var(--text-h4);
+    line-height: var(--lh-snug);
+    color: var(--fg);
+  }
+  p { font-family: var(--font-body); font-weight: var(--fw-medium); font-size: var(--text-body); color: var(--fg); }
+  a { color: var(--terracotta-deep); text-decoration: none; }
   a:hover { color: var(--brand-dark); }
 }
 
 @layer components {
   /* === Buttons === */
   .btn-primary {
-    @apply inline-flex items-center gap-2 px-6 py-3 rounded-bubble font-display font-semibold text-white
-           transition;
+    @apply inline-flex items-center gap-2 font-display font-semibold text-white transition;
     background: var(--terracotta-deep);
+    padding: 14px 24px;
+    border-radius: var(--r-lg);
     box-shadow: 0 10px 24px rgba(209, 122, 78, 0.35);
   }
-  .btn-primary:hover { transform: translateY(-2px); }
+  .btn-primary:hover { transform: translateY(-2px); background: var(--terracotta-darker); }
 
   .btn-ghost {
-    @apply inline-flex items-center gap-2 px-6 py-3 rounded-bubble font-display font-semibold
-           bg-white text-fg transition;
+    @apply inline-flex items-center gap-2 font-display font-semibold transition bg-white;
+    color: var(--fg);
+    padding: 14px 24px;
+    border-radius: var(--r-lg);
     box-shadow: var(--shadow-sm);
   }
   .btn-ghost:hover { transform: translateY(-2px); }
 
   .btn-brand {
-    @apply inline-flex items-center gap-2 px-6 py-3 rounded-bubble font-display font-semibold text-white transition;
+    @apply inline-flex items-center gap-2 font-display font-semibold text-white transition;
     background: var(--brand);
+    padding: 14px 24px;
+    border-radius: var(--r-lg);
     box-shadow: 0 10px 24px rgba(74, 155, 90, 0.30);
   }
   .btn-brand:hover { transform: translateY(-2px); background: var(--brand-dark); }
 
-  /* Legacy aliases so existing markup keeps working with the new palette */
-  .btn-kawaii {
-    @apply inline-flex items-center gap-2 px-6 py-3 rounded-bubble font-display font-semibold text-white transition;
-    background: var(--terracotta-deep);
-    box-shadow: 0 10px 24px rgba(209, 122, 78, 0.35);
-  }
-  .btn-kawaii:hover { transform: translateY(-2px); }
-  .btn-kawaii-green {
-    @apply inline-flex items-center gap-2 px-6 py-3 rounded-bubble font-display font-semibold text-white transition;
-    background: var(--brand);
-    box-shadow: 0 10px 24px rgba(74, 155, 90, 0.30);
-  }
-  .btn-kawaii-green:hover { transform: translateY(-2px); background: var(--brand-dark); }
+  /* Legacy aliases kept in the new palette */
+  .btn-kawaii       { @apply btn-primary; }
+  .btn-kawaii-green { @apply btn-brand; }
 
-  /* === Eyebrow / kicker pills === */
+  /* === Eyebrows / kickers === */
   .eyebrow-pill {
-    @apply inline-flex items-center gap-2 bg-white font-body font-extrabold text-xs;
+    @apply inline-flex items-center gap-2 bg-white font-body font-bold;
     color: var(--brand-dark);
+    font-size: var(--text-micro);
+    letter-spacing: var(--tracking-eyebrow);
     padding: 8px 16px;
-    border-radius: 999px;
+    border-radius: var(--r-pill);
     box-shadow: var(--shadow-sm);
   }
   .kicker {
-    @apply inline-block font-body font-extrabold text-xs uppercase;
-    letter-spacing: 0.12em;
+    @apply inline-block font-body font-bold;
     color: var(--brand);
-    background: color-mix(in oklab, var(--brand) 10%, white);
+    background: var(--brand-soft);
+    font-size: var(--text-micro);
+    letter-spacing: var(--tracking-eyebrow);
     padding: 6px 14px;
-    border-radius: 999px;
+    border-radius: var(--r-pill);
   }
   .kicker-terra {
     color: var(--terracotta-deep);
     background: color-mix(in oklab, var(--terracotta-deep) 12%, white);
   }
+  .kicker-sky {
+    color: #2D6B8F;
+    background: var(--sky-pastel);
+  }
 
   /* === Cards === */
   .card-kawaii {
-    @apply rounded-bubble p-6 transition;
-    background: var(--cream-surface);
-    box-shadow: var(--shadow-sm);
-    border: 1px solid color-mix(in oklab, var(--cream) 80%, transparent);
+    @apply transition;
+    background: var(--white);
+    padding: var(--s-6);
+    border-radius: var(--r-md);
+    box-shadow: var(--shadow-card);
+    border: 1px solid var(--border-soft);
   }
   .card-cream {
-    @apply rounded-bubble p-6;
     background: var(--cream-surface);
+    padding: var(--s-6);
+    border-radius: var(--r-2xl);
     box-shadow: var(--shadow-sm);
   }
   .card-white {
-    @apply rounded-bubble p-6 bg-white;
+    background: var(--white);
+    padding: var(--s-6);
+    border-radius: var(--r-2xl);
     box-shadow: var(--shadow-md);
   }
-  .card-gradient-a { background: linear-gradient(135deg, #FBD8E6, #BCE5C1); }
-  .card-gradient-b { background: linear-gradient(135deg, #FFE7A0, #F8CBA6); }
-  .card-gradient-c { background: linear-gradient(135deg, #E0EEFB, #C6D8E3); }
+
+  .card-gradient-a { background: linear-gradient(135deg, var(--spring-a), var(--spring-b)); }
+  .card-gradient-b { background: linear-gradient(135deg, var(--summer-a), var(--autumn-a)); }
+  .card-gradient-c { background: linear-gradient(135deg, var(--winter-a), var(--winter-b)); }
 
   /* === Pill === */
   .pill {
-    @apply inline-block font-body font-extrabold text-xs;
+    @apply inline-block font-body font-bold;
+    font-size: var(--text-micro);
     padding: 4px 12px;
-    border-radius: 999px;
+    border-radius: var(--r-pill);
   }
 
-  /* === Hero highlight (em under the h1 title) === */
+  /* === Hero highlight (<em> with butter underline bar) === */
   .hero-em {
     position: relative;
     display: inline-block;
@@ -163,7 +294,7 @@
     z-index: -1;
   }
 
-  /* Decorative soft blobs for hero backgrounds */
+  /* Soft decorative blobs used behind the hero */
   .blob {
     position: absolute;
     border-radius: 50%;
