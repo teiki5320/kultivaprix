@@ -13,3 +13,4 @@ dist
 .vercel
 /.cache
 /models-cache
+tsconfig.tsbuildinfo

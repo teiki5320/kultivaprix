@@ -35,20 +35,26 @@ export default async function SearchPage({ searchParams }: Props) {
   const q = (searchParams.q ?? '').trim();
   const results = await search(q);
   return (
-    <div className="flex flex-col gap-6">
-      <h1 className="font-display text-3xl font-extrabold text-kawaii-green-600">🔎 Rechercher</h1>
+    <div className="flex flex-col gap-8">
+      <header>
+        <span className="kicker">🔎 Recherche</span>
+        <h1 className="font-display text-4xl font-bold text-fg mt-3">
+          Trouve le <em className="hero-em">meilleur prix</em>
+        </h1>
+      </header>
       <form method="get" className="flex gap-2">
         <input
           type="search"
           name="q"
           defaultValue={q}
           placeholder="Ex: tomate Marmande, sécateur, terreau…"
-          className="flex-1 px-4 py-3 rounded-bubble border border-kawaii-pink-200 bg-white focus:outline-none focus:border-kawaii-pink-400"
+          className="flex-1 px-5 py-4 rounded-bubble bg-white font-body text-fg placeholder:text-fg-subtle focus:outline-none transition"
+          style={{ boxShadow: 'var(--shadow-sm)' }}
         />
-        <button type="submit" className="btn-kawaii">Chercher</button>
+        <button type="submit" className="btn-primary">Chercher</button>
       </form>
       {q && (
-        <p className="text-kawaii-ink/70">
+        <p className="font-body text-fg-muted">
           {results.length} résultat{results.length > 1 ? 's' : ''} pour <strong>«&nbsp;{q}&nbsp;»</strong>.
         </p>
       )}
@@ -56,9 +62,9 @@ export default async function SearchPage({ searchParams }: Props) {
         {results.map((r) => <ProductCard key={r.slug} {...r} />)}
       </section>
       {!q && (
-        <div className="card-kawaii">
-          <p>Tape une variété, une marque ou un outil pour démarrer.</p>
-          <p className="mt-2">
+        <div className="card-cream">
+          <p className="font-body text-fg">Tape une variété, une marque ou un outil pour démarrer.</p>
+          <p className="mt-2 font-body text-fg-muted">
             Tu peux aussi parcourir par <Link href="/graines">catégorie</Link>.
           </p>
         </div>

@@ -2,8 +2,8 @@ export const metadata = { title: 'Mentions légales' };
 
 export default function MentionsLegales() {
   return (
-    <article className="card-kawaii prose max-w-none">
-      <h1 className="font-display text-3xl font-extrabold text-kawaii-green-600">Mentions légales</h1>
+    <article className="card-cream prose max-w-none">
+      <h1 className="font-display text-4xl font-bold text-fg">Mentions légales</h1>
       <h2>Éditeur</h2>
       <p>Kultivaprix est édité par <strong>[Raison sociale à compléter]</strong>, [adresse], RCS [ville] n° [numéro].</p>
       <h2>Hébergement</h2>
