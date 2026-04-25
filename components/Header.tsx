@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { PreferencesDrawer } from './PreferencesDrawer';
+import { CartLink } from './CartLink';
 import { MONTHS } from '@/lib/calendar';
 
 export function Header() {
@@ -35,6 +36,7 @@ export function Header() {
           >
             Calendrier
           </Link>
+          <CartLink />
           <PreferencesDrawer />
           <Link href="/recherche" className="btn-primary !py-2 !px-5 !text-sm">
             🔎 <span className="hidden sm:inline">Chercher</span>

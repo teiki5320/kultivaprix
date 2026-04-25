@@ -13,6 +13,8 @@ import { computePriceStats } from '@/lib/price-stats';
 import { getPreferences } from '@/lib/preferences-server';
 import { convertAndFormat } from '@/lib/format-money';
 import { SimilarProducts } from '@/components/SimilarProducts';
+import { PriceAlertForm } from '@/components/PriceAlertForm';
+import { AddToCartButton } from '@/components/AddToCartButton';
 
 export const revalidate = 21600; // 6h
 
@@ -202,6 +204,9 @@ export default async function ProductPage({ params }: { params: { slug: string }
             </p>
           )}
           <PriceBadges stats={priceStats} currency={prefs.currency} />
+          <div className="mt-2">
+            <AddToCartButton slug={product.slug} />
+          </div>
         </div>
       </header>
 
@@ -237,6 +242,12 @@ export default async function ProductPage({ params }: { params: { slug: string }
           )}
         </article>
       </section>
+
+      <PriceAlertForm
+        productSlug={product.slug}
+        productName={product.name}
+        currentMin={minPrice}
+      />
 
       <SimilarProducts slug={product.slug} currency={prefs.currency} light={prefs.light} />
 
