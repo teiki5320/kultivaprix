@@ -22,6 +22,8 @@ import { detectTags } from '@/lib/parse-tags';
 import { computeEcoScore } from '@/lib/eco-score';
 import { AddToKultivaPlanButton } from '@/components/AddToKultivaPlanButton';
 import { CompanionsCard } from '@/components/CompanionsCard';
+import { Breadcrumbs } from '@/components/Breadcrumbs';
+import { RelatedLinks } from '@/components/RelatedLinks';
 
 export const revalidate = 21600; // 6h
 
@@ -58,7 +60,18 @@ async function getProduct(slug: string) {
     .order('recorded_at', { ascending: true })
     .limit(90);
 
-  return { product, offerRows, history: history ?? [] };
+  const { data: reviews } = await supabase
+    .from('reviews')
+    .select('rating, body, display_name, created_at')
+    .eq('product_id', product.id)
+    .eq('status', 'approved');
+
+  return {
+    product,
+    offerRows,
+    history: history ?? [],
+    reviews: (reviews ?? []) as { rating: number; body: string; display_name: string; created_at: string }[],
+  };
 }
 
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
@@ -91,7 +104,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
 export default async function ProductPage({ params }: { params: { slug: string } }) {
   const data = await getProduct(params.slug);
   if (!data) notFound();
-  const { product, offerRows, history } = data;
+  const { product, offerRows, history, reviews } = data;
 
   const prices = offerRows.map((o) => o.price).filter((n): n is number => typeof n === 'number');
   const minPrice = prices.length ? Math.min(...prices) : null;
@@ -108,8 +121,17 @@ export default async function ProductPage({ params }: { params: { slug: string }
     offerCount: offerRows.length,
   });
 
-  // JSON-LD Product + AggregateOffer
-  const jsonLd = {
+  // AggregateRating from approved reviews (only when at least 1 exists).
+  const aggregateRating = reviews.length
+    ? {
+        '@type': 'AggregateRating' as const,
+        ratingValue: (reviews.reduce((a, r) => a + r.rating, 0) / reviews.length).toFixed(1),
+        reviewCount: reviews.length,
+      }
+    : undefined;
+
+  // JSON-LD Product + AggregateOffer (+ AggregateRating + Review when available)
+  const jsonLd: Record<string, unknown> = {
     '@context': 'https://schema.org',
     '@type': 'Product',
     name: product.name,
@@ -127,7 +149,17 @@ export default async function ProductPage({ params }: { params: { slug: string }
           url: `${SITE_URL}/produit/${product.slug}`,
         }
       : undefined,
+    aggregateRating,
+    review: reviews.slice(0, 3).map((r) => ({
+      '@type': 'Review',
+      reviewRating: { '@type': 'Rating', ratingValue: r.rating, bestRating: 5 },
+      author: { '@type': 'Person', name: r.display_name },
+      reviewBody: r.body.slice(0, 300),
+      datePublished: r.created_at,
+    })),
   };
+  if (!aggregateRating) delete jsonLd.aggregateRating;
+  if (reviews.length === 0) delete jsonLd.review;
 
   // FAQPage — generic Q&A surfaces well in Google as a rich result
   const faqLd = {
@@ -178,10 +210,20 @@ export default async function ProductPage({ params }: { params: { slug: string }
   const tags = detectTags(product.name, product.brand, product.description);
   const ecoScore = computeEcoScore(tags);
 
+  const crumbs = [
+    { name: 'Accueil', href: '/' },
+    ...(product.categories
+      ? [{ name: product.categories.name, href: `/${product.categories.slug}` }]
+      : []),
+    { name: product.name, href: `/produit/${product.slug}` },
+  ];
+
   return (
     <div className="flex flex-col gap-6">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }} />
+
+      <Breadcrumbs crumbs={crumbs} />
 
       <header className="grid md:grid-cols-2 gap-8 items-start">
         <div
@@ -278,6 +320,11 @@ export default async function ProductPage({ params }: { params: { slug: string }
       />
 
       <SimilarProducts slug={product.slug} currency={prefs.currency} light={prefs.light} />
+
+      <RelatedLinks
+        categorySlug={product.categories?.slug ?? null}
+        categoryName={product.categories?.name ?? null}
+      />
 
       <CTAKultiva context={`product-${product.slug}`} />
     </div>

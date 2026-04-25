@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { CTAKultiva } from '@/components/CTAKultiva';
+import { Breadcrumbs } from '@/components/Breadcrumbs';
 import { formatPrice } from '@/lib/utils';
 import { parseQuantity, unitPrice } from '@/lib/parse-quantity';
 import { detectTags } from '@/lib/parse-tags';
@@ -112,6 +113,12 @@ export default async function ComparatifPage({ params }: { params: { slug: strin
 
   return (
     <div className="flex flex-col gap-10">
+      <Breadcrumbs
+        crumbs={[
+          { name: 'Accueil', href: '/' },
+          { name: `${a.name} vs ${b.name}`, href: `/comparatif/${pair[0]}-vs-${pair[1]}` },
+        ]}
+      />
       <header className="text-center pt-4">
         <span className="kicker">⚖️ Comparatif</span>
         <h1 className="font-display text-4xl md:text-5xl font-bold text-fg mt-3 leading-tight">

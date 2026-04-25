@@ -71,7 +71,15 @@ export function CartView() {
             >
               {p.image_url ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={p.image_url} alt="" className="w-full h-full object-cover" loading="lazy" />
+                <img
+                  src={p.image_url}
+                  alt={p.name}
+                  width={64}
+                  height={64}
+                  className="w-full h-full object-cover"
+                  loading="lazy"
+                  decoding="async"
+                />
               ) : (
                 <span className="text-2xl" aria-hidden>🌱</span>
               )}

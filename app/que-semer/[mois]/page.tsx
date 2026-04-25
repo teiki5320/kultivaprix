@@ -6,6 +6,7 @@ import { ProductCard } from '@/components/ProductCard';
 import { CTAKultiva } from '@/components/CTAKultiva';
 import { AddToKultivaPlanButton } from '@/components/AddToKultivaPlanButton';
 import { PlantedThisMonth } from '@/components/PlantedThisMonth';
+import { Breadcrumbs } from '@/components/Breadcrumbs';
 import { CALENDAR, MONTHS, isMonth, monthLabel, type Month } from '@/lib/calendar';
 
 export const revalidate = 86400;
@@ -106,6 +107,13 @@ export default async function QueSemerPage({ params }: { params: { mois: string 
   return (
     <div className="flex flex-col gap-10">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faq) }} />
+      <Breadcrumbs
+        crumbs={[
+          { name: 'Accueil', href: '/' },
+          { name: 'Calendrier', href: `/que-semer/${mois}` },
+          { name: m, href: `/que-semer/${mois}` },
+        ]}
+      />
 
       <header className="text-center pt-4">
         <span className="kicker">{monthInfo.emoji} Calendrier · {monthInfo.season}</span>

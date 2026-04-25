@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { CTAKultiva } from '@/components/CTAKultiva';
+import { Breadcrumbs } from '@/components/Breadcrumbs';
 import { CALENDAR, MONTHS, isMonth, monthLabel, type Month } from '@/lib/calendar';
 
 export const revalidate = 86400;
@@ -37,6 +38,13 @@ export default function QueRecolterPage({ params }: { params: { mois: string } }
 
   return (
     <div className="flex flex-col gap-10">
+      <Breadcrumbs
+        crumbs={[
+          { name: 'Accueil', href: '/' },
+          { name: 'Récolte', href: `/que-recolter/${mois}` },
+          { name: m, href: `/que-recolter/${mois}` },
+        ]}
+      />
       <header className="text-center pt-4">
         <span className="kicker kicker-terra">{monthInfo.emoji} Récolte · {monthInfo.season}</span>
         <h1 className="font-display text-4xl md:text-5xl font-bold text-fg mt-3">

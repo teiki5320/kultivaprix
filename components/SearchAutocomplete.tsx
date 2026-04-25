@@ -90,12 +90,22 @@ export function SearchAutocomplete({ initialValue = '' }: { initialValue?: strin
               onClick={() => setOpen(false)}
             >
               <div
-                className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 overflow-hidden"
+                className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 overflow-hidden relative"
                 style={{ background: 'var(--cream)' }}
               >
                 {h.image_url ? (
+                  // Lightweight (already 40px) — kept as plain img inside an
+                  // overlay popover where Next/Image's hydration cost is overkill.
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={h.image_url} alt="" className="w-full h-full object-cover" loading="lazy" />
+                  <img
+                    src={h.image_url}
+                    alt={h.name}
+                    width={40}
+                    height={40}
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                    decoding="async"
+                  />
                 ) : (
                   <span aria-hidden>🌱</span>
                 )}
