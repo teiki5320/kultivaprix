@@ -106,6 +106,42 @@ export default async function ProductPage({ params }: { params: { slug: string }
       : undefined,
   };
 
+  // FAQPage — generic Q&A surfaces well in Google as a rich result
+  const faqLd = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: [
+      {
+        '@type': 'Question',
+        name: `Quel est le prix le plus bas pour ${product.name} ?`,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: minPrice
+            ? `Le prix le plus bas constaté est ${formatPrice(minPrice)}, parmi ${offerRows.length} marchand(s) suivi(s).`
+            : `Aucun prix n'est disponible pour le moment.`,
+        },
+      },
+      {
+        '@type': 'Question',
+        name: `Comment savoir si c'est le bon moment pour acheter ${product.name} ?`,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text:
+            "Notre courbe d'historique des prix sur 90 jours t'indique si le prix actuel est bas, moyen ou haut par rapport au mois dernier. Plus c'est bas, plus c'est le bon moment.",
+        },
+      },
+      {
+        '@type': 'Question',
+        name: `Les liens marchands sont-ils sponsorisés ?`,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text:
+            "Non. Les marchands sont triés du moins cher au plus cher, et personne ne paie pour apparaître plus haut. Les liens sont des liens d'affiliation : ils financent le site sans changer le prix.",
+        },
+      },
+    ],
+  };
+
   const points = history.map((h: any) => ({
     date: new Date(h.recorded_at).toLocaleDateString('fr-FR', { month: 'short', day: '2-digit' }),
     price: Number(h.price),
@@ -119,6 +155,7 @@ export default async function ProductPage({ params }: { params: { slug: string }
   return (
     <div className="flex flex-col gap-6">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }} />
 
       <header className="grid md:grid-cols-2 gap-8 items-start">
         <div
