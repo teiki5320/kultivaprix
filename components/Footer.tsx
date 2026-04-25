@@ -42,6 +42,24 @@ export function Footer() {
                 </a>
               </li>
               <li><Link href="/guide/bien-choisir-ses-graines" className="hover:text-white">Guides</Link></li>
+              <li><Link href="/glossaire" className="hover:text-white">Glossaire</Link></li>
+              <li><Link href="/kits" className="hover:text-white">Kits potager</Link></li>
+              <li><Link href="/quiz" className="hover:text-white">Quiz quoi planter</Link></li>
+              <li><Link href="/calendrier-imprimable" className="hover:text-white">Calendrier imprimable</Link></li>
+              <li><Link href="/ambassadeur" className="hover:text-white">Ambassadeur</Link></li>
+              {process.env.NEXT_PUBLIC_TIPJAR_URL && (
+                <li>
+                  <a
+                    href={process.env.NEXT_PUBLIC_TIPJAR_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 hover:text-white"
+                    style={{ color: 'var(--butter-yellow)' }}
+                  >
+                    ☕ Soutenir le projet
+                  </a>
+                </li>
+              )}
             </ul>
           </div>
 
