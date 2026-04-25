@@ -21,6 +21,7 @@ import { ReviewsSection } from '@/components/ReviewsSection';
 import { detectTags } from '@/lib/parse-tags';
 import { computeEcoScore } from '@/lib/eco-score';
 import { AddToKultivaPlanButton } from '@/components/AddToKultivaPlanButton';
+import { CompanionsCard } from '@/components/CompanionsCard';
 
 export const revalidate = 21600; // 6h
 
@@ -254,6 +255,8 @@ export default async function ProductPage({ params }: { params: { slug: string }
       </section>
 
       <CulturalDataCard name={product.name} attributes={product.attributes ?? null} />
+
+      <CompanionsCard name={product.name} />
 
       <ReviewsSection productId={product.id} productSlug={product.slug} productName={product.name} />
 
