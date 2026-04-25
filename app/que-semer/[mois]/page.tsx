@@ -4,6 +4,8 @@ import { notFound } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { ProductCard } from '@/components/ProductCard';
 import { CTAKultiva } from '@/components/CTAKultiva';
+import { AddToKultivaPlanButton } from '@/components/AddToKultivaPlanButton';
+import { PlantedThisMonth } from '@/components/PlantedThisMonth';
 import { CALENDAR, MONTHS, isMonth, monthLabel, type Month } from '@/lib/calendar';
 
 export const revalidate = 86400;
@@ -52,6 +54,7 @@ export default async function QueSemerPage({ params }: { params: { mois: string 
   const products = await getProducts(data.semer.map((s) => s.query));
 
   const monthInfo = MONTHS.find((mm) => mm.slug === mois)!;
+  const monthNumber = MONTHS.findIndex((mm) => mm.slug === mois) + 1;
 
   // FAQPage JSON-LD — long-tail SEO
   const faq = {
@@ -104,6 +107,9 @@ export default async function QueSemerPage({ params }: { params: { mois: string 
           Variétés à semer ce mois en France métropolitaine. On t&apos;a sélectionné les graines
           et plants disponibles chez nos marchands suivis, classés par prix.
         </p>
+        <div className="mt-5 flex justify-center">
+          <AddToKultivaPlanButton month={monthNumber} campaign={`semer-${mois}`} label="Ouvrir mon calendrier Kultiva" />
+        </div>
       </header>
 
       <section>
@@ -170,6 +176,8 @@ export default async function QueSemerPage({ params }: { params: { mois: string 
           ))}
         </div>
       </nav>
+
+      <PlantedThisMonth />
 
       <CTAKultiva context={`que-semer-${mois}`} />
     </div>

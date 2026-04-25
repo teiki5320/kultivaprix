@@ -20,6 +20,7 @@ import { EcoScoreBadge } from '@/components/EcoScoreBadge';
 import { ReviewsSection } from '@/components/ReviewsSection';
 import { detectTags } from '@/lib/parse-tags';
 import { computeEcoScore } from '@/lib/eco-score';
+import { AddToKultivaPlanButton } from '@/components/AddToKultivaPlanButton';
 
 export const revalidate = 21600; // 6h
 
@@ -212,8 +213,9 @@ export default async function ProductPage({ params }: { params: { slug: string }
           )}
           <PriceBadges stats={priceStats} currency={prefs.currency} />
           <EcoScoreBadge score={ecoScore} />
-          <div className="mt-2">
+          <div className="mt-2 flex flex-wrap gap-2">
             <AddToCartButton slug={product.slug} />
+            <AddToKultivaPlanButton productSlug={product.slug} campaign={`product-${product.slug}`} />
           </div>
         </div>
       </header>
