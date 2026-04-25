@@ -12,6 +12,7 @@ import { SITE_URL, formatPrice } from '@/lib/utils';
 import { computePriceStats } from '@/lib/price-stats';
 import { getPreferences } from '@/lib/preferences-server';
 import { convertAndFormat } from '@/lib/format-money';
+import { SimilarProducts } from '@/components/SimilarProducts';
 
 export const revalidate = 21600; // 6h
 
@@ -236,6 +237,8 @@ export default async function ProductPage({ params }: { params: { slug: string }
           )}
         </article>
       </section>
+
+      <SimilarProducts slug={product.slug} currency={prefs.currency} light={prefs.light} />
 
       <CTAKultiva context={`product-${product.slug}`} />
     </div>
