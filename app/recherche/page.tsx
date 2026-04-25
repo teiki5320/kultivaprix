@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { ProductCard } from '@/components/ProductCard';
 import Link from 'next/link';
 import { getPreferences } from '@/lib/preferences-server';
@@ -6,6 +7,22 @@ import { detectTags } from '@/lib/parse-tags';
 import { SearchAutocomplete } from '@/components/SearchAutocomplete';
 
 export const revalidate = 0;
+
+export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
+  const q = (searchParams.q ?? '').trim();
+  if (!q) {
+    return {
+      title: 'Recherche · graines, plants, outils',
+      description: 'Cherche une variété, une marque ou un outil. Comparateur neutre, prix mis à jour plusieurs fois par jour.',
+      alternates: { canonical: '/recherche' },
+    };
+  }
+  return {
+    title: `${q} : prix comparés`,
+    description: `Toutes les offres de ${q} chez les marchands jardinage français, classées du moins cher au plus cher.`,
+    alternates: { canonical: `/recherche?q=${encodeURIComponent(q)}` },
+  };
+}
 
 interface Props {
   searchParams: {

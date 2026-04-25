@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { CTAKultiva } from '@/components/CTAKultiva';
+import { Breadcrumbs } from '@/components/Breadcrumbs';
+import { itemListLd } from '@/lib/jsonld';
 import { CALENDAR, MONTHS, isMonth, monthLabel, type Month } from '@/lib/calendar';
 
 export const revalidate = 86400;
@@ -13,9 +15,18 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: { params: { mois: string } }): Promise<Metadata> {
   if (!isMonth(params.mois)) return {};
   const m = monthLabel(params.mois);
+  const data = CALENDAR[params.mois as Month];
+  const top = data.recolter.slice(0, 3).map((s) => s.label).join(', ');
+  const canonical = `/que-recolter/${params.mois}`;
+  const title = `Que récolter en ${m} ?`;
+  const description = top
+    ? `${m} : on récolte ${top}… Idées potager et signes de maturité.`
+    : `Calendrier de récolte ${m.toLowerCase()} pour la France.`;
   return {
-    title: `Que récolter en ${m} ?`,
-    description: `Calendrier de récolte ${m.toLowerCase()} pour la France. Légumes prêts à cueillir, signes de maturité et idées de cuisine.`,
+    title,
+    description,
+    alternates: { canonical },
+    openGraph: { title, description, url: canonical },
   };
 }
 
@@ -26,8 +37,22 @@ export default function QueRecolterPage({ params }: { params: { mois: string } }
   const data = CALENDAR[mois];
   const monthInfo = MONTHS.find((mm) => mm.slug === mois)!;
 
+  const itemList = itemListLd(
+    `À récolter en ${m}`,
+    data.recolter.map((s) => ({ slug: s.query, name: s.label })),
+    '/recherche?q=',
+  );
+
   return (
     <div className="flex flex-col gap-10">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(itemList) }} />
+      <Breadcrumbs
+        crumbs={[
+          { name: 'Accueil', href: '/' },
+          { name: 'Récolte', href: `/que-recolter/${mois}` },
+          { name: m, href: `/que-recolter/${mois}` },
+        ]}
+      />
       <header className="text-center pt-4">
         <span className="kicker kicker-terra">{monthInfo.emoji} Récolte · {monthInfo.season}</span>
         <h1 className="font-display text-4xl md:text-5xl font-bold text-fg mt-3">

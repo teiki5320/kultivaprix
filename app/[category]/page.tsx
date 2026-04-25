@@ -5,6 +5,8 @@ import { ProductCard } from '@/components/ProductCard';
 import { CTAKultiva } from '@/components/CTAKultiva';
 import { buildCategoryIntro, buildCategoryMeta } from '@/lib/content-templates/category';
 import { getPreferences } from '@/lib/preferences-server';
+import { Breadcrumbs } from '@/components/Breadcrumbs';
+import { itemListLd } from '@/lib/jsonld';
 
 export const revalidate = 21600; // 6h
 
@@ -45,14 +47,18 @@ async function getCategory(slug: string) {
 export async function generateMetadata({ params }: { params: { category: string } }): Promise<Metadata> {
   const data = await getCategory(params.category);
   if (!data) return {};
+  const description = buildCategoryMeta({
+    name: data.cat.name,
+    slug: data.cat.slug,
+    productCount: data.rows.length,
+    merchantCount: data.merchantCount,
+  });
+  const canonical = `/${data.cat.slug}`;
   return {
     title: data.cat.name,
-    description: buildCategoryMeta({
-      name: data.cat.name,
-      slug: data.cat.slug,
-      productCount: data.rows.length,
-      merchantCount: data.merchantCount,
-    }),
+    description,
+    alternates: { canonical },
+    openGraph: { title: data.cat.name, description, url: canonical },
   };
 }
 
@@ -69,8 +75,24 @@ export default async function CategoryPage({ params }: { params: { category: str
     merchantCount,
   });
 
+  const itemList = itemListLd(
+    cat.name,
+    rows.map((r) => ({ slug: r.slug, name: r.name })),
+    '/produit/',
+  );
+
   return (
     <div className="flex flex-col gap-10">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(itemList) }}
+      />
+      <Breadcrumbs
+        crumbs={[
+          { name: 'Accueil', href: '/' },
+          { name: cat.name, href: `/${cat.slug}` },
+        ]}
+      />
       <header className="text-center pt-4">
         <span className="kicker">🌿 Catégorie</span>
         <div className="text-6xl mt-4">{cat.icon ?? '🌿'}</div>

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import Image from 'next/image';
 import { supabase } from '@/lib/supabase';
 import { CTAKultiva } from '@/components/CTAKultiva';
 import { formatPrice } from '@/lib/utils';
@@ -60,10 +61,15 @@ export default async function ShareCartPage({ searchParams }: Props) {
             href={`/produit/${p.slug}`}
             className="card-cream flex items-center gap-3 no-underline transition hover:-translate-y-1 hover:shadow-leaf"
           >
-            <div className="w-16 h-16 rounded-xl overflow-hidden flex items-center justify-center shrink-0" style={{ background: 'var(--cream)' }}>
+            <div className="w-16 h-16 rounded-xl overflow-hidden flex items-center justify-center shrink-0 relative" style={{ background: 'var(--cream)' }}>
               {p.image_url ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={p.image_url} alt="" className="w-full h-full object-cover" loading="lazy" />
+                <Image
+                  src={p.image_url}
+                  alt={p.name}
+                  fill
+                  sizes="64px"
+                  className="object-cover"
+                />
               ) : (
                 <span className="text-2xl" aria-hidden>🌱</span>
               )}

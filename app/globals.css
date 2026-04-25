@@ -78,10 +78,11 @@
   --border:            var(--light-green);
   --border-soft:       color-mix(in oklab, var(--light-green) 50%, transparent);
 
-  /* Type */
-  --font-display:      'Fredoka', 'Quicksand', 'Nunito', system-ui, sans-serif;
-  --font-body:         'Quicksand', 'Nunito', system-ui, sans-serif;
-  --font-native:       'Nunito', 'Quicksand', system-ui, sans-serif;
+  /* Type — next/font loads them with display:swap and exposes their stacks
+     as --font-display-next / --font-body-next / --font-native-next. */
+  --font-display:      var(--font-display-next, 'Fredoka'), 'Quicksand', 'Nunito', system-ui, sans-serif;
+  --font-body:         var(--font-body-next, 'Quicksand'), 'Nunito', system-ui, sans-serif;
+  --font-native:       var(--font-native-next, 'Nunito'), 'Quicksand', system-ui, sans-serif;
 
   --fw-regular:        400;
   --fw-medium:         500;

@@ -1,10 +1,18 @@
 import Link from 'next/link';
+import type { Metadata } from 'next';
 import { supabase } from '@/lib/supabase';
 import { ProductCard } from '@/components/ProductCard';
 import { CTAKultiva } from '@/components/CTAKultiva';
 import { getPreferences } from '@/lib/preferences-server';
 
 export const revalidate = 21600; // 6h ISR
+
+export const metadata: Metadata = {
+  title: 'Comparateur de prix jardinage — graines, plants, outils',
+  description:
+    'Compare en un clic les prix des graines, plants et outils chez les marchands jardinage français. Mis à jour plusieurs fois par jour, prix au gramme, alertes de baisse.',
+  alternates: { canonical: '/' },
+};
 
 async function getData() {
   const [{ data: cats }, { data: featured }] = await Promise.all([

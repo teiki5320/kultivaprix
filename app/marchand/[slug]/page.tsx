@@ -1,9 +1,11 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { ProductCard } from '@/components/ProductCard';
 import { CTAKultiva } from '@/components/CTAKultiva';
+import { Breadcrumbs } from '@/components/Breadcrumbs';
 import { formatPrice } from '@/lib/utils';
 
 export const revalidate = 21600;
@@ -56,9 +58,14 @@ async function getMerchant(slug: string) {
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
   const m = await getMerchant(params.slug);
   if (!m) return {};
+  const title = `${m.name} : prix et catalogue jardinage`;
+  const description = `Comparatif des prix chez ${m.name} : ${m.productCount} produits suivis, ${m.inStockCount} en stock. Prix mis à jour automatiquement.`;
+  const canonical = `/marchand/${m.slug}`;
   return {
-    title: `${m.name} : prix et catalogue jardinage`,
-    description: `Comparatif des prix chez ${m.name} : ${m.productCount} produits suivis, ${m.inStockCount} en stock. Prix mis à jour automatiquement.`,
+    title,
+    description,
+    alternates: { canonical },
+    openGraph: { title, description, url: canonical },
   };
 }
 
@@ -68,14 +75,26 @@ export default async function MerchantPage({ params }: { params: { slug: string 
 
   return (
     <div className="flex flex-col gap-10">
+      <Breadcrumbs
+        crumbs={[
+          { name: 'Accueil', href: '/' },
+          { name: 'Marchands', href: '/carte-marchands' },
+          { name: m.name, href: `/marchand/${m.slug}` },
+        ]}
+      />
       <header className="card-cream flex flex-col md:flex-row md:items-center gap-6">
         <div
-          className="w-24 h-24 rounded-2xl flex items-center justify-center bg-white shrink-0 mx-auto md:mx-0"
+          className="w-24 h-24 rounded-2xl flex items-center justify-center bg-white shrink-0 mx-auto md:mx-0 relative overflow-hidden"
           style={{ boxShadow: 'var(--shadow-sm)' }}
         >
           {m.logo_url ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={m.logo_url} alt={m.name} className="w-full h-full object-contain p-2" />
+            <Image
+              src={m.logo_url}
+              alt={`Logo ${m.name}`}
+              fill
+              sizes="96px"
+              className="object-contain p-2"
+            />
           ) : (
             <span className="text-4xl" aria-hidden>🏪</span>
           )}

@@ -6,6 +6,8 @@ import { ProductCard } from '@/components/ProductCard';
 import { CTAKultiva } from '@/components/CTAKultiva';
 import { AddToKultivaPlanButton } from '@/components/AddToKultivaPlanButton';
 import { PlantedThisMonth } from '@/components/PlantedThisMonth';
+import { Breadcrumbs } from '@/components/Breadcrumbs';
+import { itemListLd } from '@/lib/jsonld';
 import { CALENDAR, MONTHS, isMonth, monthLabel, type Month } from '@/lib/calendar';
 
 export const revalidate = 86400;
@@ -17,9 +19,18 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: { params: { mois: string } }): Promise<Metadata> {
   if (!isMonth(params.mois)) return {};
   const m = monthLabel(params.mois);
+  const data = CALENDAR[params.mois as Month];
+  const top = data.semer.slice(0, 3).map((s) => s.label).join(', ');
+  const canonical = `/que-semer/${params.mois}`;
+  const title = `Que semer en ${m} ?`;
+  const description = top
+    ? `${m} : ${top}… Calendrier de semis et prix comparés chez les marchands jardinage français.`
+    : `Calendrier de semis ${m.toLowerCase()} pour la France métropolitaine.`;
   return {
-    title: `Que semer en ${m} ?`,
-    description: `Calendrier de semis ${m.toLowerCase()} pour la France métropolitaine. Variétés à semer ce mois, prix comparés et alternatives chez les marchands français.`,
+    title,
+    description,
+    alternates: { canonical },
+    openGraph: { title, description, url: canonical },
   };
 }
 
@@ -94,9 +105,23 @@ export default async function QueSemerPage({ params }: { params: { mois: string 
     ],
   };
 
+  const itemList = itemListLd(
+    `À semer en ${m}`,
+    data.semer.map((s) => ({ slug: s.query, name: s.label })),
+    '/recherche?q=',
+  );
+
   return (
     <div className="flex flex-col gap-10">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faq) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(itemList) }} />
+      <Breadcrumbs
+        crumbs={[
+          { name: 'Accueil', href: '/' },
+          { name: 'Calendrier', href: `/que-semer/${mois}` },
+          { name: m, href: `/que-semer/${mois}` },
+        ]}
+      />
 
       <header className="text-center pt-4">
         <span className="kicker">{monthInfo.emoji} Calendrier · {monthInfo.season}</span>

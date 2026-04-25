@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { CTAKultiva } from '@/components/CTAKultiva';
+import { Breadcrumbs } from '@/components/Breadcrumbs';
 import { formatPrice } from '@/lib/utils';
 import { parseQuantity, unitPrice } from '@/lib/parse-quantity';
 import { detectTags } from '@/lib/parse-tags';
@@ -49,9 +50,17 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   if (!pair) return {};
   const [a, b] = await Promise.all([getProduct(pair[0]), getProduct(pair[1])]);
   if (!a || !b) return {};
+  // Always canonicalise to the alphabetical ordering so /a-vs-b and /b-vs-a
+  // don't both rank — only the lexicographically-first variant is canonical.
+  const [first, second] = pair[0] < pair[1] ? [pair[0], pair[1]] : [pair[1], pair[0]];
+  const canonical = `/comparatif/${first}-vs-${second}`;
+  const title = `${a.name} vs ${b.name} : comparatif`;
+  const description = `Comparatif détaillé ${a.name} vs ${b.name} : prix, marchands, caractéristiques. Mis à jour automatiquement.`;
   return {
-    title: `${a.name} vs ${b.name} : comparatif`,
-    description: `Comparatif détaillé ${a.name} vs ${b.name} : prix, marchands, caractéristiques. Mis à jour automatiquement.`,
+    title,
+    description,
+    alternates: { canonical },
+    openGraph: { title, description, url: canonical },
   };
 }
 
@@ -104,6 +113,12 @@ export default async function ComparatifPage({ params }: { params: { slug: strin
 
   return (
     <div className="flex flex-col gap-10">
+      <Breadcrumbs
+        crumbs={[
+          { name: 'Accueil', href: '/' },
+          { name: `${a.name} vs ${b.name}`, href: `/comparatif/${pair[0]}-vs-${pair[1]}` },
+        ]}
+      />
       <header className="text-center pt-4">
         <span className="kicker">⚖️ Comparatif</span>
         <h1 className="font-display text-4xl md:text-5xl font-bold text-fg mt-3 leading-tight">

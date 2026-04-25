@@ -13,9 +13,13 @@ async function getArticle(slug: string) {
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
   const a = await getArticle(params.slug);
   if (!a) return {};
+  const description = `${a.title} — repères pratiques, sans bla-bla. Kultivaprix.`;
+  const canonical = `/guide/${a.slug}`;
   return {
     title: a.title,
-    description: `${a.title} — repères pratiques, sans bla-bla. Kultivaprix.`,
+    description,
+    alternates: { canonical },
+    openGraph: { title: a.title, description, url: canonical, type: 'article' },
   };
 }
 
