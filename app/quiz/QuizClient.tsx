@@ -94,7 +94,7 @@ export default function QuizClient() {
         <header className="text-center">
           <span className="kicker">✨ Ton potager idéal</span>
           <h1 className="font-display text-4xl md:text-5xl font-bold text-fg mt-3">
-            Voici ce que tu pourrais <em className="hero-em">planter</em>
+            Que <em className="hero-em">planter</em> chez toi : nos suggestions
           </h1>
         </header>
 

@@ -1,4 +1,8 @@
-export const metadata = { title: 'Confidentialité' };
+export const metadata = {
+  title: 'Confidentialité',
+  description: 'Quelles données on collecte (presque rien), comment elles sont anonymisées, et nos engagements RGPD.',
+  alternates: { canonical: '/confidentialite' },
+};
 
 export default function Confidentialite() {
   return (

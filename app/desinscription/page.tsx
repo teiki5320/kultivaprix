@@ -1,6 +1,11 @@
 import Link from 'next/link';
 
-export const metadata = { title: 'Désinscription' };
+export const metadata = {
+  title: 'Désinscription',
+  description: 'Confirmation de désinscription d’une alerte prix ou de la newsletter Kultivaprix.',
+  robots: { index: false, follow: false },
+  alternates: { canonical: '/desinscription' },
+};
 
 export default function UnsubscribePage({
   searchParams,

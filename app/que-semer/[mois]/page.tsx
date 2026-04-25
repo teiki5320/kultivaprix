@@ -7,6 +7,7 @@ import { CTAKultiva } from '@/components/CTAKultiva';
 import { AddToKultivaPlanButton } from '@/components/AddToKultivaPlanButton';
 import { PlantedThisMonth } from '@/components/PlantedThisMonth';
 import { Breadcrumbs } from '@/components/Breadcrumbs';
+import { itemListLd } from '@/lib/jsonld';
 import { CALENDAR, MONTHS, isMonth, monthLabel, type Month } from '@/lib/calendar';
 
 export const revalidate = 86400;
@@ -104,9 +105,16 @@ export default async function QueSemerPage({ params }: { params: { mois: string 
     ],
   };
 
+  const itemList = itemListLd(
+    `À semer en ${m}`,
+    data.semer.map((s) => ({ slug: s.query, name: s.label })),
+    '/recherche?q=',
+  );
+
   return (
     <div className="flex flex-col gap-10">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faq) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(itemList) }} />
       <Breadcrumbs
         crumbs={[
           { name: 'Accueil', href: '/' },
