@@ -10,6 +10,8 @@ import { CTAKultiva } from '@/components/CTAKultiva';
 import { buildProductDescription, buildProductMeta } from '@/lib/content-templates/product';
 import { SITE_URL, formatPrice } from '@/lib/utils';
 import { computePriceStats } from '@/lib/price-stats';
+import { getPreferences } from '@/lib/preferences-server';
+import { convertAndFormat } from '@/lib/format-money';
 
 export const revalidate = 21600; // 6h
 
@@ -151,6 +153,7 @@ export default async function ProductPage({ params }: { params: { slug: string }
     minPrice,
     history.map((h: any) => ({ price: Number(h.price), recorded_at: h.recorded_at })),
   );
+  const prefs = getPreferences();
 
   return (
     <div className="flex flex-col gap-6">
@@ -192,12 +195,12 @@ export default async function ProductPage({ params }: { params: { slug: string }
             <p className="font-body text-xl text-fg-muted">
               À partir de{' '}
               <strong className="font-display text-3xl" style={{ color: 'var(--terracotta-deep)' }}>
-                {formatPrice(minPrice)}
+                {convertAndFormat(minPrice, prefs.currency)}
               </strong>{' '}
               chez <strong className="text-fg">{offerRows.length}</strong> marchand(s).
             </p>
           )}
-          <PriceBadges stats={priceStats} />
+          <PriceBadges stats={priceStats} currency={prefs.currency} />
         </div>
       </header>
 
@@ -209,7 +212,7 @@ export default async function ProductPage({ params }: { params: { slug: string }
           </div>
           <RankingExplainer />
         </div>
-        <PriceTable offers={offerRows} />
+        <PriceTable offers={offerRows} currency={prefs.currency} />
       </section>
 
       <section>

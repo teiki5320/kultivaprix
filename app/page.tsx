@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { ProductCard } from '@/components/ProductCard';
 import { CTAKultiva } from '@/components/CTAKultiva';
+import { getPreferences } from '@/lib/preferences-server';
 
 export const revalidate = 21600; // 6h ISR
 
@@ -33,6 +34,7 @@ async function getData() {
 
 export default async function HomePage() {
   const { cats, products } = await getData();
+  const prefs = getPreferences();
 
   return (
     <div className="flex flex-col gap-16">
@@ -100,7 +102,7 @@ export default async function HomePage() {
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {products.map((p) => (
-            <ProductCard key={p.slug} {...p} />
+            <ProductCard key={p.slug} {...p} currency={prefs.currency} light={prefs.light} />
           ))}
         </div>
       </section>

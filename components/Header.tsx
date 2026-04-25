@@ -1,6 +1,9 @@
 import Link from 'next/link';
+import { PreferencesDrawer } from './PreferencesDrawer';
+import { MONTHS } from '@/lib/calendar';
 
 export function Header() {
+  const currentMonth = MONTHS[new Date().getMonth()].slug;
   return (
     <header className="sticky top-0 z-50 backdrop-blur-md bg-cream-warm/85 border-b border-cream">
       <div className="max-w-6xl mx-auto px-4 md:px-6 py-4 flex items-center justify-between gap-4">
@@ -27,11 +30,12 @@ export function Header() {
             Outils
           </Link>
           <Link
-            href="/recherche"
-            className="font-body font-bold text-fg hover:text-brand-dark transition hidden sm:inline"
+            href={`/que-semer/${currentMonth}`}
+            className="hidden md:inline font-body font-bold text-fg hover:text-brand-dark transition"
           >
-            Rechercher
+            Calendrier
           </Link>
+          <PreferencesDrawer />
           <Link href="/recherche" className="btn-primary !py-2 !px-5 !text-sm">
             🔎 <span className="hidden sm:inline">Chercher</span>
           </Link>

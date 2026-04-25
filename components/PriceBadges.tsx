@@ -1,18 +1,19 @@
 import type { PriceStats } from '@/lib/price-stats';
-import { formatPrice } from '@/lib/utils';
+import { convertAndFormat } from '@/lib/format-money';
+import type { Currency } from '@/lib/preferences';
 
 /**
  * Compact pricing badges shown on the product page header — surfaces the
  * "best price on 30 days" and "down/up since yesterday" signals so users
  * can decide to buy now vs wait.
  */
-export function PriceBadges({ stats }: { stats: PriceStats }) {
+export function PriceBadges({ stats, currency = 'EUR' }: { stats: PriceStats; currency?: Currency }) {
   const badges: { label: string; tone: 'brand' | 'terra' | 'sky' | 'butter' }[] = [];
 
   if (stats.isAtThirtyDayMin && stats.thirtyDayMin != null) {
     badges.push({ label: '⭐ Meilleur prix sur 30 j', tone: 'brand' });
   } else if (stats.thirtyDayMin != null) {
-    badges.push({ label: `Plancher 30 j : ${formatPrice(stats.thirtyDayMin)}`, tone: 'sky' });
+    badges.push({ label: `Plancher 30 j : ${convertAndFormat(stats.thirtyDayMin, currency)}`, tone: 'sky' });
   }
 
   if (stats.changeSinceYesterday != null) {

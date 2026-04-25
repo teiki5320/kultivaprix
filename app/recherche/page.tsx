@@ -1,6 +1,7 @@
 import { supabase } from '@/lib/supabase';
 import { ProductCard } from '@/components/ProductCard';
 import Link from 'next/link';
+import { getPreferences } from '@/lib/preferences-server';
 
 export const revalidate = 3600;
 
@@ -34,6 +35,7 @@ async function search(q: string) {
 export default async function SearchPage({ searchParams }: Props) {
   const q = (searchParams.q ?? '').trim();
   const results = await search(q);
+  const prefs = getPreferences();
   return (
     <div className="flex flex-col gap-8">
       <header>
@@ -59,7 +61,9 @@ export default async function SearchPage({ searchParams }: Props) {
         </p>
       )}
       <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {results.map((r) => <ProductCard key={r.slug} {...r} />)}
+        {results.map((r) => (
+          <ProductCard key={r.slug} {...r} currency={prefs.currency} light={prefs.light} />
+        ))}
       </section>
       {!q && (
         <div className="card-cream">

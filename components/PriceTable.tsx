@@ -1,7 +1,8 @@
-import { formatPrice } from '@/lib/utils';
 import { formatRelativeFR } from '@/lib/format-relative';
 import { parseQuantity, unitPrice } from '@/lib/parse-quantity';
 import { detectTags } from '@/lib/parse-tags';
+import { convertAndFormat } from '@/lib/format-money';
+import type { Currency } from '@/lib/preferences';
 
 interface OfferRow {
   offer_id: string;
@@ -31,7 +32,7 @@ const TAG_LABELS: Record<keyof typeof TAG_STYLES, string> = {
   ancienne: 'Ancienne',
 };
 
-export function PriceTable({ offers }: { offers: OfferRow[] }) {
+export function PriceTable({ offers, currency = 'EUR' }: { offers: OfferRow[]; currency?: Currency }) {
   const sorted = [...offers].sort((a, b) => (a.price ?? 9e9) - (b.price ?? 9e9));
   const cheapestId = sorted.find((o) => o.in_stock && o.price != null)?.offer_id;
 
@@ -104,16 +105,16 @@ export function PriceTable({ offers }: { offers: OfferRow[] }) {
                       className="font-display font-bold text-lg"
                       style={{ color: 'var(--terracotta-deep)' }}
                     >
-                      {formatPrice(o.price ?? undefined, o.currency)}
+                      {convertAndFormat(o.price, currency)}
                     </div>
-                    {unit && (
+                    {unit && currency === 'EUR' && (
                       <div className="text-[11px] font-semibold text-fg-subtle mt-0.5">
                         {unit.value.toFixed(unit.value < 1 ? 3 : 2).replace('.', ',')} {unit.label}
                       </div>
                     )}
                   </td>
                   <td className="px-5 py-4 text-right text-fg-muted align-top">
-                    {o.shipping_cost != null ? formatPrice(o.shipping_cost, o.currency) : '—'}
+                    {o.shipping_cost != null ? convertAndFormat(o.shipping_cost, currency) : '—'}
                   </td>
                   <td className="px-5 py-4 text-right align-top">
                     <span

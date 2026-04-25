@@ -1,7 +1,8 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import { formatPrice } from '@/lib/utils';
 import { parseQuantity, unitPrice } from '@/lib/parse-quantity';
+import { convertAndFormat } from '@/lib/format-money';
+import type { Currency, LightMode } from '@/lib/preferences';
 
 interface Props {
   slug: string;
@@ -9,9 +10,19 @@ interface Props {
   imageUrl: string | null;
   minPrice: number | null;
   merchantCount: number;
+  currency?: Currency;
+  light?: LightMode;
 }
 
-export function ProductCard({ slug, name, imageUrl, minPrice, merchantCount }: Props) {
+export function ProductCard({
+  slug,
+  name,
+  imageUrl,
+  minPrice,
+  merchantCount,
+  currency = 'EUR',
+  light = 'normal',
+}: Props) {
   const qty = parseQuantity(name);
   const unit = unitPrice(minPrice, qty);
 
@@ -25,7 +36,7 @@ export function ProductCard({ slug, name, imageUrl, minPrice, merchantCount }: P
         className="aspect-square rounded-2xl overflow-hidden flex items-center justify-center relative"
         style={{ background: 'var(--cream)' }}
       >
-        {imageUrl ? (
+        {imageUrl && light !== 'leger' ? (
           <Image
             src={imageUrl}
             alt={name}
@@ -41,9 +52,9 @@ export function ProductCard({ slug, name, imageUrl, minPrice, merchantCount }: P
       <div className="flex items-end justify-between mt-auto gap-2">
         <div className="flex flex-col">
           <span className="font-display text-lg font-bold leading-none" style={{ color: 'var(--terracotta-deep)' }}>
-            {minPrice ? `dès ${formatPrice(minPrice)}` : '—'}
+            {minPrice != null ? `dès ${convertAndFormat(minPrice, currency)}` : '—'}
           </span>
-          {unit && (
+          {unit && currency === 'EUR' && (
             <span className="text-[11px] font-body font-semibold mt-1 text-fg-subtle">
               {unit.value.toFixed(unit.value < 1 ? 3 : 2).replace('.', ',')} {unit.label}
             </span>
