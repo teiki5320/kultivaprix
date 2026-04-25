@@ -15,6 +15,11 @@ import { convertAndFormat } from '@/lib/format-money';
 import { SimilarProducts } from '@/components/SimilarProducts';
 import { PriceAlertForm } from '@/components/PriceAlertForm';
 import { AddToCartButton } from '@/components/AddToCartButton';
+import { CulturalDataCard } from '@/components/CulturalDataCard';
+import { EcoScoreBadge } from '@/components/EcoScoreBadge';
+import { ReviewsSection } from '@/components/ReviewsSection';
+import { detectTags } from '@/lib/parse-tags';
+import { computeEcoScore } from '@/lib/eco-score';
 
 export const revalidate = 21600; // 6h
 
@@ -157,6 +162,8 @@ export default async function ProductPage({ params }: { params: { slug: string }
     history.map((h: any) => ({ price: Number(h.price), recorded_at: h.recorded_at })),
   );
   const prefs = getPreferences();
+  const tags = detectTags(product.name, product.brand, product.description);
+  const ecoScore = computeEcoScore(tags);
 
   return (
     <div className="flex flex-col gap-6">
@@ -204,6 +211,7 @@ export default async function ProductPage({ params }: { params: { slug: string }
             </p>
           )}
           <PriceBadges stats={priceStats} currency={prefs.currency} />
+          <EcoScoreBadge score={ecoScore} />
           <div className="mt-2">
             <AddToCartButton slug={product.slug} />
           </div>
@@ -242,6 +250,10 @@ export default async function ProductPage({ params }: { params: { slug: string }
           )}
         </article>
       </section>
+
+      <CulturalDataCard name={product.name} attributes={product.attributes ?? null} />
+
+      <ReviewsSection productId={product.id} productSlug={product.slug} productName={product.name} />
 
       <PriceAlertForm
         productSlug={product.slug}
