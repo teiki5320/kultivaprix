@@ -17,7 +17,9 @@
     "ingest:all": "npm run ingest:awin && npm run ingest:effiliation && npm run ingest:amazon && npm run ingest:manomano",
     "normalize": "tsx scripts/normalize.ts",
     "refresh": "npm run ingest:all && npm run normalize",
-    "sitemap": "tsx scripts/sitemap.ts"
+    "sitemap": "tsx scripts/sitemap.ts",
+    "test:e2e": "playwright test",
+    "test:e2e:install": "playwright install chromium"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.0",
@@ -37,6 +39,7 @@
     "eslint": "^8.57.0",
     "eslint-config-next": "14.2.15",
     "playwright": "^1.47.0",
+    "@playwright/test": "^1.47.0",
     "postcss": "^8.4.41",
     "tailwindcss": "^3.4.10",
     "tsx": "^4.19.0",

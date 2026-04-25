@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { NewsletterForm } from './NewsletterForm';
 
 export function Footer() {
   return (
@@ -29,6 +30,10 @@ export function Footer() {
               <li><Link href="/plants" className="hover:text-white">Plants</Link></li>
               <li><Link href="/outils" className="hover:text-white">Outils</Link></li>
               <li><Link href="/recherche" className="hover:text-white">Rechercher</Link></li>
+              <li><Link href="/budget" className="hover:text-white">Budget potager</Link></li>
+              <li><Link href="/conseil" className="hover:text-white">Demander conseil</Link></li>
+              <li><Link href="/afrique-de-louest" className="hover:text-white">Afrique de l’Ouest</Link></li>
+              <li><Link href="/carte-marchands" className="hover:text-white">Carte marchands</Link></li>
             </ul>
           </div>
 
@@ -41,6 +46,24 @@ export function Footer() {
                 </a>
               </li>
               <li><Link href="/guide/bien-choisir-ses-graines" className="hover:text-white">Guides</Link></li>
+              <li><Link href="/glossaire" className="hover:text-white">Glossaire</Link></li>
+              <li><Link href="/kits" className="hover:text-white">Kits potager</Link></li>
+              <li><Link href="/quiz" className="hover:text-white">Quiz quoi planter</Link></li>
+              <li><Link href="/calendrier-imprimable" className="hover:text-white">Calendrier imprimable</Link></li>
+              <li><Link href="/ambassadeur" className="hover:text-white">Ambassadeur</Link></li>
+              {process.env.NEXT_PUBLIC_TIPJAR_URL && (
+                <li>
+                  <a
+                    href={process.env.NEXT_PUBLIC_TIPJAR_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 hover:text-white"
+                    style={{ color: 'var(--butter-yellow)' }}
+                  >
+                    ☕ Soutenir le projet
+                  </a>
+                </li>
+              )}
             </ul>
           </div>
 
@@ -50,6 +73,18 @@ export function Footer() {
               <li><Link href="/confidentialite" className="hover:text-white">Confidentialité</Link></li>
               <li><Link href="/mentions-legales" className="hover:text-white">Mentions légales</Link></li>
             </ul>
+          </div>
+        </div>
+
+        <div className="mt-10 grid md:grid-cols-[1.4fr_1fr] gap-6 items-center pb-6">
+          <div>
+            <h5 className="font-display font-bold text-base mb-1">🌱 Newsletter saisonnière</h5>
+            <p className="font-body text-sm text-white/60 leading-relaxed max-w-md">
+              4 à 8 emails par an : que semer, que récolter, quelles bonnes affaires. Pas de spam.
+            </p>
+          </div>
+          <div className="relative">
+            <NewsletterForm />
           </div>
         </div>
 

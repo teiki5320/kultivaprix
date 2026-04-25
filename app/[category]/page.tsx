@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabase';
 import { ProductCard } from '@/components/ProductCard';
 import { CTAKultiva } from '@/components/CTAKultiva';
 import { buildCategoryIntro, buildCategoryMeta } from '@/lib/content-templates/category';
+import { getPreferences } from '@/lib/preferences-server';
 
 export const revalidate = 21600; // 6h
 
@@ -59,6 +60,7 @@ export default async function CategoryPage({ params }: { params: { category: str
   const data = await getCategory(params.category);
   if (!data) notFound();
   const { cat, rows, merchantCount } = data;
+  const prefs = getPreferences();
 
   const intro = buildCategoryIntro({
     name: cat.name,
@@ -85,7 +87,7 @@ export default async function CategoryPage({ params }: { params: { category: str
 
       <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {rows.map((r) => (
-          <ProductCard key={r.slug} {...r} />
+          <ProductCard key={r.slug} {...r} currency={prefs.currency} light={prefs.light} />
         ))}
       </section>
 

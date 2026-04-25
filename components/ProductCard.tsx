@@ -1,5 +1,8 @@
 import Link from 'next/link';
-import { formatPrice } from '@/lib/utils';
+import Image from 'next/image';
+import { parseQuantity, unitPrice } from '@/lib/parse-quantity';
+import { convertAndFormat } from '@/lib/format-money';
+import type { Currency, LightMode } from '@/lib/preferences';
 
 interface Props {
   slug: string;
@@ -7,35 +10,56 @@ interface Props {
   imageUrl: string | null;
   minPrice: number | null;
   merchantCount: number;
+  currency?: Currency;
+  light?: LightMode;
 }
 
-export function ProductCard({ slug, name, imageUrl, minPrice, merchantCount }: Props) {
+export function ProductCard({
+  slug,
+  name,
+  imageUrl,
+  minPrice,
+  merchantCount,
+  currency = 'EUR',
+  light = 'normal',
+}: Props) {
+  const qty = parseQuantity(name);
+  const unit = unitPrice(minPrice, qty);
+
   return (
     <Link
       href={`/produit/${slug}`}
+      prefetch
       className="group card-cream flex flex-col gap-3 no-underline transition hover:-translate-y-1 hover:shadow-leaf"
     >
       <div
-        className="aspect-square rounded-2xl overflow-hidden flex items-center justify-center"
+        className="aspect-square rounded-2xl overflow-hidden flex items-center justify-center relative"
         style={{ background: 'var(--cream)' }}
       >
-        {imageUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
+        {imageUrl && light !== 'leger' ? (
+          <Image
             src={imageUrl}
             alt={name}
-            loading="lazy"
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            fill
+            sizes="(max-width: 768px) 50vw, 25vw"
+            className="object-cover transition-transform duration-500 group-hover:scale-105"
           />
         ) : (
-          <span className="text-5xl">🌱</span>
+          <span className="text-5xl" aria-hidden>🌱</span>
         )}
       </div>
       <p className="font-body font-bold text-sm leading-snug line-clamp-2 text-fg">{name}</p>
-      <div className="flex items-center justify-between mt-auto">
-        <span className="font-display text-lg font-bold" style={{ color: 'var(--terracotta-deep)' }}>
-          {minPrice ? `dès ${formatPrice(minPrice)}` : '—'}
-        </span>
+      <div className="flex items-end justify-between mt-auto gap-2">
+        <div className="flex flex-col">
+          <span className="font-display text-lg font-bold leading-none" style={{ color: 'var(--terracotta-deep)' }}>
+            {minPrice != null ? `dès ${convertAndFormat(minPrice, currency)}` : '—'}
+          </span>
+          {unit && currency === 'EUR' && (
+            <span className="text-[11px] font-body font-semibold mt-1 text-fg-subtle">
+              {unit.value.toFixed(unit.value < 1 ? 3 : 2).replace('.', ',')} {unit.label}
+            </span>
+          )}
+        </div>
         <span
           className="pill"
           style={{ background: 'color-mix(in oklab, var(--brand) 14%, white)', color: 'var(--brand-dark)' }}

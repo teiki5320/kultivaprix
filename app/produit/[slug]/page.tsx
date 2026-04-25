@@ -1,11 +1,27 @@
 import type { Metadata } from 'next';
+import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { PriceTable } from '@/components/PriceTable';
 import { PriceHistoryChart } from '@/components/PriceHistoryChart';
+import { PriceBadges } from '@/components/PriceBadges';
+import { RankingExplainer } from '@/components/RankingExplainer';
 import { CTAKultiva } from '@/components/CTAKultiva';
 import { buildProductDescription, buildProductMeta } from '@/lib/content-templates/product';
 import { SITE_URL, formatPrice } from '@/lib/utils';
+import { computePriceStats } from '@/lib/price-stats';
+import { getPreferences } from '@/lib/preferences-server';
+import { convertAndFormat } from '@/lib/format-money';
+import { SimilarProducts } from '@/components/SimilarProducts';
+import { PriceAlertForm } from '@/components/PriceAlertForm';
+import { AddToCartButton } from '@/components/AddToCartButton';
+import { CulturalDataCard } from '@/components/CulturalDataCard';
+import { EcoScoreBadge } from '@/components/EcoScoreBadge';
+import { ReviewsSection } from '@/components/ReviewsSection';
+import { detectTags } from '@/lib/parse-tags';
+import { computeEcoScore } from '@/lib/eco-score';
+import { AddToKultivaPlanButton } from '@/components/AddToKultivaPlanButton';
+import { CompanionsCard } from '@/components/CompanionsCard';
 
 export const revalidate = 21600; // 6h
 
@@ -102,25 +118,76 @@ export default async function ProductPage({ params }: { params: { slug: string }
       : undefined,
   };
 
+  // FAQPage — generic Q&A surfaces well in Google as a rich result
+  const faqLd = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: [
+      {
+        '@type': 'Question',
+        name: `Quel est le prix le plus bas pour ${product.name} ?`,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: minPrice
+            ? `Le prix le plus bas constaté est ${formatPrice(minPrice)}, parmi ${offerRows.length} marchand(s) suivi(s).`
+            : `Aucun prix n'est disponible pour le moment.`,
+        },
+      },
+      {
+        '@type': 'Question',
+        name: `Comment savoir si c'est le bon moment pour acheter ${product.name} ?`,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text:
+            "Notre courbe d'historique des prix sur 90 jours t'indique si le prix actuel est bas, moyen ou haut par rapport au mois dernier. Plus c'est bas, plus c'est le bon moment.",
+        },
+      },
+      {
+        '@type': 'Question',
+        name: `Les liens marchands sont-ils sponsorisés ?`,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text:
+            "Non. Les marchands sont triés du moins cher au plus cher, et personne ne paie pour apparaître plus haut. Les liens sont des liens d'affiliation : ils financent le site sans changer le prix.",
+        },
+      },
+    ],
+  };
+
   const points = history.map((h: any) => ({
     date: new Date(h.recorded_at).toLocaleDateString('fr-FR', { month: 'short', day: '2-digit' }),
     price: Number(h.price),
   }));
 
+  const priceStats = computePriceStats(
+    minPrice,
+    history.map((h: any) => ({ price: Number(h.price), recorded_at: h.recorded_at })),
+  );
+  const prefs = getPreferences();
+  const tags = detectTags(product.name, product.brand, product.description);
+  const ecoScore = computeEcoScore(tags);
+
   return (
     <div className="flex flex-col gap-6">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }} />
 
       <header className="grid md:grid-cols-2 gap-8 items-start">
         <div
-          className="card-cream aspect-square flex items-center justify-center p-4"
+          className="card-cream aspect-square relative overflow-hidden flex items-center justify-center"
           style={{ background: 'var(--cream-surface)' }}
         >
           {product.image_url ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={product.image_url} alt={product.name} className="w-full h-full object-contain rounded-2xl" />
+            <Image
+              src={product.image_url}
+              alt={product.name}
+              fill
+              sizes="(max-width: 768px) 100vw, 50vw"
+              className="object-contain rounded-2xl p-4"
+              priority
+            />
           ) : (
-            <span className="text-7xl">🌱</span>
+            <span className="text-7xl" aria-hidden>🌱</span>
           )}
         </div>
         <div className="flex flex-col gap-4 pt-2">
@@ -140,18 +207,29 @@ export default async function ProductPage({ params }: { params: { slug: string }
             <p className="font-body text-xl text-fg-muted">
               À partir de{' '}
               <strong className="font-display text-3xl" style={{ color: 'var(--terracotta-deep)' }}>
-                {formatPrice(minPrice)}
+                {convertAndFormat(minPrice, prefs.currency)}
               </strong>{' '}
               chez <strong className="text-fg">{offerRows.length}</strong> marchand(s).
             </p>
           )}
+          <PriceBadges stats={priceStats} currency={prefs.currency} />
+          <EcoScoreBadge score={ecoScore} />
+          <div className="mt-2 flex flex-wrap gap-2">
+            <AddToCartButton slug={product.slug} />
+            <AddToKultivaPlanButton productSlug={product.slug} campaign={`product-${product.slug}`} />
+          </div>
         </div>
       </header>
 
       <section>
-        <span className="kicker">💰 Offres</span>
-        <h2 className="font-display text-3xl font-bold mt-3 mb-4 text-fg">Comparer les prix</h2>
-        <PriceTable offers={offerRows} />
+        <div className="flex items-end justify-between gap-4 mb-4 flex-wrap">
+          <div>
+            <span className="kicker">💰 Offres</span>
+            <h2 className="font-display text-3xl font-bold mt-3 text-fg">Comparer les prix</h2>
+          </div>
+          <RankingExplainer />
+        </div>
+        <PriceTable offers={offerRows} currency={prefs.currency} />
       </section>
 
       <section>
@@ -175,6 +253,20 @@ export default async function ProductPage({ params }: { params: { slug: string }
           )}
         </article>
       </section>
+
+      <CulturalDataCard name={product.name} attributes={product.attributes ?? null} />
+
+      <CompanionsCard name={product.name} />
+
+      <ReviewsSection productId={product.id} productSlug={product.slug} productName={product.name} />
+
+      <PriceAlertForm
+        productSlug={product.slug}
+        productName={product.name}
+        currentMin={minPrice}
+      />
+
+      <SimilarProducts slug={product.slug} currency={prefs.currency} light={prefs.light} />
 
       <CTAKultiva context={`product-${product.slug}`} />
     </div>
