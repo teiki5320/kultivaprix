@@ -2,15 +2,25 @@ import type { MetadataRoute } from 'next';
 import { supabase } from '@/lib/supabase';
 import { SITE_URL } from '@/lib/utils';
 import { MONTHS } from '@/lib/calendar';
+import { KITS } from '@/lib/kits';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base: MetadataRoute.Sitemap = [
     { url: SITE_URL, changeFrequency: 'daily', priority: 1 },
     { url: `${SITE_URL}/recherche`, changeFrequency: 'weekly', priority: 0.5 },
+    { url: `${SITE_URL}/quiz`, changeFrequency: 'monthly', priority: 0.5 },
+    { url: `${SITE_URL}/budget`, changeFrequency: 'monthly', priority: 0.4 },
     { url: `${SITE_URL}/glossaire`, changeFrequency: 'monthly', priority: 0.4 },
+    { url: `${SITE_URL}/kits`, changeFrequency: 'weekly', priority: 0.6 },
+    { url: `${SITE_URL}/conseil`, changeFrequency: 'monthly', priority: 0.4 },
+    { url: `${SITE_URL}/afrique-de-louest`, changeFrequency: 'monthly', priority: 0.5 },
+    { url: `${SITE_URL}/calendrier-imprimable`, changeFrequency: 'monthly', priority: 0.4 },
+    { url: `${SITE_URL}/carte-marchands`, changeFrequency: 'weekly', priority: 0.4 },
+    { url: `${SITE_URL}/ambassadeur`, changeFrequency: 'monthly', priority: 0.3 },
   ];
 
-  // Seasonal landings (semer + récolter, 12 months each)
+  KITS.forEach((k) => base.push({ url: `${SITE_URL}/kits/${k.slug}`, changeFrequency: 'weekly', priority: 0.5 }));
+
   MONTHS.forEach((m) => {
     base.push({ url: `${SITE_URL}/que-semer/${m.slug}`, changeFrequency: 'monthly', priority: 0.7 });
     base.push({ url: `${SITE_URL}/que-recolter/${m.slug}`, changeFrequency: 'monthly', priority: 0.6 });

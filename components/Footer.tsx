@@ -30,6 +30,10 @@ export function Footer() {
               <li><Link href="/plants" className="hover:text-white">Plants</Link></li>
               <li><Link href="/outils" className="hover:text-white">Outils</Link></li>
               <li><Link href="/recherche" className="hover:text-white">Rechercher</Link></li>
+              <li><Link href="/budget" className="hover:text-white">Budget potager</Link></li>
+              <li><Link href="/conseil" className="hover:text-white">Demander conseil</Link></li>
+              <li><Link href="/afrique-de-louest" className="hover:text-white">Afrique de l’Ouest</Link></li>
+              <li><Link href="/carte-marchands" className="hover:text-white">Carte marchands</Link></li>
             </ul>
           </div>
 
