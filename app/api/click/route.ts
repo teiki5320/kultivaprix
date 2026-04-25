@@ -1,17 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
-import crypto from 'node:crypto';
 import { supabaseAdmin } from '@/lib/supabase';
 
-export const runtime = 'nodejs';
+export const runtime = 'edge';
 export const dynamic = 'force-dynamic';
+
+async function sha256Hex(input: string): Promise<string> {
+  const data = new TextEncoder().encode(input);
+  const buf = await crypto.subtle.digest('SHA-256', data);
+  return Array.from(new Uint8Array(buf))
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('');
+}
 
 /**
  * /api/click?offer=<uuid>
  *  - Log l'événement dans `clicks`
  *  - Redirige en 302 vers l'URL affiliée du marchand
  *
- * Utilisateur : anonymisé via sha256(ip + ua).
- * Aucune donnée personnelle n'est persistée.
+ * Utilisateur : anonymisé via sha256(ip + ua) calculé via Web Crypto (edge-safe).
  */
 export async function GET(req: NextRequest) {
   const offerId = req.nextUrl.searchParams.get('offer');
@@ -31,9 +37,8 @@ export async function GET(req: NextRequest) {
 
     const ua = req.headers.get('user-agent') ?? '';
     const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? '';
-    const userHash = crypto.createHash('sha256').update(`${ip}|${ua}`).digest('hex');
+    const userHash = await sha256Hex(`${ip}|${ua}`);
 
-    // Fire-and-forget log
     await sb.from('clicks').insert({
       offer_id: offer.id,
       product_id: offer.product_id,
@@ -45,7 +50,6 @@ export async function GET(req: NextRequest) {
   } catch (e) {
     // eslint-disable-next-line no-console
     console.error('[click] log failed', (e as Error).message);
-    // don't block redirect on logging failure
   }
 
   if (!target) return NextResponse.json({ error: 'no target url' }, { status: 500 });

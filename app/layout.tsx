@@ -30,8 +30,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body className="min-h-screen flex flex-col bg-cream-warm text-fg">
+        <a
+          href="#main"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[60] focus:btn-primary focus:!py-2 focus:!px-4 focus:!text-sm"
+        >
+          Aller au contenu
+        </a>
         <Header />
-        <main className="flex-1 max-w-6xl w-full mx-auto px-4 py-8">{children}</main>
+        <main id="main" className="flex-1 max-w-6xl w-full mx-auto px-4 py-8">
+          {children}
+        </main>
         <Footer />
       </body>
     </html>
