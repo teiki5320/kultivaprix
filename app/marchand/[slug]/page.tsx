@@ -56,9 +56,14 @@ async function getMerchant(slug: string) {
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
   const m = await getMerchant(params.slug);
   if (!m) return {};
+  const title = `${m.name} : prix et catalogue jardinage`;
+  const description = `Comparatif des prix chez ${m.name} : ${m.productCount} produits suivis, ${m.inStockCount} en stock. Prix mis à jour automatiquement.`;
+  const canonical = `/marchand/${m.slug}`;
   return {
-    title: `${m.name} : prix et catalogue jardinage`,
-    description: `Comparatif des prix chez ${m.name} : ${m.productCount} produits suivis, ${m.inStockCount} en stock. Prix mis à jour automatiquement.`,
+    title,
+    description,
+    alternates: { canonical },
+    openGraph: { title, description, url: canonical },
   };
 }
 

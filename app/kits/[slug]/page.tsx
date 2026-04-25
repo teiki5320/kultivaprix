@@ -17,9 +17,13 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
   const k = findKit(params.slug);
   if (!k) return {};
+  const title = `${k.name} · Kit potager`;
+  const canonical = `/kits/${k.slug}`;
   return {
-    title: `${k.name} · Kit potager`,
+    title,
     description: k.pitch,
+    alternates: { canonical },
+    openGraph: { title, description: k.pitch, url: canonical },
   };
 }
 

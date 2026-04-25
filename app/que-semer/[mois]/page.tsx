@@ -17,9 +17,18 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: { params: { mois: string } }): Promise<Metadata> {
   if (!isMonth(params.mois)) return {};
   const m = monthLabel(params.mois);
+  const data = CALENDAR[params.mois as Month];
+  const top = data.semer.slice(0, 3).map((s) => s.label).join(', ');
+  const canonical = `/que-semer/${params.mois}`;
+  const title = `Que semer en ${m} ?`;
+  const description = top
+    ? `${m} : ${top}… Calendrier de semis et prix comparés chez les marchands jardinage français.`
+    : `Calendrier de semis ${m.toLowerCase()} pour la France métropolitaine.`;
   return {
-    title: `Que semer en ${m} ?`,
-    description: `Calendrier de semis ${m.toLowerCase()} pour la France métropolitaine. Variétés à semer ce mois, prix comparés et alternatives chez les marchands français.`,
+    title,
+    description,
+    alternates: { canonical },
+    openGraph: { title, description, url: canonical },
   };
 }
 

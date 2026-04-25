@@ -49,9 +49,17 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   if (!pair) return {};
   const [a, b] = await Promise.all([getProduct(pair[0]), getProduct(pair[1])]);
   if (!a || !b) return {};
+  // Always canonicalise to the alphabetical ordering so /a-vs-b and /b-vs-a
+  // don't both rank — only the lexicographically-first variant is canonical.
+  const [first, second] = pair[0] < pair[1] ? [pair[0], pair[1]] : [pair[1], pair[0]];
+  const canonical = `/comparatif/${first}-vs-${second}`;
+  const title = `${a.name} vs ${b.name} : comparatif`;
+  const description = `Comparatif détaillé ${a.name} vs ${b.name} : prix, marchands, caractéristiques. Mis à jour automatiquement.`;
   return {
-    title: `${a.name} vs ${b.name} : comparatif`,
-    description: `Comparatif détaillé ${a.name} vs ${b.name} : prix, marchands, caractéristiques. Mis à jour automatiquement.`,
+    title,
+    description,
+    alternates: { canonical },
+    openGraph: { title, description, url: canonical },
   };
 }
 

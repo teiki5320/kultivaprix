@@ -13,9 +13,18 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: { params: { mois: string } }): Promise<Metadata> {
   if (!isMonth(params.mois)) return {};
   const m = monthLabel(params.mois);
+  const data = CALENDAR[params.mois as Month];
+  const top = data.recolter.slice(0, 3).map((s) => s.label).join(', ');
+  const canonical = `/que-recolter/${params.mois}`;
+  const title = `Que récolter en ${m} ?`;
+  const description = top
+    ? `${m} : on récolte ${top}… Idées potager et signes de maturité.`
+    : `Calendrier de récolte ${m.toLowerCase()} pour la France.`;
   return {
-    title: `Que récolter en ${m} ?`,
-    description: `Calendrier de récolte ${m.toLowerCase()} pour la France. Légumes prêts à cueillir, signes de maturité et idées de cuisine.`,
+    title,
+    description,
+    alternates: { canonical },
+    openGraph: { title, description, url: canonical },
   };
 }
 

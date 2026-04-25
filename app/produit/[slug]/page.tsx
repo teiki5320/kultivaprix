@@ -65,15 +65,26 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   const data = await getProduct(params.slug);
   if (!data) return {};
   const prices = data.offerRows.map((o) => o.price).filter((n): n is number => typeof n === 'number');
+  const minPrice = prices.length ? Math.min(...prices) : null;
+  const description = buildProductMeta({
+    name: data.product.name,
+    slug: data.product.slug,
+    minPrice,
+    maxPrice: prices.length ? Math.max(...prices) : null,
+    offerCount: data.offerRows.length,
+  });
+  const canonical = `/produit/${data.product.slug}`;
   return {
     title: data.product.name,
-    description: buildProductMeta({
-      name: data.product.name,
-      slug: data.product.slug,
-      minPrice: prices.length ? Math.min(...prices) : null,
-      maxPrice: prices.length ? Math.max(...prices) : null,
-      offerCount: data.offerRows.length,
-    }),
+    description,
+    alternates: { canonical },
+    openGraph: {
+      title: data.product.name,
+      description,
+      url: canonical,
+      type: 'website',
+      images: data.product.image_url ? [{ url: data.product.image_url, alt: data.product.name }] : undefined,
+    },
   };
 }
 

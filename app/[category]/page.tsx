@@ -45,14 +45,18 @@ async function getCategory(slug: string) {
 export async function generateMetadata({ params }: { params: { category: string } }): Promise<Metadata> {
   const data = await getCategory(params.category);
   if (!data) return {};
+  const description = buildCategoryMeta({
+    name: data.cat.name,
+    slug: data.cat.slug,
+    productCount: data.rows.length,
+    merchantCount: data.merchantCount,
+  });
+  const canonical = `/${data.cat.slug}`;
   return {
     title: data.cat.name,
-    description: buildCategoryMeta({
-      name: data.cat.name,
-      slug: data.cat.slug,
-      productCount: data.rows.length,
-      merchantCount: data.merchantCount,
-    }),
+    description,
+    alternates: { canonical },
+    openGraph: { title: data.cat.name, description, url: canonical },
   };
 }
 
