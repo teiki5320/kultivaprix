@@ -43,6 +43,33 @@ create table if not exists public.species (
   updated_at timestamptz default now()
 );
 
+-- Ensure all columns exist when an older `public.species` was already in place
+-- before this migration was rewritten (create-if-not-exists above is a no-op
+-- in that case, so the new columns must be added explicitly).
+alter table public.species add column if not exists kind text;
+alter table public.species add column if not exists emoji text;
+alter table public.species add column if not exists category text;
+alter table public.species add column if not exists accessory_sub text;
+alter table public.species add column if not exists image_asset text;
+alter table public.species add column if not exists image_url text;
+alter table public.species add column if not exists description text;
+alter table public.species add column if not exists note text;
+alter table public.species add column if not exists sowing_technique text;
+alter table public.species add column if not exists sowing_depth text;
+alter table public.species add column if not exists germination_temp text;
+alter table public.species add column if not exists germination_days text;
+alter table public.species add column if not exists exposure text;
+alter table public.species add column if not exists spacing text;
+alter table public.species add column if not exists watering text;
+alter table public.species add column if not exists soil text;
+alter table public.species add column if not exists watering_days_max int;
+alter table public.species add column if not exists yield_estimate text;
+alter table public.species add column if not exists harvest_time_by_season jsonb;
+alter table public.species add column if not exists amazon_url text;
+alter table public.species add column if not exists regions jsonb;
+alter table public.species add column if not exists attributes jsonb default '{}'::jsonb;
+alter table public.species add column if not exists updated_at timestamptz default now();
+
 create index if not exists idx_species_kind     on public.species(kind);
 create index if not exists idx_species_category on public.species(category);
 create index if not exists idx_species_name_trgm on public.species using gin (name extensions.gin_trgm_ops);
