@@ -1,8 +1,16 @@
 import type { MetadataRoute } from 'next';
+import { createClient } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 import { SITE_URL } from '@/lib/utils';
 import { MONTHS } from '@/lib/calendar';
 import { KITS } from '@/lib/kits';
+
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? 'https://placeholder.supabase.co';
+const SUPABASE_ANON = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? 'placeholder';
+const publicClient = createClient(SUPABASE_URL, SUPABASE_ANON, {
+  auth: { persistSession: false },
+  db: { schema: 'public' },
+});
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base: MetadataRoute.Sitemap = [
@@ -17,6 +25,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${SITE_URL}/calendrier-imprimable`, changeFrequency: 'monthly', priority: 0.4 },
     { url: `${SITE_URL}/carte-marchands`, changeFrequency: 'weekly', priority: 0.4 },
     { url: `${SITE_URL}/ambassadeur`, changeFrequency: 'monthly', priority: 0.3 },
+    { url: `${SITE_URL}/catalogue`, changeFrequency: 'weekly', priority: 0.8 },
   ];
 
   KITS.forEach((k) => base.push({ url: `${SITE_URL}/kits/${k.slug}`, changeFrequency: 'weekly', priority: 0.5 }));
@@ -26,14 +35,23 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     base.push({ url: `${SITE_URL}/que-recolter/${m.slug}`, changeFrequency: 'monthly', priority: 0.6 });
   });
 
-  const [{ data: cats }, { data: products }, { data: articles }, { data: merchants }] = await Promise.all([
+  const [{ data: cats }, { data: products }, { data: articles }, { data: merchants }, { data: catalog }] = await Promise.all([
     supabase.from('categories').select('slug'),
     supabase.from('products_master').select('slug, updated_at').not('slug', 'like', 'tmp-%').limit(50000),
     supabase.from('articles').select('slug, updated_at').limit(5000),
     supabase.from('merchants').select('slug').eq('enabled', true).limit(500),
+    publicClient.from('species').select('slug, kind, updated_at').limit(2000),
   ]);
 
   cats?.forEach((c) => base.push({ url: `${SITE_URL}/${c.slug}`, changeFrequency: 'weekly', priority: 0.7 }));
+  catalog?.forEach((c: any) => {
+    base.push({
+      url: `${SITE_URL}/${c.kind === 'species' ? 'espece' : 'accessoire'}/${c.slug}`,
+      lastModified: c.updated_at ? new Date(c.updated_at) : undefined,
+      changeFrequency: 'weekly',
+      priority: 0.8,
+    });
+  });
   merchants?.forEach((mm: any) =>
     base.push({ url: `${SITE_URL}/marchand/${mm.slug}`, changeFrequency: 'weekly', priority: 0.5 }),
   );
