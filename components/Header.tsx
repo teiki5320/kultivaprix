@@ -31,8 +31,14 @@ export function Header() {
             Outils
           </Link>
           <Link
-            href={`/que-semer/${currentMonth}`}
+            href="/catalogue"
             className="hidden md:inline font-body font-bold text-fg hover:text-brand-dark transition"
+          >
+            Catalogue
+          </Link>
+          <Link
+            href={`/que-semer/${currentMonth}`}
+            className="hidden lg:inline font-body font-bold text-fg hover:text-brand-dark transition"
           >
             Calendrier
           </Link>
