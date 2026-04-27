@@ -16,10 +16,26 @@ const SEED_URLS = [
 const DELAY_MS = 2500;
 
 async function scrapeCategory(page: Page, url: string): Promise<NormalizedOffer[]> {
-  await page.goto(url, { waitUntil: 'domcontentloaded' });
+  await page.goto(url, { waitUntil: 'networkidle' });
   await page.waitForTimeout(DELAY_MS);
 
-  const products = await page.$$eval('.product-item, li.product, .product-card', (cards) =>
+  const diag = await page.evaluate(() => ({
+    title: document.title,
+    bodyLen: document.body?.innerText?.length ?? 0,
+    productItem: document.querySelectorAll('.product-item').length,
+    liProduct: document.querySelectorAll('li.product').length,
+    productCard: document.querySelectorAll('.product-card').length,
+    anyArticle: document.querySelectorAll('article').length,
+    dataProductId: document.querySelectorAll('[data-product-id]').length,
+    productMini: document.querySelectorAll('.product-mini, .product-miniature').length,
+    aHrefHtml: document.querySelectorAll('a[href*=".html"]').length,
+  }));
+  log('baumaux', `  diag: title="${diag.title.slice(0, 60)}" bodyLen=${diag.bodyLen} ` +
+    `.product-item=${diag.productItem} li.product=${diag.liProduct} .product-card=${diag.productCard} ` +
+    `article=${diag.anyArticle} [data-product-id]=${diag.dataProductId} ` +
+    `.product-mini[ature]=${diag.productMini} a[href*=.html]=${diag.aHrefHtml}`);
+
+  const products = await page.$$eval('.product-item, li.product, .product-card, .product-miniature, [data-product-id]', (cards) =>
     cards.map((c) => {
       const a = c.querySelector('a') as HTMLAnchorElement | null;
       const title =
@@ -66,9 +82,14 @@ async function scrapeCategory(page: Page, url: string): Promise<NormalizedOffer[
 export async function runBaumaux() {
   const headful = process.env.PLAYWRIGHT_HEADFUL === 'true';
   const userAgent =
-    process.env.SCRAPER_USER_AGENT ?? 'KultivaprixBot/0.1 (+https://kultivaprix.com/bot)';
+    process.env.SCRAPER_USER_AGENT ??
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36';
   const browser = await chromium.launch({ headless: !headful });
-  const ctx = await browser.newContext({ userAgent });
+  const ctx = await browser.newContext({
+    userAgent,
+    locale: 'fr-FR',
+    viewport: { width: 1280, height: 900 },
+  });
   const page = await ctx.newPage();
   const all: NormalizedOffer[] = [];
   try {
