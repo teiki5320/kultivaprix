@@ -66,7 +66,7 @@ export default async function HomePage() {
         <div className="blob" style={{ width: 260, height: 260, background: '#FFE7A0', bottom: -60, left: '40%', opacity: 0.35 }} />
 
         <div className="relative z-10 text-center max-w-3xl mx-auto">
-          <span className="eyebrow-pill">🌱 Comparateur neutre · 100% automatique</span>
+          <span className="eyebrow-pill">🌱 Comparateur neutre de graines, plants et outils</span>
           <h1 className="font-display font-bold text-5xl md:text-6xl leading-[1.02] mt-5 tracking-tight text-fg">
             Jardine malin, <em className="hero-em">paie juste</em>.
           </h1>

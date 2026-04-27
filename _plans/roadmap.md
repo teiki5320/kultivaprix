@@ -1,6 +1,6 @@
 # 🗺️ Kultivaprix — Roadmap
 
-> Dernière mise à jour : **2026-04-25**
+> Dernière mise à jour : **2026-04-26**
 > Statut global : **actif**
 
 ## 🎯 Vision
@@ -13,22 +13,25 @@ Devenir le comparateur de prix de référence pour les jardiniers francophones (
 
 - [x] Stack Next.js 14 + Supabase + Tailwind en place, build vert, TypeScript propre.
 - [x] Charte graphique alignée pile sur celle de l'app Kultiva (typographies Fredoka + Quicksand, palette cream / terracotta / vert brand).
+- [x] Fusion sur la branche principale de la grande refonte design + features (onze phases regroupées).
 - [x] Fiche produit complète : tableau des offres triées au prix, courbe d'historique sur 90 jours, badges « meilleur prix 30 j » et « en baisse », prix au gramme calculé automatiquement depuis le titre.
 - [x] Recherche avec autocomplete instantanée, filtres bio / origine France et tri par prix.
 - [x] 24 pages saisonnières prérendues (que-semer et que-récolter pour chaque mois) avec calendrier annuel et données structurées FAQ + ItemList.
-- [x] Pages éditoriales prêtes : glossaire jardinier, kits potager clés-en-main, quiz « que planter chez moi », calculateur de budget, calendrier imprimable A4, focus Afrique de l'Ouest.
+- [x] Pages éditoriales prêtes : glossaire jardinier, kits potager clés-en-main, quiz « que planter chez moi », calculateur de budget, calendrier imprimable A4, focus Afrique de l'Ouest, carte des marchands, page conseils.
 - [x] Panier multi-marchands en localStorage qui calcule le split optimal frais de port inclus, avec permalien de partage.
 - [x] Préférences utilisateur sans compte (région, niveau, devise euro / FCFA, mode léger sans images) stockées en cookie.
 - [x] SEO de fond : OG image générée dynamiquement, fil d'Ariane visible et structuré, Organization / WebSite / SearchAction, agrégat d'avis, canonicals partout, hreflang multi-marchés francophones.
 - [x] Workflows GitHub Actions opérationnels pour rafraîchir les prix toutes les 6 heures, scraper les marchands sans flux, régénérer les guides chaque semaine et republier le sitemap.
 - [x] API publique en lecture seule pour exposer produits et offres, plus tracking de clic en edge runtime avec hash anonymisé de l'utilisateur.
 - [x] Garde-fous qualité : tests Playwright smoke, dashboard admin protégé par secret, RLS Supabase actives sur toutes les tables sensibles.
+- [x] Migrations Supabase 0003 à 0007 appliquées en base : recherche trigram, alertes de baisse, avis utilisateurs, helpers admin et catalogue d'espèces partagé.
+- [x] Catalogue d'espèces partagé avec l'app Kultiva : 98 fiches (59 espèces + 39 accessoires) synchronisées automatiquement depuis la source de vérité Kultiva vers la table commune. À chaque modification du catalogue côté Kultiva, la base Kultivaprix est mise à jour en moins d'une minute, sans intervention humaine.
 
 ### 🔥 En cours
 
-- [ ] Fusion de la branche de refonte design + features sur la branche principale après revue.
-- [ ] Application des quatre dernières migrations SQL sur le projet Supabase (recherche trigram, alertes, avis, helpers admin).
-- [ ] Configuration des variables d'environnement de production sur Vercel (secret admin, lien tip jar).
+- [ ] Construire les pages publiques qui exposent ce catalogue d'espèces : fiche par espèce, fiche par accessoire, page catalogue groupée par famille, et carrousel de douze espèces emblématiques en page d'accueil.
+- [ ] Lancer le rapprochement automatique des SKU marchands existants vers les espèces (la fonction de matching par similarité de nom est livrée, il reste à la faire tourner sur le catalogue produit puis à valider les associations dans le dashboard admin).
+- [ ] Aligner la migration 0007 sur la branche principale après la correction qui ajoute la colonne `image_url` aux installations existantes (le correctif est prêt sur une branche dédiée, à merger).
 
 ### 📋 À faire
 
@@ -44,7 +47,7 @@ Devenir le comparateur de prix de référence pour les jardiniers francophones (
 ### 💡 Idées
 
 - [ ] Upload de photos potager par les utilisateurs avec bucket Supabase Storage et modération préalable.
-- [ ] Carte interactive des marchands avec géocodage Nominatim et fond OpenStreetMap.
+- [ ] Enrichir la carte des marchands avec un vrai géocodage Nominatim et un fond OpenStreetMap interactif.
 - [ ] Module « ils ont planté ça ce mois-ci » alimenté par un agrégat anonymisé de l'app Kultiva.
 - [ ] Espace pro pour maraîchers avec prix hors taxe et conditionnements en gros.
 - [ ] Assistant conversationnel jardinage adossé à un modèle vérifié, avec garde-fous éditoriaux.
