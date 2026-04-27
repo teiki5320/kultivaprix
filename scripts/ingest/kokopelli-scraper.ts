@@ -21,8 +21,8 @@ const SEED_URLS = [
 const DELAY_MS = 2000;
 
 async function scrapeCategory(page: Page, url: string): Promise<NormalizedOffer[]> {
-  await page.goto(url, { waitUntil: 'networkidle' });
-  await page.waitForTimeout(DELAY_MS);
+  await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 45000 });
+  await page.waitForTimeout(4000);
 
   // Diagnostic : qu'est-ce qui est réellement chargé ?
   const diag = await page.evaluate(() => ({
@@ -33,11 +33,13 @@ async function scrapeCategory(page: Page, url: string): Promise<NormalizedOffer[
     anyArticle: document.querySelectorAll('article').length,
     productItem: document.querySelectorAll('.product-item').length,
     jsProductMiniature: document.querySelectorAll('.js-product-miniature').length,
+    bodyHead: document.body?.innerText?.slice(0, 200) ?? '',
   }));
   log('kokopelli', `  diag: title="${diag.title.slice(0, 60)}" bodyLen=${diag.bodyLen} ` +
     `articles.product-miniature=${diag.miniature} .product-miniature=${diag.productMiniature} ` +
     `article=${diag.anyArticle} .product-item=${diag.productItem} ` +
     `.js-product-miniature=${diag.jsProductMiniature}`);
+  log('kokopelli', `  bodyHead="${diag.bodyHead.replace(/\s+/g, ' ').slice(0, 200)}"`);
 
   const offers = await page.$$eval('article.product-miniature, .product-miniature, .js-product-miniature', (cards) =>
     cards.map((c) => {
