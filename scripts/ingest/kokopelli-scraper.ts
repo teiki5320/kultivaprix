@@ -24,7 +24,7 @@ async function scrapeCategory(page: Page, url: string): Promise<NormalizedOffer[
   await page.goto(url, { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(DELAY_MS);
 
-  const offers = await page.$$eval('article.product-miniature', (cards, base) =>
+  const offers = await page.$$eval('article.product-miniature', (cards) =>
     cards.map((c) => {
       const a = c.querySelector('a.product-thumbnail') as HTMLAnchorElement | null;
       const title = c.querySelector('.product-title')?.textContent?.trim() ?? '';
@@ -38,7 +38,7 @@ async function scrapeCategory(page: Page, url: string): Promise<NormalizedOffer[
         img: img?.src ?? null,
         sku,
       };
-    }, BASE),
+    }),
   );
 
   return offers
