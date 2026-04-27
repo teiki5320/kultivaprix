@@ -3,7 +3,13 @@
  * (Awin/Effiliation) quand disponible. Ce scraper sert de fallback si aucun
  * flux n'est accessible. Respect robots.txt + cadence modérée.
  */
-import { chromium, type Page } from 'playwright';
+import { chromium as playwrightChromium, type Page } from 'playwright';
+import { addExtra } from 'playwright-extra';
+// @ts-expect-error puppeteer-extra-plugin-stealth ships CommonJS without types
+import StealthPlugin from 'puppeteer-extra-plugin-stealth';
+
+const chromium = addExtra(playwrightChromium);
+chromium.use(StealthPlugin());
 import { ingestBatch, log } from './_shared';
 import type { NormalizedOffer } from '../../lib/types';
 
