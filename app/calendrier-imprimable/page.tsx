@@ -4,6 +4,7 @@ import { CALENDAR, MONTHS } from '@/lib/calendar';
 export const metadata: Metadata = {
   title: 'Calendrier de semis imprimable',
   description: 'Calendrier annuel de semis et récoltes au format imprimable A4. France métropolitaine.',
+  alternates: { canonical: '/calendrier-imprimable' },
 };
 
 export default function CalendrierImprimablePage() {

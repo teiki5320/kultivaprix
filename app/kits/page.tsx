@@ -6,6 +6,7 @@ import { KITS } from '@/lib/kits';
 export const metadata: Metadata = {
   title: 'Kits potager prêts à planter',
   description: 'Sélections clés-en-main de variétés pour démarrer un balcon, un petit potager, ou une cuisine aromatique.',
+  alternates: { canonical: '/kits' },
 };
 
 export default function KitsPage() {

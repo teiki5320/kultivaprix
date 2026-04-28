@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'Glossaire jardinier',
   description: 'Tous les mots du potager expliqués simplement : semer, repiquer, pincer, butter, hybride F1, paillage, etc.',
+  alternates: { canonical: '/glossaire' },
 };
 
 interface Term {

@@ -4,8 +4,9 @@ import { CTAKultiva } from '@/components/CTAKultiva';
 import { toSlug } from '@/lib/utils';
 
 export const metadata: Metadata = {
-  title: 'Potager en Afrique de l\'Ouest',
-  description: 'Variétés tropicales, calendrier saison sèche / saison des pluies, marchands francophones livrant en Afrique de l\'Ouest.',
+  title: "Potager en Afrique de l'Ouest",
+  description: "Variétés tropicales, calendrier saison sèche / saison des pluies, fiches culture adaptées au climat sahélien et soudanien.",
+  alternates: { canonical: '/afrique-de-louest' },
 };
 
 const VARIETES = [
