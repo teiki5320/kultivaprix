@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { PreferencesDrawer } from './PreferencesDrawer';
 import { MONTHS } from '@/lib/calendar';
 
@@ -8,13 +9,14 @@ export function Header() {
     <header className="sticky top-0 z-50 backdrop-blur-md bg-cream-warm/85 border-b border-cream">
       <div className="max-w-6xl mx-auto px-4 md:px-6 py-4 flex items-center justify-between gap-4">
         <Link href="/" className="flex items-center gap-3 no-underline">
-          <span
-            aria-hidden
-            className="w-10 h-10 rounded-2xl flex items-center justify-center text-2xl shadow-logo"
-            style={{ background: 'linear-gradient(135deg, #FFE7A0, #A8D5A2)' }}
-          >
-            🌷
-          </span>
+          <Image
+            src="/logokprix.PNG"
+            alt="Kultivaprix"
+            width={40}
+            height={40}
+            priority
+            className="w-10 h-10 rounded-2xl object-contain shadow-logo"
+          />
           <span className="font-display text-2xl font-bold tracking-tight" style={{ color: 'var(--brand-dark)' }}>
             Kultiva<span style={{ color: 'var(--terracotta-deep)' }}>prix</span>
           </span>
