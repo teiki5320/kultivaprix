@@ -1,10 +1,10 @@
-import Link from 'next/link';
 import type { Metadata } from 'next';
+import Image from 'next/image';
 import { createClient } from '@supabase/supabase-js';
-import { supabase } from '@/lib/supabase';
 import { CTAKultiva } from '@/components/CTAKultiva';
+import { EtalGrid, type EtalItem } from '@/components/EtalGrid';
 
-export const revalidate = 21600; // 6h ISR
+export const revalidate = 21600;
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? 'https://placeholder.supabase.co';
 const SUPABASE_ANON = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? 'placeholder';
@@ -14,122 +14,67 @@ const publicClient = createClient(SUPABASE_URL, SUPABASE_ANON, {
 });
 
 export const metadata: Metadata = {
-  title: 'Comparateur de prix jardinage — graines, plants, outils',
+  title: "L'étal Kultiva — toutes les espèces du potager",
   description:
-    'Compare en un clic les prix des graines, plants et outils chez les marchands jardinage français. Mis à jour plusieurs fois par jour, prix au gramme, alertes de baisse.',
+    "Le catalogue complet des espèces du potager, des aromatiques aux fleurs comestibles, version web de l'étal de l'app Kultiva. Cherche, filtre, découvre.",
   alternates: { canonical: '/' },
 };
 
-async function getData() {
-  const [{ data: cats }, { data: speciesSample }] = await Promise.all([
-    supabase.from('categories').select('*').is('parent_id', null).order('sort_order'),
-    publicClient
-      .from('species')
-      .select('slug, name, emoji, kind, image_url')
-      .eq('kind', 'species')
-      .order('name')
-      .limit(12),
-  ]);
-
-  return { cats: cats ?? [], species: speciesSample ?? [] };
+async function getEtalItems(): Promise<EtalItem[]> {
+  const { data } = await publicClient
+    .from('species')
+    .select('slug, kind, name, emoji, category, accessory_sub, image_url')
+    .order('name');
+  return (data ?? []) as EtalItem[];
 }
 
 export default async function HomePage() {
-  const { cats, species } = await getData();
+  const items = await getEtalItems();
 
   return (
-    <div className="flex flex-col gap-16">
-      <section className="relative pt-6 pb-4 overflow-hidden">
-        <div className="blob" style={{ width: 360, height: 360, background: '#BCE5C1', top: -80, left: -120 }} />
-        <div className="blob" style={{ width: 420, height: 420, background: '#FBD8E6', top: 40, right: -140 }} />
-        <div className="blob" style={{ width: 260, height: 260, background: '#FFE7A0', bottom: -60, left: '40%', opacity: 0.35 }} />
-
-        <div className="relative z-10 text-center max-w-3xl mx-auto">
-          <span className="eyebrow-pill">🌱 Comparateur neutre de graines, plants et outils</span>
-          <h1 className="font-display font-bold text-5xl md:text-6xl leading-[1.02] mt-5 tracking-tight text-fg">
-            Jardine malin, <em className="hero-em">paie juste</em>.
-          </h1>
-          <p className="mt-5 text-lg font-body text-fg-muted leading-relaxed max-w-2xl mx-auto">
-            Graines, plants et matériel de jardinage chez les marchands français. Prix actualisés
-            plusieurs fois par jour, historique en clair, zéro bla-bla.
-          </p>
-          <div className="mt-8 flex flex-wrap gap-3 justify-center">
-            <Link href="/recherche" className="btn-primary">
-              🔎 Commencer à chercher <span className="text-lg">→</span>
-            </Link>
-            <Link href="/guide/bien-choisir-ses-graines" className="btn-ghost">
-              📖 Guide des graines
-            </Link>
+    <div className="flex flex-col gap-10">
+      {/* Hero header — image + titre */}
+      <section className="relative overflow-hidden rounded-b-[28px] -mx-4 md:-mx-6 -mt-4">
+        <div className="relative h-[220px] md:h-[280px] w-full">
+          <Image
+            src="/etal-hero.png"
+            alt=""
+            fill
+            priority
+            sizes="(max-width: 768px) 100vw, 1200px"
+            className="object-cover"
+          />
+          {/* Voile sombre pour lisibilité */}
+          <div
+            aria-hidden
+            className="absolute inset-0"
+            style={{
+              background: 'linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.35) 100%)',
+            }}
+          />
+          <div className="absolute inset-0 flex items-end px-6 md:px-10 pb-8">
+            <div className="text-white">
+              <h1
+                className="font-display font-bold text-5xl md:text-6xl tracking-tight"
+                style={{ textShadow: '0 2px 8px rgba(0,0,0,0.45)' }}
+              >
+                L&apos;étal
+              </h1>
+              <p
+                className="font-body font-medium text-base md:text-lg mt-1 opacity-90"
+                style={{ textShadow: '0 2px 6px rgba(0,0,0,0.35)' }}
+              >
+                {items.length} variétés à découvrir et planter
+              </p>
+            </div>
           </div>
         </div>
       </section>
 
-      {species.length > 0 && (
-        <section>
-          <div className="flex items-end justify-between mb-6">
-            <div>
-              <span className="kicker">🌱 Catalogue Kultiva</span>
-              <h2 className="font-display text-3xl font-bold mt-3 text-fg">Espèces du potager</h2>
-            </div>
-            <Link
-              href="/catalogue"
-              className="hidden sm:inline font-body font-bold text-sm hover:underline"
-              style={{ color: 'var(--terracotta-deep)' }}
-            >
-              Voir le catalogue complet →
-            </Link>
-          </div>
-          <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
-            {species.map((s: any) => (
-              <Link
-                key={s.slug}
-                href={`/espece/${s.slug}`}
-                className="card-cream text-center no-underline transition hover:-translate-y-1 hover:shadow-leaf flex flex-col items-center gap-2 p-3"
-              >
-                <div
-                  className="w-14 h-14 rounded-full flex items-center justify-center text-2xl"
-                  style={{ background: 'var(--cream)' }}
-                >
-                  {s.image_url ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={s.image_url} alt={s.name} className="w-full h-full object-contain" />
-                  ) : (
-                    <span aria-hidden>{s.emoji ?? '🌱'}</span>
-                  )}
-                </div>
-                <div className="font-display font-bold text-xs text-fg leading-tight">{s.name}</div>
-              </Link>
-            ))}
-          </div>
-        </section>
-      )}
+      {/* Étal interactif */}
+      <EtalGrid items={items} />
 
-      {cats.length > 0 && (
-        <section>
-          <div className="flex items-end justify-between mb-6">
-            <div>
-              <span className="kicker">🌿 Catégories</span>
-              <h2 className="font-display text-3xl font-bold mt-3 text-fg">Par où on commence ?</h2>
-            </div>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {cats.map((c: any, i: number) => (
-              <Link
-                key={c.id}
-                href={`/${c.slug}`}
-                className={`rounded-bubble p-6 text-center transition hover:-translate-y-1 hover:shadow-leaf no-underline ${
-                  ['card-gradient-a', 'card-gradient-b', 'card-gradient-c', 'card-cream'][i % 4]
-                }`}
-              >
-                <div className="text-5xl">{c.icon ?? '🌿'}</div>
-                <div className="font-display font-bold text-lg mt-2 text-fg">{c.name}</div>
-              </Link>
-            ))}
-          </div>
-        </section>
-      )}
-
-      <CTAKultiva context="home" />
+      <CTAKultiva context="home-etal" />
     </div>
   );
 }
