@@ -30,33 +30,12 @@ async function scrapeCategory(page: Page, url: string): Promise<NormalizedOffer[
   await page.goto(url, { waitUntil: 'networkidle' });
   await page.waitForTimeout(DELAY_MS);
 
-  const diag = await page.evaluate(() => {
-    // Find any element that looks like a product card (has a link + a price-ish thing)
-    const candidates = Array.from(document.querySelectorAll(
-      '.product-item, li.product, .product-card, article, [data-product-id], .product-mini, .product-miniature, .ajax_block_product, .js-product'
-    ));
-    const first = candidates[0];
-    return {
-      title: document.title,
-      bodyLen: document.body?.innerText?.length ?? 0,
-      productItem: document.querySelectorAll('.product-item').length,
-      liProduct: document.querySelectorAll('li.product').length,
-      productCard: document.querySelectorAll('.product-card').length,
-      anyArticle: document.querySelectorAll('article').length,
-      dataProductId: document.querySelectorAll('[data-product-id]').length,
-      productMini: document.querySelectorAll('.product-mini, .product-miniature').length,
-      ajaxBlock: document.querySelectorAll('.ajax_block_product').length,
-      jsProduct: document.querySelectorAll('.js-product').length,
-      aHrefHtml: document.querySelectorAll('a[href*=".html"]').length,
-      firstCardHTML: (first?.outerHTML ?? '').slice(0, 1500),
-    };
-  });
-  log('baumaux', `  diag: title="${diag.title.slice(0, 60)}" bodyLen=${diag.bodyLen} ` +
-    `.product-item=${diag.productItem} li.product=${diag.liProduct} .product-card=${diag.productCard} ` +
-    `article=${diag.anyArticle} [data-product-id]=${diag.dataProductId} ` +
-    `.product-mini[ature]=${diag.productMini} .ajax_block_product=${diag.ajaxBlock} ` +
-    `.js-product=${diag.jsProduct} a[href*=.html]=${diag.aHrefHtml}`);
-  log('baumaux', `  firstCard="${diag.firstCardHTML.replace(/\s+/g, ' ').slice(0, 1500)}"`);
+  const diag = await page.evaluate(() => ({
+    title: document.title,
+    bodyLen: document.body?.innerText?.length ?? 0,
+    productMiniature: document.querySelectorAll('article.product-miniature').length,
+  }));
+  log('baumaux', `  diag: title="${diag.title.slice(0, 60)}" bodyLen=${diag.bodyLen} article.product-miniature=${diag.productMiniature}`);
 
   const products = await page.$$eval('.product-item, li.product, .product-card, .product-miniature, [data-product-id]', (cards) =>
     cards.map((c) => {

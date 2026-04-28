@@ -28,30 +28,24 @@ async function scrapeCategory(page: Page, url: string): Promise<NormalizedOffer[
   await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 45000 });
   await page.waitForTimeout(4000);
 
-  // Diagnostic : qu'est-ce qui est réellement chargé ?
   const diag = await page.evaluate(() => ({
     title: document.title,
     bodyLen: document.body?.innerText?.length ?? 0,
     anyArticle: document.querySelectorAll('article').length,
-    firstArticleHTML: (document.querySelector('article')?.outerHTML ?? '').slice(0, 1500),
   }));
   log('kokopelli', `  diag: title="${diag.title.slice(0, 60)}" bodyLen=${diag.bodyLen} article=${diag.anyArticle}`);
-  log('kokopelli', `  firstArticle="${diag.firstArticleHTML.replace(/\s+/g, ' ').slice(0, 1500)}"`);
 
-  const offers = await page.$$eval('article.product-miniature, .product-miniature, .js-product-miniature', (cards) =>
+  const offers = await page.$$eval('article.productcard2024', (cards) =>
     cards.map((c) => {
-      const a = (c.querySelector('a.product-thumbnail') ?? c.querySelector('a')) as HTMLAnchorElement | null;
-      const title = (c.querySelector('.product-title') ?? c.querySelector('h2, h3'))?.textContent?.trim() ?? '';
-      const priceTxt = (c.querySelector('.product-price-and-shipping .price') ?? c.querySelector('.price'))?.textContent?.trim() ?? '';
-      const img = c.querySelector('img') as HTMLImageElement | null;
-      const sku = c.getAttribute('data-id-product') ?? a?.href?.split('/')?.pop() ?? '';
-      return {
-        url: a?.href ?? '',
-        title,
-        priceTxt,
-        img: img?.src ?? null,
-        sku,
-      };
+      const link = c.querySelector('a[data-product-link]') as HTMLAnchorElement | null;
+      const sku = link?.getAttribute('data-product-link') ?? '';
+      const url = link?.href ?? '';
+      const titleFromBtn = (c.querySelector('[data-product-name]') as HTMLElement | null)?.getAttribute('data-product-name') ?? '';
+      const titleFromImg = (c.querySelector('picture img') as HTMLImageElement | null)?.alt ?? '';
+      const title = (titleFromBtn || titleFromImg).trim();
+      const img = (c.querySelector('picture img') as HTMLImageElement | null)?.src ?? null;
+      const priceTxt = (c.querySelector('[class*="price"]') as HTMLElement | null)?.textContent?.trim() ?? '';
+      return { url, title, priceTxt, img, sku };
     }),
   );
 
