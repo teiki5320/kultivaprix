@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { CTAKultiva } from '@/components/CTAKultiva';
+import { toSlug } from '@/lib/utils';
 
 export const metadata: Metadata = {
   title: 'Potager en Afrique de l\'Ouest',
@@ -39,7 +40,7 @@ export default function AfriquePage() {
           {VARIETES.map((v) => (
             <Link
               key={v.query}
-              href={`/recherche?q=${encodeURIComponent(v.query)}`}
+              href={`/espece/${toSlug(v.query)}`}
               className="card-cream text-center no-underline transition hover:-translate-y-1 hover:shadow-leaf"
             >
               <div className="text-4xl">{v.emoji}</div>

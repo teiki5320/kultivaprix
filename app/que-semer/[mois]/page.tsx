@@ -7,6 +7,7 @@ import { PlantedThisMonth } from '@/components/PlantedThisMonth';
 import { Breadcrumbs } from '@/components/Breadcrumbs';
 import { itemListLd } from '@/lib/jsonld';
 import { CALENDAR, MONTHS, isMonth, monthLabel, type Month } from '@/lib/calendar';
+import { toSlug } from '@/lib/utils';
 
 export const revalidate = 86400;
 
@@ -87,7 +88,7 @@ export default async function QueSemerPage({ params }: { params: { mois: string 
   const itemList = itemListLd(
     `À semer en ${m}`,
     data.semer.map((s) => ({ slug: s.query, name: s.label })),
-    '/recherche?q=',
+    '/espece/',
   );
 
   return (
@@ -123,7 +124,7 @@ export default async function QueSemerPage({ params }: { params: { mois: string 
           {data.semer.map((s) => (
             <Link
               key={s.query}
-              href={`/recherche?q=${encodeURIComponent(s.query)}`}
+              href={`/espece/${toSlug(s.query)}`}
               className="card-cream text-center no-underline transition hover:-translate-y-1 hover:shadow-leaf"
             >
               <div className="text-4xl">{s.emoji}</div>

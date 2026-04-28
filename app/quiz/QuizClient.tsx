@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { toSlug } from '@/lib/utils';
 
 type Exposure = 'soleil' | 'mi-ombre' | 'ombre';
 type Space = 'balcon' | 'petit' | 'grand';
@@ -102,14 +103,14 @@ export default function QuizClient() {
           {suggestions.map((s) => (
             <Link
               key={s.query}
-              href={`/recherche?q=${encodeURIComponent(s.query)}`}
+              href={`/espece/${toSlug(s.query)}`}
               className="card-cream no-underline transition hover:-translate-y-1 hover:shadow-leaf flex flex-col gap-2"
             >
               <div className="text-5xl">{s.emoji}</div>
               <div className="font-display font-bold text-xl text-fg">{s.name}</div>
               <p className="font-body text-sm text-fg-muted leading-snug">{s.why}</p>
               <span className="font-body font-bold text-sm mt-auto" style={{ color: 'var(--terracotta-deep)' }}>
-                Comparer les prix →
+                Voir la fiche →
               </span>
             </Link>
           ))}
