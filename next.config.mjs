@@ -6,10 +6,7 @@ const nextConfig = {
     ],
   },
   experimental: {
-    serverActions: {
-      allowedOrigins: ['kultivaprix.com', 'localhost:3000'],
-      bodySizeLimit: '6mb',
-    },
+    serverActions: { allowedOrigins: ['kultivaprix.com', 'localhost:3000'] },
   },
   async headers() {
     return [
