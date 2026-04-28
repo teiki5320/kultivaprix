@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { createClient } from '@supabase/supabase-js';
 import { CTAKultiva } from '@/components/CTAKultiva';
 import { Breadcrumbs } from '@/components/Breadcrumbs';
+import { AmazonAffiliateInline, AmazonAffiliateButton } from '@/components/AmazonAffiliate';
 import { getCategoryColor } from '@/lib/etal-categories';
 
 export const revalidate = 21600;
@@ -107,6 +108,14 @@ export default async function AccessoryPage({ params }: { params: { slug: string
           </div>
         </div>
       </section>
+
+      {/* Action rapide en haut */}
+      <div className="flex justify-center -mt-2">
+        <AmazonAffiliateInline name={a.name} kind="accessory" category={a.category} />
+      </div>
+
+      {/* Achat Amazon — gros bouton avant le CTA app */}
+      <AmazonAffiliateButton name={a.name} kind="accessory" category={a.category} />
 
       <CTAKultiva context={`accessoire-${a.slug}`} />
     </div>

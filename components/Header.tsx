@@ -21,19 +21,16 @@ export function Header() {
         </Link>
         <nav className="flex items-center gap-1 md:gap-5 text-sm">
           <Link
-            href="/"
-            className="hidden md:inline font-body font-bold text-fg hover:text-brand-dark transition"
-          >
-            L&apos;étal
-          </Link>
-          <Link
             href={`/que-semer/${currentMonth}`}
             className="hidden md:inline font-body font-bold text-fg hover:text-brand-dark transition"
           >
             Calendrier
           </Link>
-          <Link href="/guide" className="hidden md:inline font-body font-bold text-fg hover:text-brand-dark transition">
-            Guides
+          <Link
+            href="/"
+            className="hidden md:inline font-body font-bold text-fg hover:text-brand-dark transition"
+          >
+            L&apos;étal
           </Link>
           <Link href="/bilan" className="hidden md:inline font-body font-bold text-fg hover:text-brand-dark transition">
             Bilan

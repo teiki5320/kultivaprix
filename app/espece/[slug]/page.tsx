@@ -7,6 +7,7 @@ import { SpeciesCalendarBars } from '@/components/SpeciesCalendarBars';
 import { SpeciesKeyValueCard } from '@/components/SpeciesKeyValueCard';
 import { CompanionsCard } from '@/components/CompanionsCard';
 import { AddToKultivaPlanButton } from '@/components/AddToKultivaPlanButton';
+import { AmazonAffiliateInline, AmazonAffiliateButton } from '@/components/AmazonAffiliate';
 import { getCategoryColor, getCategoryLabel } from '@/lib/etal-categories';
 import { getPreferences } from '@/lib/preferences-server';
 
@@ -131,8 +132,9 @@ export default async function SpeciesPage({ params }: { params: { slug: string }
         )}
       </section>
 
-      {/* Plant cette espèce dans l'app */}
-      <div className="text-center -mt-2">
+      {/* Actions rapides — Acheter (Amazon) + Planter (app) */}
+      <div className="flex flex-wrap items-center justify-center gap-3 -mt-2">
+        <AmazonAffiliateInline name={sp.name} kind="species" category={sp.category} />
         <AddToKultivaPlanButton
           campaign={`espece-${sp.slug}`}
           label="Planter dans l'app Kultiva"
@@ -225,6 +227,9 @@ export default async function SpeciesPage({ params }: { params: { slug: string }
       )}
 
       <CompanionsCard name={sp.name} />
+
+      {/* Achat Amazon — gros bouton avant le CTA app */}
+      <AmazonAffiliateButton name={sp.name} kind="species" category={sp.category} />
 
       <CTAKultiva context={`espece-${sp.slug}`} />
     </div>
