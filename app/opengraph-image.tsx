@@ -1,7 +1,7 @@
 import { ImageResponse } from 'next/og';
 
 export const runtime = 'edge';
-export const alt = 'Kultivaprix — comparateur de prix jardinage';
+export const alt = "Kultivaprix — l'étal Kultiva en grand sur le web";
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 
@@ -27,23 +27,13 @@ export default function OGImage() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
           <div
             style={{
-              width: 96,
-              height: 96,
-              borderRadius: 28,
-              background: 'white',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: 64,
-              boxShadow: '0 12px 32px rgba(74, 155, 90, 0.25)',
+              fontSize: 28,
+              fontWeight: 700,
+              color: '#3D4A3D',
+              letterSpacing: '-0.01em',
             }}
           >
-            🌷
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <div style={{ fontSize: 28, fontWeight: 700, color: '#3D4A3D', letterSpacing: '-0.01em' }}>
-              kultivaprix.com
-            </div>
+            kultivaprix.com
           </div>
         </div>
 
@@ -57,7 +47,7 @@ export default function OGImage() {
               letterSpacing: '-0.02em',
             }}
           >
-            Jardine malin,
+            L&apos;étal Kultiva
           </div>
           <div
             style={{
@@ -68,15 +58,15 @@ export default function OGImage() {
               letterSpacing: '-0.02em',
             }}
           >
-            paie juste.
+            en grand sur le web.
           </div>
           <div style={{ fontSize: 32, color: '#3D4A3D', marginTop: 24, fontWeight: 500, lineHeight: 1.3 }}>
-            Comparateur neutre de graines, plants et outils.
+            Le catalogue potager de l&apos;app Kultiva, à butiner depuis ton ordi.
           </div>
         </div>
 
         <div style={{ display: 'flex', gap: 12 }}>
-          {['🌱 Calendrier', '🍅 Prix au gramme', '🧺 Panier optimal', '🌿 Bio · FR'].map((t) => (
+          {['🌱 Fiches espèces', '📅 Calendrier de semis', '🧺 Bilan du jardin', '🌍 France · Afrique'].map((t) => (
             <div
               key={t}
               style={{
