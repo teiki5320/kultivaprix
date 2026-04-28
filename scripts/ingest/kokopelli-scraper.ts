@@ -32,18 +32,11 @@ async function scrapeCategory(page: Page, url: string): Promise<NormalizedOffer[
   const diag = await page.evaluate(() => ({
     title: document.title,
     bodyLen: document.body?.innerText?.length ?? 0,
-    miniature: document.querySelectorAll('article.product-miniature').length,
-    productMiniature: document.querySelectorAll('.product-miniature').length,
     anyArticle: document.querySelectorAll('article').length,
-    productItem: document.querySelectorAll('.product-item').length,
-    jsProductMiniature: document.querySelectorAll('.js-product-miniature').length,
-    bodyHead: document.body?.innerText?.slice(0, 200) ?? '',
+    firstArticleHTML: (document.querySelector('article')?.outerHTML ?? '').slice(0, 1500),
   }));
-  log('kokopelli', `  diag: title="${diag.title.slice(0, 60)}" bodyLen=${diag.bodyLen} ` +
-    `articles.product-miniature=${diag.miniature} .product-miniature=${diag.productMiniature} ` +
-    `article=${diag.anyArticle} .product-item=${diag.productItem} ` +
-    `.js-product-miniature=${diag.jsProductMiniature}`);
-  log('kokopelli', `  bodyHead="${diag.bodyHead.replace(/\s+/g, ' ').slice(0, 200)}"`);
+  log('kokopelli', `  diag: title="${diag.title.slice(0, 60)}" bodyLen=${diag.bodyLen} article=${diag.anyArticle}`);
+  log('kokopelli', `  firstArticle="${diag.firstArticleHTML.replace(/\s+/g, ' ').slice(0, 1500)}"`);
 
   const offers = await page.$$eval('article.product-miniature, .product-miniature, .js-product-miniature', (cards) =>
     cards.map((c) => {
