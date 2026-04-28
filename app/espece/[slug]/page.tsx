@@ -6,6 +6,8 @@ import { Breadcrumbs } from '@/components/Breadcrumbs';
 import { SpeciesCalendarBars } from '@/components/SpeciesCalendarBars';
 import { SpeciesKeyValueCard } from '@/components/SpeciesKeyValueCard';
 import { CompanionsCard } from '@/components/CompanionsCard';
+import { AddToKultivaPlanButton } from '@/components/AddToKultivaPlanButton';
+import { getCategoryColor, getCategoryLabel } from '@/lib/etal-categories';
 import { getPreferences } from '@/lib/preferences-server';
 
 export const revalidate = 21600; // 6h ISR
@@ -45,13 +47,6 @@ interface Species {
   } | null;
 }
 
-const CATEGORY_LABELS: Record<string, string> = {
-  fruits: 'Fruits', leaves: 'Feuilles', bulbs: 'Bulbes',
-  tubers: 'Tubercules', seeds: 'Graines', roots: 'Racines',
-  stems: 'Tiges', aromatics: 'Aromates', flowers: 'Fleurs',
-  accessories: 'Accessoires',
-};
-
 async function getSpecies(slug: string): Promise<Species | null> {
   const { data } = await publicClient
     .from('species')
@@ -83,40 +78,66 @@ export default async function SpeciesPage({ params }: { params: { slug: string }
   const fr = sp.regions?.france;
   const wa = sp.regions?.west_africa;
   const region = prefs.region === 'afrique-ouest' ? wa : fr;
+  const familyColor = getCategoryColor(sp.category);
+  const familyLabel = getCategoryLabel(sp.category);
 
   return (
     <div className="flex flex-col gap-6">
       <Breadcrumbs
         crumbs={[
-          { name: 'Accueil', href: '/' },
-          { name: 'Catalogue', href: '/catalogue' },
+          { name: "L'étal", href: '/' },
           { name: sp.name, href: `/espece/${sp.slug}` },
         ]}
       />
 
-      {/* Header card — Kultiva style */}
-      <section className="card-cream relative">
+      {/* Header card — Kultiva style, teinté famille */}
+      <section
+        className="rounded-3xl relative overflow-hidden"
+        style={{
+          background: `linear-gradient(135deg, ${familyColor}1f, ${familyColor}40)`,
+          border: `2px solid ${familyColor}b3`,
+          padding: '24px',
+        }}
+      >
         <div className="flex flex-col md:flex-row md:items-center gap-5">
           <div
-            className="w-24 h-24 rounded-full flex items-center justify-center text-5xl shrink-0 mx-auto md:mx-0"
-            style={{ background: 'var(--cream)' }}
+            className="w-28 h-28 rounded-full flex items-center justify-center text-6xl shrink-0 mx-auto md:mx-0"
+            style={{ background: '#fff', border: `2px solid ${familyColor}80` }}
           >
-            {sp.emoji ?? '🌱'}
+            {sp.image_url ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={sp.image_url} alt={sp.name} className="w-full h-full object-contain p-2" />
+            ) : (
+              <span aria-hidden>{sp.emoji ?? '🌱'}</span>
+            )}
           </div>
           <div className="flex-1 text-center md:text-left">
-            <h1 className="font-display text-3xl md:text-4xl font-bold text-fg">{sp.name}</h1>
-            <div className="font-body text-fg-muted mt-1">{CATEGORY_LABELS[sp.category] ?? sp.category}</div>
+            <span
+              className="inline-block font-body font-bold text-xs uppercase tracking-wider px-2 py-1 rounded-full"
+              style={{ background: '#fff', color: familyColor, border: `1.5px solid ${familyColor}` }}
+            >
+              {familyLabel}
+            </span>
+            <h1 className="font-display text-3xl md:text-4xl font-bold text-fg mt-2">{sp.name}</h1>
             {sp.description && (
               <p className="font-body text-fg mt-3 leading-relaxed">{sp.description}</p>
             )}
           </div>
         </div>
         {sp.note && (
-          <div className="mt-4 pt-4 border-t border-cream">
+          <div className="mt-4 pt-4" style={{ borderTop: `1px solid ${familyColor}40` }}>
             <p className="font-body text-sm text-fg-muted italic">💡 {sp.note}</p>
           </div>
         )}
       </section>
+
+      {/* Plant cette espèce dans l'app */}
+      <div className="text-center -mt-2">
+        <AddToKultivaPlanButton
+          campaign={`espece-${sp.slug}`}
+          label="Planter dans l'app Kultiva"
+        />
+      </div>
 
       {/* Calendars */}
       {region?.sowing_months && region.sowing_months.length > 0 && (

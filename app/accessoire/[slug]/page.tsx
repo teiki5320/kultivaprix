@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { createClient } from '@supabase/supabase-js';
 import { CTAKultiva } from '@/components/CTAKultiva';
 import { Breadcrumbs } from '@/components/Breadcrumbs';
+import { getCategoryColor } from '@/lib/etal-categories';
 
 export const revalidate = 21600;
 
@@ -60,22 +61,29 @@ export async function generateMetadata({ params }: { params: { slug: string } })
 export default async function AccessoryPage({ params }: { params: { slug: string } }) {
   const a = await getAccessory(params.slug);
   if (!a || a.kind !== 'accessory') notFound();
+  const familyColor = getCategoryColor('accessories');
 
   return (
     <div className="flex flex-col gap-6">
       <Breadcrumbs
         crumbs={[
-          { name: 'Accueil', href: '/' },
-          { name: 'Accessoires', href: '/catalogue?kind=accessory' },
+          { name: "L'étal", href: '/' },
           { name: a.name, href: `/accessoire/${a.slug}` },
         ]}
       />
 
-      <section className="card-cream">
+      <section
+        className="rounded-3xl relative overflow-hidden"
+        style={{
+          background: `linear-gradient(135deg, ${familyColor}1f, ${familyColor}40)`,
+          border: `2px solid ${familyColor}b3`,
+          padding: '24px',
+        }}
+      >
         <div className="flex flex-col md:flex-row md:items-center gap-5">
           <div
-            className="w-24 h-24 rounded-2xl flex items-center justify-center text-5xl shrink-0 mx-auto md:mx-0 relative overflow-hidden"
-            style={{ background: 'var(--cream)' }}
+            className="w-28 h-28 rounded-2xl flex items-center justify-center text-6xl shrink-0 mx-auto md:mx-0 relative overflow-hidden"
+            style={{ background: '#fff', border: `2px solid ${familyColor}80` }}
           >
             {a.image_url ? (
               // eslint-disable-next-line @next/next/no-img-element
@@ -85,12 +93,16 @@ export default async function AccessoryPage({ params }: { params: { slug: string
             )}
           </div>
           <div className="flex-1 text-center md:text-left">
-            <h1 className="font-display text-3xl md:text-4xl font-bold text-fg">{a.name}</h1>
-            {a.accessory_sub && (
-              <div className="font-body text-fg-muted mt-1">
-                {SUB_LABELS[a.accessory_sub] ?? a.accessory_sub}
-              </div>
-            )}
+            <span
+              className="inline-block font-body font-bold text-xs uppercase tracking-wider px-2 py-1 rounded-full"
+              style={{ background: '#fff', color: familyColor, border: `1.5px solid ${familyColor}` }}
+            >
+              Accessoire
+              {a.accessory_sub && SUB_LABELS[a.accessory_sub]
+                ? ` · ${SUB_LABELS[a.accessory_sub]}`
+                : ''}
+            </span>
+            <h1 className="font-display text-3xl md:text-4xl font-bold text-fg mt-2">{a.name}</h1>
             {a.note && <p className="font-body text-fg mt-3 leading-relaxed">{a.note}</p>}
           </div>
         </div>
