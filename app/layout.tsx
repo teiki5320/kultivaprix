@@ -26,24 +26,24 @@ const nunito = Nunito({
 
 export const metadata: Metadata = {
   title: {
-    default: 'Kultivaprix — comparateur de prix jardinage',
+    default: "Kultivaprix — l'étal Kultiva en grand sur le web",
     template: '%s · Kultivaprix',
   },
   description:
-    'Graines, plants, outils de jardinage : comparez les prix chez les marchands français. Mis à jour automatiquement plusieurs fois par jour.',
+    "Le catalogue potager de l'app Kultiva, en grand sur le web. 98 fiches espèces et accessoires : semis, exposition, calendrier de récolte. Companion web de l'app mobile.",
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'https://kultivaprix.com'),
   openGraph: {
     type: 'website',
     locale: 'fr_FR',
     siteName: 'Kultivaprix',
     description:
-      'Comparateur neutre de graines, plants et outils. Prix mis à jour plusieurs fois par jour, alertes de baisse, calendrier de semis.',
+      "L'étal Kultiva, version web : toutes les espèces du potager à butiner depuis ton ordi. Calendrier de semis, fiches culture, bilan du prix de revient.",
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Kultivaprix — comparateur de prix jardinage',
+    title: "Kultivaprix — l'étal Kultiva en grand sur le web",
     description:
-      'Compare en un clic les prix des graines, plants et outils chez les marchands jardinage français.',
+      "Le catalogue potager de l'app Kultiva, version web. Fiches espèces, calendrier de semis, bilan du jardin.",
   },
   alternates: {
     languages: {
