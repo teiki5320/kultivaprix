@@ -9,7 +9,7 @@ export const revalidate = 3600;
 export const metadata: Metadata = {
   title: 'Catalogue · espèces et accessoires',
   description:
-    'Tout le catalogue Kultiva : espèces végétales (potager, aromates, fruits) et accessoires (outils, arrosage, protection), avec comparateur de prix.',
+    "Tout le catalogue Kultiva : espèces végétales (potager, aromates, fruits) et accessoires (outils, arrosage, protection). Le catalogue de l'app, en grand sur le web.",
   alternates: { canonical: '/catalogue' },
 };
 
@@ -75,7 +75,7 @@ export default async function CataloguePage() {
         <p className="font-body text-fg-muted max-w-2xl mx-auto mt-4">
           Le catalogue complet des espèces végétales et accessoires, synchronisé
           avec l&apos;app Kultiva. Clique sur une fiche pour les conseils de
-          culture et le comparateur de prix.
+          culture, les périodes de semis et de récolte.
         </p>
       </header>
 

@@ -1,6 +1,6 @@
 export const metadata = {
   title: 'Mentions légales',
-  description: 'Éditeur, hébergement, programme d’affiliation : informations légales du comparateur Kultivaprix.',
+  description: 'Éditeur, hébergement, programme d’affiliation : informations légales de Kultivaprix.',
   alternates: { canonical: '/mentions-legales' },
 };
 
