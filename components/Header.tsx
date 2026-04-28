@@ -21,6 +21,12 @@ export function Header() {
         </Link>
         <nav className="flex items-center gap-1 md:gap-5 text-sm">
           <Link
+            href="/actualites"
+            className="hidden md:inline font-body font-bold text-fg hover:text-brand-dark transition"
+          >
+            Actus
+          </Link>
+          <Link
             href={`/que-semer/${currentMonth}`}
             className="hidden md:inline font-body font-bold text-fg hover:text-brand-dark transition"
           >
