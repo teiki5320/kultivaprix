@@ -35,6 +35,9 @@ export function Header() {
           <Link href="/guide" className="hidden md:inline font-body font-bold text-fg hover:text-brand-dark transition">
             Guides
           </Link>
+          <Link href="/bilan" className="hidden md:inline font-body font-bold text-fg hover:text-brand-dark transition">
+            Bilan
+          </Link>
           <Link href="/app" className="hidden md:inline font-body font-bold text-fg hover:text-brand-dark transition">
             App
           </Link>
