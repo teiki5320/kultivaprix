@@ -35,7 +35,7 @@ export function organizationLd() {
   };
 }
 
-/** WebSite + SearchAction — enables Google's sitelinks search box. */
+/** WebSite — déclaré dans le layout. */
 export function websiteLd() {
   return {
     '@context': 'https://schema.org',
@@ -43,11 +43,6 @@ export function websiteLd() {
     name: 'Kultivaprix',
     url: SITE_URL,
     inLanguage: 'fr-FR',
-    potentialAction: {
-      '@type': 'SearchAction',
-      target: `${SITE_URL}/recherche?q={search_term_string}`,
-      'query-input': 'required name=search_term_string',
-    },
   };
 }
 
