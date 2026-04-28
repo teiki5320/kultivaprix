@@ -195,6 +195,35 @@ export default function AppPage() {
         </ul>
       </section>
 
+      {/* Visite guidée animée */}
+      <section className="flex flex-col gap-6">
+        <header className="text-center">
+          <span className="kicker">🎬 Visite guidée animée</span>
+          <h2 className="font-display font-bold text-3xl md:text-4xl text-fg mt-3 tracking-tight">
+            Une minute pour <em className="hero-em">tout voir</em>
+          </h2>
+          <p className="font-body text-fg-muted mt-3 max-w-xl mx-auto">
+            Le tableau de bord, la météo, l&apos;étal et le Poussidex — un tour animé qui passe en
+            revue chaque écran. Lance-le et regarde.
+          </p>
+        </header>
+        <div
+          className="mx-auto w-full"
+          style={{
+            maxWidth: '460px',
+            aspectRatio: '1080 / 1920',
+          }}
+        >
+          <iframe
+            src="/dashboard-tour/index.html"
+            title="Visite guidée du tableau de bord Kultiva"
+            loading="lazy"
+            className="w-full h-full rounded-[40px] border-0"
+            style={{ boxShadow: '0 30px 60px -20px rgba(60,80,60,.30)' }}
+          />
+        </div>
+      </section>
+
       {/* Bonus : graines de qualité */}
       <section className="card-cream">
         <h2 className="font-display font-bold text-xl text-fg">
