@@ -19,10 +19,8 @@ import type { NormalizedOffer } from '../../lib/types';
 
 const BASE = 'https://kokopelli-semences.fr';
 const SEED_URLS = [
-  `${BASE}/fr/15-graines-de-tomates`,
-  `${BASE}/fr/16-graines-de-salades`,
-  `${BASE}/fr/17-graines-de-courges`,
-  `${BASE}/fr/18-graines-aromatiques`,
+  `${BASE}/fr/c/semences/potageres`,
+  `${BASE}/fr/c/semences/medicinales-aromatiques-et-florales`,
 ];
 const DELAY_MS = 2000;
 

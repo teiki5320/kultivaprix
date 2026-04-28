@@ -15,9 +15,9 @@ import type { NormalizedOffer } from '../../lib/types';
 
 const BASE = 'https://www.graines-baumaux.fr';
 const SEED_URLS = [
-  `${BASE}/categorie/3/graines-de-legumes.html`,
-  `${BASE}/categorie/4/graines-de-fleurs.html`,
-  `${BASE}/categorie/82/aromates.html`,
+  `${BASE}/168712-semences-potageres`,
+  `${BASE}/167553-semences-florales`,
+  `${BASE}/167226-semences-aromatiques-et-officinales`,
 ];
 const DELAY_MS = 2500;
 
