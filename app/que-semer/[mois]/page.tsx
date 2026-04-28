@@ -1,8 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
-import { ProductCard } from '@/components/ProductCard';
 import { CTAKultiva } from '@/components/CTAKultiva';
 import { AddToKultivaPlanButton } from '@/components/AddToKultivaPlanButton';
 import { PlantedThisMonth } from '@/components/PlantedThisMonth';
@@ -36,25 +34,7 @@ export async function generateMetadata({ params }: { params: { mois: string } })
 
 async function getProducts(queries: string[]) {
   if (!queries.length) return [];
-  const ors = queries.map((q) => `name.ilike.%${q}%`).join(',');
-  const { data } = await supabase
-    .from('products_master')
-    .select('id, slug, name, image_url, offers(price, merchant_id)')
-    .or(ors)
-    .not('slug', 'like', 'tmp-%')
-    .limit(48);
-
-  return (data ?? []).map((p: any) => {
-    const prices = (p.offers ?? []).map((o: any) => o.price).filter((n: number) => typeof n === 'number');
-    const merchants = new Set((p.offers ?? []).map((o: any) => o.merchant_id));
-    return {
-      slug: p.slug,
-      name: p.name,
-      imageUrl: p.image_url,
-      minPrice: prices.length ? Math.min(...prices) : null,
-      merchantCount: merchants.size,
-    };
-  });
+  return [];
 }
 
 export default async function QueSemerPage({ params }: { params: { mois: string } }) {
@@ -62,7 +42,6 @@ export default async function QueSemerPage({ params }: { params: { mois: string 
   const mois = params.mois as Month;
   const m = monthLabel(mois);
   const data = CALENDAR[mois];
-  const products = await getProducts(data.semer.map((s) => s.query));
 
   const monthInfo = MONTHS.find((mm) => mm.slug === mois)!;
   const monthNumber = MONTHS.findIndex((mm) => mm.slug === mois) + 1;
@@ -165,20 +144,6 @@ export default async function QueSemerPage({ params }: { params: { mois: string 
                 <div className="text-3xl">{r.emoji}</div>
                 <div className="font-display font-bold text-base mt-1 text-fg">{r.label}</div>
               </div>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {products.length > 0 && (
-        <section>
-          <span className="kicker">🍅 Disponibles chez nos marchands</span>
-          <h2 className="font-display text-3xl font-bold mt-3 mb-4 text-fg">
-            Graines et plants à acheter
-          </h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {products.map((p) => (
-              <ProductCard key={p.slug} {...p} />
             ))}
           </div>
         </section>

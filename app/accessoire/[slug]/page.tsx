@@ -1,11 +1,8 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { createClient } from '@supabase/supabase-js';
-import { supabase } from '@/lib/supabase';
 import { CTAKultiva } from '@/components/CTAKultiva';
 import { Breadcrumbs } from '@/components/Breadcrumbs';
-import { PriceTable } from '@/components/PriceTable';
-import { getPreferences } from '@/lib/preferences-server';
 
 export const revalidate = 21600;
 
@@ -47,29 +44,10 @@ async function getAccessory(slug: string): Promise<Accessory | null> {
   return (data as Accessory) ?? null;
 }
 
-async function getOffers(slug: string) {
-  const { data } = await supabase
-    .from('offers')
-    .select('id, title, price, currency, in_stock, shipping_cost, last_seen_at, merchants(slug, name), products_master!inner(species_slug)')
-    .eq('products_master.species_slug', slug)
-    .limit(60);
-  return (data ?? []).map((o: any) => ({
-    offer_id: o.id,
-    merchant_slug: o.merchants?.slug ?? 'unknown',
-    merchant_name: o.merchants?.name ?? 'Marchand',
-    title: o.title,
-    price: o.price,
-    currency: o.currency ?? 'EUR',
-    shipping_cost: o.shipping_cost,
-    in_stock: o.in_stock,
-    last_seen_at: o.last_seen_at,
-  }));
-}
-
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
   const a = await getAccessory(params.slug);
   if (!a || a.kind !== 'accessory') return {};
-  const description = a.note ?? `Comparer les prix de ${a.name} chez les marchands jardinage français.`;
+  const description = a.note ?? `${a.name} — fiche accessoire jardinage Kultiva.`;
   const canonical = `/accessoire/${a.slug}`;
   return {
     title: a.name,
@@ -82,9 +60,6 @@ export async function generateMetadata({ params }: { params: { slug: string } })
 export default async function AccessoryPage({ params }: { params: { slug: string } }) {
   const a = await getAccessory(params.slug);
   if (!a || a.kind !== 'accessory') notFound();
-
-  const offers = await getOffers(params.slug);
-  const prefs = getPreferences();
 
   return (
     <div className="flex flex-col gap-6">
@@ -119,22 +94,6 @@ export default async function AccessoryPage({ params }: { params: { slug: string
             {a.note && <p className="font-body text-fg mt-3 leading-relaxed">{a.note}</p>}
           </div>
         </div>
-      </section>
-
-      <section>
-        <span className="kicker kicker-terra">🛒 Comparateur de prix</span>
-        <h2 className="font-display text-3xl font-bold mt-2 mb-4 text-fg">Toutes les offres</h2>
-        {offers.length > 0 ? (
-          <PriceTable offers={offers} currency={prefs.currency} />
-        ) : (
-          <div className="card-cream text-center">
-            <div className="text-4xl">🌧</div>
-            <p className="font-body font-bold text-fg mt-3">Pas encore de marchand suivi pour cet accessoire.</p>
-            <p className="font-body text-sm text-fg-muted mt-2">
-              On les ajoute dès qu&apos;une offre apparaît dans nos flux d&apos;affiliation.
-            </p>
-          </div>
-        )}
       </section>
 
       <CTAKultiva context={`accessoire-${a.slug}`} />

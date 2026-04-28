@@ -1,6 +1,5 @@
 import Link from 'next/link';
 import { PreferencesDrawer } from './PreferencesDrawer';
-import { CartLink } from './CartLink';
 import { MONTHS } from '@/lib/calendar';
 
 export function Header() {
@@ -21,32 +20,25 @@ export function Header() {
           </span>
         </Link>
         <nav className="flex items-center gap-1 md:gap-5 text-sm">
-          <Link href="/graines" className="hidden md:inline font-body font-bold text-fg hover:text-brand-dark transition">
-            Graines
-          </Link>
-          <Link href="/plants" className="hidden md:inline font-body font-bold text-fg hover:text-brand-dark transition">
-            Plants
-          </Link>
-          <Link href="/outils" className="hidden md:inline font-body font-bold text-fg hover:text-brand-dark transition">
-            Outils
-          </Link>
           <Link
             href="/catalogue"
             className="hidden md:inline font-body font-bold text-fg hover:text-brand-dark transition"
           >
-            Catalogue
+            L'étal
           </Link>
           <Link
             href={`/que-semer/${currentMonth}`}
-            className="hidden lg:inline font-body font-bold text-fg hover:text-brand-dark transition"
+            className="hidden md:inline font-body font-bold text-fg hover:text-brand-dark transition"
           >
             Calendrier
           </Link>
-          <CartLink />
-          <PreferencesDrawer />
-          <Link href="/recherche" className="btn-primary !py-2 !px-5 !text-sm">
-            🔎 <span className="hidden sm:inline">Chercher</span>
+          <Link href="/guide" className="hidden md:inline font-body font-bold text-fg hover:text-brand-dark transition">
+            Guides
           </Link>
+          <Link href="/app" className="hidden md:inline font-body font-bold text-fg hover:text-brand-dark transition">
+            App
+          </Link>
+          <PreferencesDrawer />
         </nav>
       </div>
     </header>

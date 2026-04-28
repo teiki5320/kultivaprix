@@ -2,9 +2,7 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 import { createClient } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
-import { ProductCard } from '@/components/ProductCard';
 import { CTAKultiva } from '@/components/CTAKultiva';
-import { getPreferences } from '@/lib/preferences-server';
 
 export const revalidate = 21600; // 6h ISR
 
@@ -23,13 +21,8 @@ export const metadata: Metadata = {
 };
 
 async function getData() {
-  const [{ data: cats }, { data: featured }, { data: speciesSample }] = await Promise.all([
+  const [{ data: cats }, { data: speciesSample }] = await Promise.all([
     supabase.from('categories').select('*').is('parent_id', null).order('sort_order'),
-    supabase
-      .from('products_master')
-      .select('id, slug, name, image_url, offers(price, merchant_id)')
-      .not('slug', 'like', 'tmp-%')
-      .limit(12),
     publicClient
       .from('species')
       .select('slug, name, emoji, kind, image_url')
@@ -38,25 +31,11 @@ async function getData() {
       .limit(12),
   ]);
 
-  const products =
-    featured?.map((p: any) => {
-      const prices = (p.offers ?? []).map((o: any) => o.price).filter((n: number) => typeof n === 'number');
-      const merchants = new Set((p.offers ?? []).map((o: any) => o.merchant_id));
-      return {
-        slug: p.slug,
-        name: p.name,
-        imageUrl: p.image_url,
-        minPrice: prices.length ? Math.min(...prices) : null,
-        merchantCount: merchants.size,
-      };
-    }) ?? [];
-
-  return { cats: cats ?? [], products, species: speciesSample ?? [] };
+  return { cats: cats ?? [], species: speciesSample ?? [] };
 }
 
 export default async function HomePage() {
-  const { cats, products, species } = await getData();
-  const prefs = getPreferences();
+  const { cats, species } = await getData();
 
   return (
     <div className="flex flex-col gap-16">
@@ -149,27 +128,6 @@ export default async function HomePage() {
           </div>
         </section>
       )}
-
-      <section>
-        <div className="flex items-end justify-between mb-6">
-          <div>
-            <span className="kicker kicker-terra">🍅 Sélection</span>
-            <h2 className="font-display text-3xl font-bold mt-3 text-fg">Quelques produits suivis</h2>
-          </div>
-          <Link
-            href="/recherche"
-            className="hidden sm:inline font-body font-bold text-sm hover:underline"
-            style={{ color: 'var(--terracotta-deep)' }}
-          >
-            Voir tout →
-          </Link>
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {products.map((p) => (
-            <ProductCard key={p.slug} {...p} currency={prefs.currency} light={prefs.light} />
-          ))}
-        </div>
-      </section>
 
       <CTAKultiva context="home" />
     </div>

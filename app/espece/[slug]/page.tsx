@@ -1,18 +1,12 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { createClient } from '@supabase/supabase-js';
-import { supabase } from '@/lib/supabase';
 import { CTAKultiva } from '@/components/CTAKultiva';
 import { Breadcrumbs } from '@/components/Breadcrumbs';
 import { SpeciesCalendarBars } from '@/components/SpeciesCalendarBars';
 import { SpeciesKeyValueCard } from '@/components/SpeciesKeyValueCard';
-import { PriceTable } from '@/components/PriceTable';
 import { CompanionsCard } from '@/components/CompanionsCard';
-import { RelatedLinks } from '@/components/RelatedLinks';
-import { groupByVariety, type OfferLike } from '@/lib/extract-variety';
 import { getPreferences } from '@/lib/preferences-server';
-import { convertAndFormat } from '@/lib/format-money';
 
 export const revalidate = 21600; // 6h ISR
 
@@ -67,29 +61,10 @@ async function getSpecies(slug: string): Promise<Species | null> {
   return (data as Species) ?? null;
 }
 
-async function getOffers(slug: string): Promise<OfferLike[]> {
-  const { data } = await supabase
-    .from('offers')
-    .select('id, title, price, in_stock, shipping_cost, last_seen_at, merchant_id, merchants(slug, name), products_master!inner(species_slug)')
-    .eq('products_master.species_slug', slug)
-    .limit(200);
-  return (data ?? []).map((o: any) => ({
-    offer_id: o.id,
-    title: o.title,
-    price: o.price,
-    in_stock: o.in_stock,
-    shipping_cost: o.shipping_cost,
-    last_seen_at: o.last_seen_at,
-    merchant_id: o.merchant_id,
-    merchant_name: o.merchants?.name ?? 'Marchand',
-    merchant_slug: o.merchants?.slug ?? 'unknown',
-  }));
-}
-
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
   const sp = await getSpecies(params.slug);
   if (!sp || sp.kind !== 'species') return {};
-  const description = sp.description?.slice(0, 160) ?? `Cultiver ${sp.name} : semis, exposition, récolte, et comparatif des prix chez les marchands jardinage français.`;
+  const description = sp.description?.slice(0, 160) ?? `Cultiver ${sp.name} : semis, exposition, récolte. Fiche espèce du catalogue Kultiva.`;
   const canonical = `/espece/${sp.slug}`;
   return {
     title: sp.name,
@@ -103,27 +78,11 @@ export default async function SpeciesPage({ params }: { params: { slug: string }
   const sp = await getSpecies(params.slug);
   if (!sp || sp.kind !== 'species') notFound();
 
-  const offers = await getOffers(params.slug);
-  const inStock = offers.filter((o) => o.in_stock && o.price != null);
-  const varietyGroups = groupByVariety(inStock, sp.name);
   const prefs = getPreferences();
 
   const fr = sp.regions?.france;
   const wa = sp.regions?.west_africa;
   const region = prefs.region === 'afrique-ouest' ? wa : fr;
-
-  // Offers shape expected by PriceTable
-  const priceTableOffers = inStock.map((o) => ({
-    offer_id: o.offer_id,
-    merchant_slug: o.merchant_slug,
-    merchant_name: o.merchant_name,
-    title: o.title,
-    price: o.price,
-    currency: 'EUR',
-    shipping_cost: o.shipping_cost,
-    in_stock: o.in_stock,
-    last_seen_at: o.last_seen_at,
-  }));
 
   return (
     <div className="flex flex-col gap-6">
@@ -151,9 +110,6 @@ export default async function SpeciesPage({ params }: { params: { slug: string }
               <p className="font-body text-fg mt-3 leading-relaxed">{sp.description}</p>
             )}
           </div>
-          {inStock.length > 0 && (
-            <a href="#prix" className="btn-primary !py-2 !px-4 !text-sm shrink-0">🛒 Comparer</a>
-          )}
         </div>
         {sp.note && (
           <div className="mt-4 pt-4 border-t border-cream">
@@ -247,64 +203,7 @@ export default async function SpeciesPage({ params }: { params: { slug: string }
         />
       )}
 
-      {/* === KULTIVAPRIX VALUE-ADD: prices === */}
-
-      <section id="prix" className="flex flex-col gap-4">
-        <div>
-          <span className="kicker kicker-terra">🛒 Comparateur de prix</span>
-          <h2 className="font-display text-3xl font-bold mt-2 text-fg">
-            Acheter des graines de {sp.name.toLowerCase()}
-          </h2>
-        </div>
-
-        {varietyGroups.length === 0 && (
-          <div className="card-cream text-center">
-            <div className="text-4xl">🌧</div>
-            <p className="font-body font-bold text-fg mt-3">
-              Pas encore de marchands suivis pour {sp.name.toLowerCase()}.
-            </p>
-            <p className="font-body text-sm text-fg-muted mt-2 max-w-md mx-auto">
-              On scrape les boutiques de jardinage françaises et on les ajoute ici dès qu&apos;une offre apparaît. Reviens dans quelques jours, ou ouvre l&apos;app Kultiva pour planifier ton semis en attendant.
-            </p>
-          </div>
-        )}
-
-        {varietyGroups.length > 1 && (
-          <section>
-            <h3 className="font-display font-bold text-lg text-fg mb-3">
-              🏆 Variétés disponibles
-            </h3>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              {varietyGroups.map((g) => (
-                <div key={g.variety} className="card-cream">
-                  <div className="font-display font-bold text-fg">{g.variety}</div>
-                  <div className="font-body text-xs text-fg-muted mt-1">
-                    {g.merchantCount} marchand{g.merchantCount > 1 ? 's' : ''}
-                  </div>
-                  {g.minPrice != null && (
-                    <div className="font-display font-bold text-lg mt-2" style={{ color: 'var(--terracotta-deep)' }}>
-                      dès {convertAndFormat(g.minPrice, prefs.currency)}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {priceTableOffers.length > 0 && (
-          <section>
-            <h3 className="font-display font-bold text-lg text-fg mb-3">
-              💰 Toutes les offres
-            </h3>
-            <PriceTable offers={priceTableOffers} currency={prefs.currency} />
-          </section>
-        )}
-      </section>
-
       <CompanionsCard name={sp.name} />
-
-      <RelatedLinks categorySlug={null} categoryName={null} />
 
       <CTAKultiva context={`espece-${sp.slug}`} />
     </div>
