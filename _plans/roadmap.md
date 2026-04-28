@@ -5,7 +5,7 @@
 
 ## 🎯 Vision
 
-Devenir le comparateur de prix de référence pour les jardiniers francophones (France et Afrique de l'Ouest), branché à l'app Kultiva, avec un ton kawaii, des données honnêtes et zéro dark pattern.
+Être le companion web de l'app Kultiva — l'étal en grand sur ordinateur, le calendrier de semis, le bilan du jardin. Branché à l'app mobile, ton kawaii pastel, données honnêtes et zéro dark pattern.
 
 ## 🏁 Jalons
 

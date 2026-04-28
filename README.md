@@ -1,6 +1,6 @@
 # Kultivaprix 🌷🌱
 
-Comparateur de prix 100% automatique pour **graines, plants et matériel de jardinage** chez les marchands français. Adossé à l'app [Kultiva](https://kultiva.app).
+Le **companion web de l'app Kultiva** — l'étal en grand sur ordinateur. Catalogue d'espèces et d'accessoires synchronisé depuis Kultiva, fiches culture, calendrier de semis, bilan du jardin. Adossé à l'app mobile [Kultiva](https://kultiva.app).
 
 - Stack : Next.js 14 (App Router) · TypeScript · Tailwind · Supabase · Vercel
 - Zéro LLM en prod : tout le contenu SEO est généré au build par des **templates** avec rotation de variantes (`lib/content-templates/`)
