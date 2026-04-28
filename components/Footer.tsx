@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { NewsletterForm } from './NewsletterForm';
+import { AppStoreBadges } from './AppStoreBadges';
 
 export function Footer() {
   return (
@@ -39,11 +40,12 @@ export function Footer() {
 
           <div>
             <h5 className="font-display font-bold text-sm mb-3">Kultiva</h5>
+            <AppStoreBadges size="sm" className="mb-4" />
             <ul className="space-y-2 font-body text-sm text-white/70">
               <li>
-                <a href="https://kultiva.app" target="_blank" rel="noopener noreferrer" className="hover:text-white">
+                <Link href="/app" className="hover:text-white">
                   L&apos;app Kultiva
-                </a>
+                </Link>
               </li>
               <li><Link href="/guide/bien-choisir-ses-graines" className="hover:text-white">Guides</Link></li>
               <li><Link href="/glossaire" className="hover:text-white">Glossaire</Link></li>

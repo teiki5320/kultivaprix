@@ -1,11 +1,6 @@
-import { KULTIVA_APP_URL } from '@/lib/utils';
+import { AppStoreBadges } from './AppStoreBadges';
 
-export function CTAKultiva({ context }: { context?: string }) {
-  const href = new URL(KULTIVA_APP_URL);
-  href.searchParams.set('utm_source', 'kultivaprix');
-  href.searchParams.set('utm_medium', 'cta');
-  if (context) href.searchParams.set('utm_campaign', context);
-
+export function CTAKultiva({ context: _context }: { context?: string }) {
   return (
     <aside
       className="rounded-bubble p-8 md:p-10 relative overflow-hidden"
@@ -23,9 +18,7 @@ export function CTAKultiva({ context }: { context?: string }) {
           </p>
         </div>
         <div className="flex md:justify-end">
-          <a className="btn-primary" href={href.toString()} target="_blank" rel="noopener noreferrer">
-            Ouvrir Kultiva <span className="text-lg">→</span>
-          </a>
+          <AppStoreBadges />
         </div>
       </div>
     </aside>

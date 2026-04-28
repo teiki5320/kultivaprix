@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
-import { KULTIVA_APP_URL } from '@/lib/utils';
+import { AppStoreBadges } from '@/components/AppStoreBadges';
 
 export const revalidate = 21600;
 
@@ -10,14 +10,6 @@ export const metadata: Metadata = {
     "Calendrier de semis selon ta région, Poussidex évolutif, tutos vidéo, météo jardin : l'app Kultiva t'accompagne au quotidien sur iOS et Android.",
   alternates: { canonical: '/app' },
 };
-
-const APP_URL = (() => {
-  const u = new URL(KULTIVA_APP_URL);
-  u.searchParams.set('utm_source', 'kultivaprix');
-  u.searchParams.set('utm_medium', 'app-page');
-  u.searchParams.set('utm_campaign', 'main-cta');
-  return u.toString();
-})();
 
 interface Feature {
   image: string;
@@ -114,22 +106,13 @@ export default function AppPage() {
               Kultivaprix sur ordinateur, c&apos;est chouette. Mais le potager, ça se vit dehors —
               avec ton téléphone dans la poche. Voilà ce que l&apos;app fait en plus.
             </p>
-            <div className="flex flex-wrap gap-3 mt-6">
-              <a
-                href={APP_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="btn-primary"
-              >
-                Ouvrir Kultiva <span className="text-lg">→</span>
-              </a>
-              <a
-                href="#features"
-                className="font-body font-bold px-5 py-3 rounded-full bg-white/70 hover:bg-white transition text-fg"
-              >
-                Voir les fonctionnalités
-              </a>
-            </div>
+            <AppStoreBadges className="mt-6" />
+            <a
+              href="#features"
+              className="inline-block mt-3 font-body font-bold text-sm text-fg/80 hover:text-fg underline underline-offset-4"
+            >
+              Voir les fonctionnalités →
+            </a>
             <p className="font-body text-xs text-fg-muted mt-4">
               iOS &amp; Android · gratuit pour commencer · français
             </p>
@@ -254,15 +237,8 @@ export default function AppPage() {
         <p className="font-body text-fg/80 mt-3 max-w-xl mx-auto">
           L&apos;app est gratuite pour commencer. Pas de carte bleue, pas de pub.
         </p>
-        <div className="mt-6">
-          <a
-            href={APP_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="btn-primary inline-flex"
-          >
-            Ouvrir Kultiva <span className="text-lg">→</span>
-          </a>
+        <div className="mt-6 flex justify-center">
+          <AppStoreBadges />
         </div>
       </section>
     </div>
