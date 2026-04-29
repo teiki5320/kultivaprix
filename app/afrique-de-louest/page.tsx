@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { CTAKultiva } from '@/components/CTAKultiva';
-import { toSlug } from '@/lib/utils';
 
 export const metadata: Metadata = {
   title: "Potager en Afrique de l'Ouest",
@@ -13,11 +12,11 @@ const VARIETES = [
   { name: 'Gombo', emoji: '🌶️', query: 'gombo', note: 'Aime la chaleur, productif toute la saison sèche.' },
   { name: 'Niébé', emoji: '🫘', query: 'niebe', note: 'Fixe l\'azote, parfait pour préparer un sol pauvre.' },
   { name: 'Manioc', emoji: '🥔', query: 'manioc', note: 'Bouturage simple, récolte 8-12 mois.' },
-  { name: 'Aubergine africaine', emoji: '🍆', query: 'aubergine africaine', note: 'Variétés Diakhité, Soxna — plus rustiques.' },
+  { name: 'Aubergine', emoji: '🍆', query: 'aubergine', note: 'Variétés africaines (Diakhité, Soxna) plus rustiques.' },
   { name: 'Sorgho', emoji: '🌾', query: 'sorgho', note: 'Céréale tolérante à la sécheresse.' },
-  { name: 'Mil', emoji: '🌾', query: 'mil', note: 'Adapté aux sols pauvres et sableux.' },
+  { name: 'Sésame', emoji: '🌾', query: 'sesame', note: 'Adapté aux sols pauvres et sableux.' },
   { name: 'Pastèque', emoji: '🍉', query: 'pasteque', note: 'Saison des pluies, paillage généreux.' },
-  { name: 'Bissap (oseille de Guinée)', emoji: '🌺', query: 'bissap', note: 'Calices pour les boissons, feuilles pour les sauces.' },
+  { name: 'Bissap', emoji: '🌺', query: 'bissap', note: 'Calices pour les boissons, feuilles pour les sauces.' },
 ];
 
 export default function AfriquePage() {
@@ -41,7 +40,7 @@ export default function AfriquePage() {
           {VARIETES.map((v) => (
             <Link
               key={v.query}
-              href={`/espece/${toSlug(v.query)}`}
+              href={`/espece/${v.query}`}
               className="card-cream text-center no-underline transition hover:-translate-y-1 hover:shadow-leaf"
             >
               <div className="text-4xl">{v.emoji}</div>

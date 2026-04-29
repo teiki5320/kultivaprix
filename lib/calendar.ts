@@ -52,7 +52,7 @@ export const CALENDAR: Record<Month, MonthlyCalendar> = {
     recolter: [
       { query: 'mache', label: 'Mâche', emoji: '🥬' },
       { query: 'poireau', label: 'Poireau', emoji: '🥬' },
-      { query: 'chou', label: 'Chou', emoji: '🥬' },
+      { query: 'chou_pomme', label: 'Chou', emoji: '🥬' },
       { query: 'epinard', label: 'Épinard', emoji: '🥬' },
     ],
   },
@@ -73,7 +73,7 @@ export const CALENDAR: Record<Month, MonthlyCalendar> = {
     semer: [
       { query: 'carotte', label: 'Carotte', emoji: '🥕' },
       { query: 'radis', label: 'Radis', emoji: '🌶️' },
-      { query: 'petit pois', label: 'Petit pois', emoji: '🫛' },
+      { query: 'petit_pois', label: 'Petit pois', emoji: '🫛' },
       { query: 'epinard', label: 'Épinard', emoji: '🥬' },
       { query: 'laitue', label: 'Laitue', emoji: '🥬' },
       { query: 'persil', label: 'Persil', emoji: '🌿' },
@@ -114,22 +114,20 @@ export const CALENDAR: Record<Month, MonthlyCalendar> = {
       { query: 'radis', label: 'Radis', emoji: '🌶️' },
       { query: 'asperge', label: 'Asperge', emoji: '🌱' },
       { query: 'fraise', label: 'Fraise', emoji: '🍓' },
-      { query: 'rhubarbe', label: 'Rhubarbe', emoji: '🌿' },
     ],
   },
   juin: {
     semer: [
       { query: 'haricot', label: 'Haricot', emoji: '🫛' },
       { query: 'carotte', label: 'Carotte', emoji: '🥕' },
-      { query: 'chou', label: 'Chou d’hiver', emoji: '🥬' },
+      { query: 'chou_pomme', label: 'Chou d’hiver', emoji: '🥬' },
       { query: 'poireau', label: 'Poireau d’hiver', emoji: '🥬' },
       { query: 'navet', label: 'Navet d’automne', emoji: '🥔' },
     ],
     recolter: [
       { query: 'fraise', label: 'Fraise', emoji: '🍓' },
-      { query: 'cerise', label: 'Cerise', emoji: '🍒' },
-      { query: 'petit pois', label: 'Petit pois', emoji: '🫛' },
-      { query: 'salade', label: 'Salade', emoji: '🥬' },
+      { query: 'petit_pois', label: 'Petit pois', emoji: '🫛' },
+      { query: 'laitue', label: 'Salade', emoji: '🥬' },
     ],
   },
   juillet: {
@@ -137,7 +135,7 @@ export const CALENDAR: Record<Month, MonthlyCalendar> = {
       { query: 'mache', label: 'Mâche', emoji: '🥬' },
       { query: 'epinard', label: 'Épinard d’hiver', emoji: '🥬' },
       { query: 'haricot', label: 'Haricot tardif', emoji: '🫛' },
-      { query: 'chou', label: 'Chou de printemps', emoji: '🥬' },
+      { query: 'chou_pomme', label: 'Chou de printemps', emoji: '🥬' },
     ],
     recolter: [
       { query: 'tomate', label: 'Tomate', emoji: '🍅', note: 'Pic de la saison' },
@@ -171,8 +169,8 @@ export const CALENDAR: Record<Month, MonthlyCalendar> = {
     ],
     recolter: [
       { query: 'tomate', label: 'Tomate', emoji: '🍅' },
-      { query: 'courge', label: 'Courge', emoji: '🎃' },
-      { query: 'pomme', label: 'Pomme de terre tardive', emoji: '🥔' },
+      { query: 'courge_butternut', label: 'Courge', emoji: '🎃' },
+      { query: 'pomme_de_terre', label: 'Pomme de terre tardive', emoji: '🥔' },
       { query: 'poireau', label: 'Poireau', emoji: '🥬' },
     ],
   },
@@ -184,8 +182,8 @@ export const CALENDAR: Record<Month, MonthlyCalendar> = {
       { query: 'mache', label: 'Mâche', emoji: '🥬' },
     ],
     recolter: [
-      { query: 'courge', label: 'Potimarron / courge', emoji: '🎃' },
-      { query: 'chou', label: 'Chou', emoji: '🥬' },
+      { query: 'courge_butternut', label: 'Potimarron / courge', emoji: '🎃' },
+      { query: 'chou_pomme', label: 'Chou', emoji: '🥬' },
       { query: 'poireau', label: 'Poireau', emoji: '🥬' },
       { query: 'mache', label: 'Mâche', emoji: '🥬' },
     ],
@@ -198,7 +196,7 @@ export const CALENDAR: Record<Month, MonthlyCalendar> = {
     recolter: [
       { query: 'poireau', label: 'Poireau', emoji: '🥬' },
       { query: 'mache', label: 'Mâche', emoji: '🥬' },
-      { query: 'chou', label: 'Chou', emoji: '🥬' },
+      { query: 'chou_pomme', label: 'Chou', emoji: '🥬' },
       { query: 'topinambour', label: 'Topinambour', emoji: '🥔' },
     ],
   },
@@ -209,7 +207,7 @@ export const CALENDAR: Record<Month, MonthlyCalendar> = {
     recolter: [
       { query: 'mache', label: 'Mâche', emoji: '🥬' },
       { query: 'poireau', label: 'Poireau', emoji: '🥬' },
-      { query: 'chou', label: 'Chou', emoji: '🥬' },
+      { query: 'chou_pomme', label: 'Chou', emoji: '🥬' },
       { query: 'topinambour', label: 'Topinambour', emoji: '🥔' },
     ],
   },

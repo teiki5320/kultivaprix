@@ -7,7 +7,6 @@ import { PlantedThisMonth } from '@/components/PlantedThisMonth';
 import { Breadcrumbs } from '@/components/Breadcrumbs';
 import { itemListLd } from '@/lib/jsonld';
 import { CALENDAR, MONTHS, isMonth, monthLabel, type Month } from '@/lib/calendar';
-import { toSlug } from '@/lib/utils';
 
 export const revalidate = 86400;
 
@@ -23,7 +22,7 @@ export async function generateMetadata({ params }: { params: { mois: string } })
   const canonical = `/que-semer/${params.mois}`;
   const title = `Que semer en ${m} ?`;
   const description = top
-    ? `${m} : ${top}… Calendrier de semis et prix comparés chez les marchands jardinage français.`
+    ? `${m} : on sème ${top}… Calendrier de semis adapté à la France métropolitaine.`
     : `Calendrier de semis ${m.toLowerCase()} pour la France métropolitaine.`;
   return {
     title,
@@ -31,11 +30,6 @@ export async function generateMetadata({ params }: { params: { mois: string } })
     alternates: { canonical },
     openGraph: { title, description, url: canonical },
   };
-}
-
-async function getProducts(queries: string[]) {
-  if (!queries.length) return [];
-  return [];
 }
 
 export default async function QueSemerPage({ params }: { params: { mois: string } }) {
@@ -109,8 +103,8 @@ export default async function QueSemerPage({ params }: { params: { mois: string 
           Que semer en <em className="hero-em">{m}</em> ?
         </h1>
         <p className="font-body text-fg-muted max-w-2xl mx-auto mt-4">
-          Variétés à semer ce mois en France métropolitaine. On t&apos;a sélectionné les graines
-          et plants disponibles chez nos marchands suivis, classés par prix.
+          Variétés à semer ce mois en France métropolitaine. Clique sur une fiche pour les
+          conseils de culture et le calendrier détaillé.
         </p>
         <div className="mt-5 flex justify-center">
           <AddToKultivaPlanButton month={monthNumber} campaign={`semer-${mois}`} label="Ouvrir mon calendrier Kultiva" />
@@ -124,7 +118,7 @@ export default async function QueSemerPage({ params }: { params: { mois: string 
           {data.semer.map((s) => (
             <Link
               key={s.query}
-              href={`/espece/${toSlug(s.query)}`}
+              href={`/espece/${s.query}`}
               className="card-cream text-center no-underline transition hover:-translate-y-1 hover:shadow-leaf"
             >
               <div className="text-4xl">{s.emoji}</div>

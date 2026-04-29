@@ -5,7 +5,6 @@ import { CTAKultiva } from '@/components/CTAKultiva';
 import { Breadcrumbs } from '@/components/Breadcrumbs';
 import { itemListLd } from '@/lib/jsonld';
 import { CALENDAR, MONTHS, isMonth, monthLabel, type Month } from '@/lib/calendar';
-import { toSlug } from '@/lib/utils';
 
 export const revalidate = 86400;
 
@@ -70,7 +69,7 @@ export default function QueRecolterPage({ params }: { params: { mois: string } }
             {data.recolter.map((r) => (
               <Link
                 key={r.query}
-                href={`/espece/${toSlug(r.query)}`}
+                href={`/espece/${r.query}`}
                 className="card-cream text-center no-underline transition hover:-translate-y-1 hover:shadow-leaf"
               >
                 <div className="text-4xl">{r.emoji}</div>
@@ -93,7 +92,7 @@ export default function QueRecolterPage({ params }: { params: { mois: string } }
           {data.semer.map((s) => (
             <Link
               key={s.query}
-              href={`/espece/${toSlug(s.query)}`}
+              href={`/espece/${s.query}`}
               className="rounded-2xl bg-white px-4 py-3 text-center shadow-card border border-cream no-underline hover:-translate-y-1 transition"
             >
               <div className="text-3xl">{s.emoji}</div>

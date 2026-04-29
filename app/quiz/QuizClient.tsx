@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { toSlug } from '@/lib/utils';
 
 type Exposure = 'soleil' | 'mi-ombre' | 'ombre';
 type Space = 'balcon' | 'petit' | 'grand';
@@ -15,7 +14,7 @@ const RULES: { match: (a: { exposure: Exposure; space: Space; time: Time }) => S
     const out: Suggestion[] = [];
 
     if (space === 'balcon') {
-      out.push({ name: 'Tomate cerise', emoji: '🍅', query: 'tomate cerise', why: 'Parfait en pot, productif sur balcon ensoleillé.' });
+      out.push({ name: 'Tomate', emoji: '🍅', query: 'tomate', why: 'Parfait en pot, productif sur balcon ensoleillé.' });
       out.push({ name: 'Basilic', emoji: '🌿', query: 'basilic', why: 'Compagnon idéal de la tomate, peu d’entretien.' });
       out.push({ name: 'Radis', emoji: '🌶️', query: 'radis', why: 'Pousse vite (1 mois), fait plaisir aux débutants.' });
       if (exposure !== 'ombre') {
@@ -36,18 +35,18 @@ const RULES: { match: (a: { exposure: Exposure; space: Space; time: Time }) => S
         out.push({ name: 'Carotte', emoji: '🥕', query: 'carotte', why: 'Peu d’entretien après semis.' });
       }
     } else if (exposure === 'mi-ombre') {
-      out.push({ name: 'Salade', emoji: '🥬', query: 'laitue', why: 'Préfère ne pas griller en plein soleil.' });
+      out.push({ name: 'Laitue', emoji: '🥬', query: 'laitue', why: 'Préfère ne pas griller en plein soleil.' });
       out.push({ name: 'Persil', emoji: '🌿', query: 'persil', why: 'Bisannuel, très tolérant.' });
       out.push({ name: 'Épinard', emoji: '🥬', query: 'epinard', why: 'Aime la fraîcheur, monte au soleil.' });
     } else {
       out.push({ name: 'Mâche', emoji: '🥬', query: 'mache', why: 'Idéal coin frais et ombragé.' });
-      out.push({ name: 'Rhubarbe', emoji: '🌿', query: 'rhubarbe', why: 'Vivace, accepte la mi-ombre.' });
-      out.push({ name: 'Ail des ours', emoji: '🌿', query: 'ail', why: 'Sous-bois, ombre fraîche.' });
+      out.push({ name: 'Oseille', emoji: '🌿', query: 'oseille', why: 'Vivace, accepte la mi-ombre.' });
+      out.push({ name: 'Ail', emoji: '🌿', query: 'ail', why: 'Cycle long, sans entretien.' });
     }
 
     if (space === 'grand' && time !== 'peu') {
-      out.push({ name: 'Courge', emoji: '🎃', query: 'courge', why: 'Demande de la place mais peu de soin.' });
-      out.push({ name: 'Pomme de terre', emoji: '🥔', query: 'pomme de terre', why: 'Productif, parfait pour grand potager.' });
+      out.push({ name: 'Courge butternut', emoji: '🎃', query: 'courge_butternut', why: 'Demande de la place mais peu de soin.' });
+      out.push({ name: 'Pomme de terre', emoji: '🥔', query: 'pomme_de_terre', why: 'Productif, parfait pour grand potager.' });
     }
 
     return out.slice(0, 6);
@@ -103,7 +102,7 @@ export default function QuizClient() {
           {suggestions.map((s) => (
             <Link
               key={s.query}
-              href={`/espece/${toSlug(s.query)}`}
+              href={`/espece/${s.query}`}
               className="card-cream no-underline transition hover:-translate-y-1 hover:shadow-leaf flex flex-col gap-2"
             >
               <div className="text-5xl">{s.emoji}</div>
