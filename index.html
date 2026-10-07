@@ -46,7 +46,7 @@ header.top .sous { font-size: 13px; opacity: .85; }
 .btn-accent:active { transform: translateY(3px); box-shadow: var(--pouss-bas); }
 .btn:focus-visible, .chev:focus-visible, .etape:focus-visible, .key:focus-visible { outline: none; box-shadow: var(--clay-sm), 0 0 0 3px var(--accent-dim); }
 
-.split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(300px, 400px); gap: 18px; align-items: start; }
+.split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px; align-items: start; }
 @media (max-width: 900px) { .split { grid-template-columns: 1fr; } }
 .col { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
 
@@ -87,20 +87,21 @@ header.top .sous { font-size: 13px; opacity: .85; }
 .ou { font-size: 11px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: .1em; padding: 0 0 0 38px; }
 
 /* ── Fiche dossier ── */
-.fiche { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; }
-.fiche .bloc { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
-.champ { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
-.champ label { font-size: 12px; font-weight: 800; color: var(--muted); }
-.champ.sous { padding-left: 18px; }
-.champ input { width: 100%; border: 0; border-radius: var(--r-sm); background: var(--carte-2); box-shadow: var(--inset); padding: 9px 12px; outline: none; }
+.card.dossier { padding: 14px 16px; }
+.card.dossier h2 { margin-bottom: 10px; }
+.fiche { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 10px; }
+.champ { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.champ.large { grid-column: 1 / -1; }
+.champ label { font-size: 11.5px; font-weight: 800; color: var(--muted); }
+.champ input { width: 100%; border: 0; border-radius: 10px; background: var(--carte-2); box-shadow: var(--inset); padding: 6px 10px; font-size: 14px; outline: none; min-height: 32px; }
 .champ input:focus { box-shadow: var(--inset), 0 0 0 3px var(--accent-dim); }
 .champ input::placeholder { color: var(--muted); opacity: .7; }
-.imb { display: flex; flex-direction: column; gap: 6px; }
-.imb input { font-family: var(--mono); font-size: 13.5px; }
-.duo { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.imb { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+@media (max-width: 1250px) { .imb { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.imb input { font-family: var(--mono); font-size: 13px; }
 
 /* ── Situation ── */
-.frise { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 5px; margin-bottom: 16px; }
+.frise { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; margin-bottom: 16px; }
 .etape { border: 0; cursor: pointer; border-radius: var(--r-sm); padding: 8px 4px; background: var(--none-tint); color: var(--none);
   display: flex; flex-direction: column; align-items: center; gap: 2px; font-weight: 800; transition: transform .18s var(--bounce); min-width: 0; }
 .etape:hover { transform: translateY(-1px); }
@@ -112,7 +113,7 @@ header.top .sous { font-size: 13px; opacity: .85; }
 .etape.sel { box-shadow: 0 0 0 2px var(--texte); }
 .situ-tete { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
 .situ-tete .titre { font-size: 18px; font-weight: 800; }
-.infos { display: grid; grid-template-columns: 112px minmax(0, 1fr); border-radius: var(--r-md); overflow: hidden; background: var(--carte-2); box-shadow: var(--inset); }
+.infos { display: grid; grid-template-columns: 130px minmax(0, 1fr); border-radius: var(--r-md); overflow: hidden; background: var(--carte-2); box-shadow: var(--inset); }
 .infos div { padding: 10px 14px; border-bottom: 1px solid var(--ligne); min-width: 0; }
 .infos div:nth-last-child(-n+2) { border-bottom: 0; }
 .infos .k { font-size: 12px; font-weight: 800; color: var(--muted); }
@@ -175,30 +176,23 @@ header.top .sous { font-size: 13px; opacity: .85; }
 
     <!-- Droite : fiche, situation, calculette -->
     <section class="col">
-      <div class="card">
+      <div class="card dossier">
         <h2>Dossier</h2>
         <div class="fiche">
-          <div class="bloc">
-            <div class="champ"><label>N° POI</label></div>
-            <div class="champ sous"><label for="f_ant">Anticipation</label><input id="f_ant" data-f="ant" placeholder="N° POI anticipation"></div>
-            <div class="champ sous"><label for="f_racco">Racco D2</label><input id="f_racco" data-f="racco" placeholder="N° POI Racco D2"></div>
-            <div class="champ"><label for="f_adr">Adresse</label><input id="f_adr" data-f="adr" placeholder="Adresse de l'immeuble"></div>
-            <div class="duo">
-              <div class="champ"><label for="f_el">Nombre d'EL</label><input id="f_el" data-f="el" inputmode="numeric" placeholder="0"></div>
-              <div class="champ"><label for="f_pc">Permis de construire</label><input id="f_pc" data-f="pc" placeholder="N° PC"></div>
+          <div class="champ"><label for="f_ant">N° POI anticipation</label><input id="f_ant" data-f="ant" placeholder="POI anticipation"></div>
+          <div class="champ"><label for="f_racco">N° POI Racco D2</label><input id="f_racco" data-f="racco" placeholder="POI Racco D2"></div>
+          <div class="champ large"><label for="f_adr">Adresse</label><input id="f_adr" data-f="adr" placeholder="Adresse de l'immeuble"></div>
+          <div class="champ"><label for="f_el">Nombre d'EL</label><input id="f_el" data-f="el" inputmode="numeric" placeholder="0"></div>
+          <div class="champ"><label for="f_pc">Permis de construire</label><input id="f_pc" data-f="pc" placeholder="N° PC"></div>
+          <div class="champ"><label for="f_cab">Cabinet conseil</label><input id="f_cab" data-f="cab" placeholder="Nom du cabinet"></div>
+          <div class="champ"><label for="f_dlpi">DLPI</label><input id="f_dlpi" data-f="dlpi" type="date"></div>
+          <div class="champ large"><label for="f_imb1">IMB</label>
+            <div class="imb">
+              <input id="f_imb1" data-f="imb1" placeholder="IMB/…">
+              <input id="f_imb2" data-f="imb2" placeholder="IMB/…" aria-label="IMB 2">
+              <input id="f_imb3" data-f="imb3" placeholder="IMB/…" aria-label="IMB 3">
+              <input id="f_imb4" data-f="imb4" placeholder="IMB/…" aria-label="IMB 4">
             </div>
-            <div class="champ"><label for="f_imb1">IMB</label>
-              <div class="imb">
-                <input id="f_imb1" data-f="imb1" placeholder="IMB/…">
-                <input id="f_imb2" data-f="imb2" placeholder="IMB/…" aria-label="IMB 2">
-                <input id="f_imb3" data-f="imb3" placeholder="IMB/…" aria-label="IMB 3">
-                <input id="f_imb4" data-f="imb4" placeholder="IMB/…" aria-label="IMB 4">
-              </div>
-            </div>
-          </div>
-          <div class="bloc">
-            <div class="champ"><label for="f_cab">Cabinet conseil</label><input id="f_cab" data-f="cab" placeholder="Nom du cabinet"></div>
-            <div class="champ"><label for="f_dlpi">DLPI</label><input id="f_dlpi" data-f="dlpi" type="date"></div>
           </div>
         </div>
       </div>
