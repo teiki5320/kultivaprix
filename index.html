@@ -144,9 +144,8 @@ header.top .sous { font-size: 13px; opacity: .85; }
   .page { padding-block: 12px 20px; gap: 12px; }
   header.top { padding: 10px 20px; }
   .split { gap: 12px; }
-  .col.droite { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px); display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; align-content: start; align-items: start;
+  .col.droite { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px); display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; align-content: start;
     max-height: calc(100vh - 24px); overflow-y: auto; }
-  .col.droite .dossier { grid-column: 1 / -1; }
   .col.droite .card { padding: 12px 14px; }
   .col.droite .card h2 { margin-bottom: 8px; }
   .fiche { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px 8px; }
@@ -155,13 +154,14 @@ header.top .sous { font-size: 13px; opacity: .85; }
   .imb { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .frise { gap: 4px; margin-bottom: 10px; }
   .etape { padding: 6px 2px; }
-  .etape .t { display: none; }
   .situ-tete { margin-bottom: 8px; }
   .situ-tete .titre { font-size: 16px; }
   .infos { grid-template-columns: 92px minmax(0, 1fr); font-size: 13.5px; }
   .infos div { padding: 6px 10px; }
   .global { margin-top: 8px; font-size: 12px; }
-  .calc { gap: 8px; }
+  .calc { gap: 8px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .sorties { display: contents; }
+  .ecran, .sortie { display: flex; flex-direction: column; justify-content: center; }
   .ecran { padding: 6px 12px; }
   .ecran .expr { font-size: 11.5px; min-height: 16px; }
   .ecran .res { font-size: 22px; }
@@ -459,7 +459,7 @@ function dateChoisie() {
 }
 function majCalc() {
   const d = dateChoisie();
-  $("cExpr").textContent = d ? `Départ : ${d.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}` : "Date de départ";
+  $("cExpr").textContent = d ? `Départ · ${d.toLocaleDateString("fr-FR", { weekday: "short", day: "numeric", month: "short", year: "numeric" })}` : "Date de départ";
   DELAIS.forEach((n, i) => {
     if (!d) { $(`o${i}r`).textContent = "—"; return; }
     const r = jour(d, n);
