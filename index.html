@@ -137,10 +137,7 @@ header.top .sous { font-size: 13px; opacity: .85; }
 .sorties { display: grid; gap: 8px; }
 .sortie { background: var(--carte-2); box-shadow: var(--inset); border-radius: var(--r-md); padding: 8px 12px; display: grid; gap: 6px; min-width: 0; }
 .decal { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; font-size: 12px; font-weight: 800; color: var(--muted); }
-.decal label { margin-right: auto; text-transform: uppercase; letter-spacing: .08em; }
-.decal select, .decal input { border: 0; border-radius: 10px; background: var(--carte); box-shadow: var(--clay-sm); padding: 5px 8px; font-weight: 800; color: var(--texte); }
-.decal input { width: 64px; text-align: right; font-family: var(--mono); }
-.decal select:focus-visible, .decal input:focus-visible { outline: none; box-shadow: var(--clay-sm), 0 0 0 3px var(--accent-dim); }
+.decal .lbl { text-transform: uppercase; letter-spacing: .08em; }
 .sortie .date { display: flex; align-items: center; justify-content: flex-end; gap: 8px; flex-wrap: wrap; font-family: var(--mono); font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; }
 .cache { position: absolute; left: 0; bottom: 0; width: 1px; height: 1px; opacity: 0; pointer-events: none; border: 0; padding: 0; }
 
@@ -222,24 +219,8 @@ header.top .sous { font-size: 13px; opacity: .85; }
         <div class="calc">
           <div class="ecran"><div class="expr" id="cExpr"></div><div class="res" id="cRes"></div></div>
           <div class="sorties">
-            <div class="sortie">
-              <div class="decal">
-                <label for="o0n">Date 1</label>
-                <select id="o0s" data-o="0" data-c="s" aria-label="Date 1 : sens"><option value="1">+</option><option value="-1">−</option></select>
-                <input id="o0n" data-o="0" data-c="n" inputmode="numeric" maxlength="4" autocomplete="off">
-                <select id="o0u" data-o="0" data-c="u" aria-label="Date 1 : unité"><option value="j">jours</option><option value="jo">jours ouvrés</option><option value="s">semaines</option><option value="m">mois</option></select>
-              </div>
-              <div class="date" id="o0r">—</div>
-            </div>
-            <div class="sortie">
-              <div class="decal">
-                <label for="o1n">Date 2</label>
-                <select id="o1s" data-o="1" data-c="s" aria-label="Date 2 : sens"><option value="1">+</option><option value="-1">−</option></select>
-                <input id="o1n" data-o="1" data-c="n" inputmode="numeric" maxlength="4" autocomplete="off">
-                <select id="o1u" data-o="1" data-c="u" aria-label="Date 2 : unité"><option value="j">jours</option><option value="jo">jours ouvrés</option><option value="s">semaines</option><option value="m">mois</option></select>
-              </div>
-              <div class="date" id="o1r">—</div>
-            </div>
+            <div class="sortie"><div class="decal"><span class="lbl">+ 30 jours</span></div><div class="date" id="o0r">—</div></div>
+            <div class="sortie"><div class="decal"><span class="lbl">+ 65 jours</span></div><div class="date" id="o1r">—</div></div>
           </div>
           <div class="touches" id="touches"></div>
           <input type="date" id="cPick" class="cache" tabindex="-1" aria-hidden="true">
@@ -425,10 +406,11 @@ $("ouiVider").onclick = () => {
 };
 
 /* ═══ Calculette de dates ═══
-   on tape une date de départ (JJ MM AAAA), elle donne deux dates décalées ; les décalages sont réglables */
+   on tape une date de départ (JJ MM AAAA), elle donne la date à +30 et à +65 jours */
 const CCLE = "racco-d2-calc";
-let cal = { chiffres: "", o: [{ s: 1, n: "15", u: "j" }, { s: 1, n: "1", u: "m" }] };
-try { const c = JSON.parse(localStorage.getItem(CCLE) || "null"); if (c && Array.isArray(c.o) && c.o.length === 2) cal = { chiffres: /^\d{0,8}$/.test(c.chiffres) ? c.chiffres : "", o: c.o }; } catch (e) {}
+const DELAIS = [30, 65]; // jours calendaires
+let cal = { chiffres: "" };
+try { const c = JSON.parse(localStorage.getItem(CCLE) || "null"); if (c && /^\d{0,8}$/.test(c.chiffres)) cal.chiffres = c.chiffres; } catch (e) {}
 const sauverCal = () => { try { localStorage.setItem(CCLE, JSON.stringify(cal)); } catch (e) {} };
 
 const pad = n => String(n).padStart(2, "0");
@@ -460,15 +442,6 @@ function ferie(d) {
   return FERIES[a].has(cleJ(d));
 }
 const ouvre = d => d.getDay() % 6 !== 0 && !ferie(d);
-function decaler(d, o) {
-  const n = o.s * (parseInt(o.n, 10) || 0);
-  if (o.u === "m") return ajouterMois(d, n);
-  if (o.u === "s") return jour(d, 7 * n);
-  if (o.u === "j") return jour(d, n);
-  let r = d, reste = Math.abs(n); const pas = Math.sign(n);
-  while (reste > 0) { r = jour(r, pas); if (ouvre(r)) reste--; }
-  return r;
-}
 const fmtD = d => d.toLocaleDateString("fr-FR", { weekday: "short", day: "2-digit", month: "2-digit", year: "numeric" });
 
 function majCalc() {
@@ -476,11 +449,9 @@ function majCalc() {
   $("cRes").textContent = `${c.slice(0, 2)}/${c.slice(2, 4)}/${c.slice(4)}`;
   $("cExpr").textContent = d ? `Départ : ${d.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}`
     : cal.chiffres.length === 8 ? "Date invalide" : "Tape la date de départ (JJ MM AAAA)";
-  cal.o.forEach((o, i) => {
-    $(`o${i}s`).value = String(o.s); $(`o${i}u`).value = o.u;
-    if (document.activeElement !== $(`o${i}n`)) $(`o${i}n`).value = o.n;
+  DELAIS.forEach((n, i) => {
     if (!d) { $(`o${i}r`).textContent = "—"; return; }
-    const r = decaler(d, o);
+    const r = jour(d, n);
     const note = ouvre(r) ? "" : `<span class="tag ko">${ferie(r) ? "Férié" : "Week-end"}</span>`;
     $(`o${i}r`).innerHTML = `${note}<span>${esc(fmtD(r))}</span>`;
   });
@@ -509,13 +480,6 @@ const AIDE = { C: "Effacer", BS: "Effacer le dernier chiffre", AUJ: "Aujourd'hui
 $("touches").innerHTML = TOUCHES.map(([k, l, c]) => `<button type="button" class="key ${c || ""}" data-k="${k}"${AIDE[k] ? ` aria-label="${AIDE[k]}" title="${AIDE[k]}"` : ""}>${l || k}</button>`).join("");
 $("touches").addEventListener("click", e => { const b = e.target.closest("[data-k]"); if (b) touche(b.dataset.k); });
 $("cPick").addEventListener("change", e => { if (e.target.value) { const [a, m, j] = e.target.value.split("-"); cal.chiffres = j + m + a; sauverCal(); majCalc(); } });
-document.querySelectorAll("[data-o]").forEach(el => el.addEventListener(el.tagName === "INPUT" ? "input" : "change", () => {
-  const o = cal.o[+el.dataset.o], c = el.dataset.c;
-  if (c === "n") { el.value = el.value.replace(/\D/g, "").slice(0, 4); o.n = el.value; }
-  else if (c === "s") o.s = +el.value;
-  else o.u = el.value;
-  sauverCal(); majCalc();
-}));
 document.addEventListener("keydown", e => {
   if (e.ctrlKey || e.metaKey || e.altKey || e.target.closest("input, textarea, select")) return;
   if (e.target.closest("button, a, label") && !e.target.closest("#touches") && (e.key === "Enter" || e.key === " ")) return;
