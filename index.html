@@ -44,7 +44,7 @@ header.top .sous { font-size: 13px; opacity: .85; }
 .btn:active { transform: scale(.97); }
 .btn-accent { background: var(--accent); color: var(--accent-ink); box-shadow: var(--pouss); }
 .btn-accent:active { transform: translateY(3px); box-shadow: var(--pouss-bas); }
-.btn:focus-visible, .chev:focus-visible, .etape:focus-visible, .key:focus-visible { outline: none; box-shadow: var(--clay-sm), 0 0 0 3px var(--accent-dim); }
+.btn:focus-visible, .chev:focus-visible, .etape:focus-visible { outline: none; box-shadow: var(--clay-sm), 0 0 0 3px var(--accent-dim); }
 
 .split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px; align-items: start; }
 @media (max-width: 900px) { .split { grid-template-columns: 1fr; } }
@@ -125,15 +125,10 @@ header.top .sous { font-size: 13px; opacity: .85; }
 .calc { display: grid; gap: 10px; }
 .ecran { background: var(--carte-2); box-shadow: var(--inset); border-radius: var(--r-md); padding: 10px 14px; text-align: right; font-family: var(--mono); min-width: 0; }
 .ecran .expr { font-size: 13px; color: var(--muted); min-height: 20px; overflow-x: auto; white-space: nowrap; }
-.ecran .res { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; overflow-x: auto; white-space: nowrap; }
-.touches { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
-.key { border: 0; border-radius: var(--r-sm); padding: 12px 0; font-weight: 800; font-size: 17px; cursor: pointer; background: var(--carte); box-shadow: var(--clay-sm); transition: transform .15s var(--bounce); font-variant-numeric: tabular-nums; }
-.key:active { transform: scale(.94); }
-.key.op { background: var(--sky); color: var(--sky-ink); }
-.key.fn { background: var(--peach); color: var(--peach-ink); }
-.key.eg { background: var(--accent); color: var(--accent-ink); }
-.key.large { grid-column: span 3; }
-.key.op { font-size: 14px; }
+.ecran .res { display: block; width: 100%; border: 0; background: none; padding: 0; text-align: right; font-family: var(--mono); font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--texte); outline: none; min-height: 36px; }
+.ecran:focus-within { box-shadow: var(--inset), 0 0 0 3px var(--accent-dim); }
+.ecran .expr { display: block; }
+.btn-mini { padding: 5px 10px; font-size: 12px; text-transform: none; letter-spacing: 0; color: var(--texte); }
 .calc { position: relative; }
 .sorties { display: grid; gap: 8px; }
 .sortie { background: var(--carte-2); box-shadow: var(--inset); border-radius: var(--r-md); padding: 8px 12px; display: grid; gap: 6px; min-width: 0; }
@@ -149,7 +144,7 @@ header.top .sous { font-size: 13px; opacity: .85; }
   .page { padding-block: 12px 20px; gap: 12px; }
   header.top { padding: 10px 20px; }
   .split { gap: 12px; }
-  .col.droite { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px); display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; align-content: start;
+  .col.droite { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px); display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; align-content: start; align-items: start;
     max-height: calc(100vh - 24px); overflow-y: auto; }
   .col.droite .dossier { grid-column: 1 / -1; }
   .col.droite .card { padding: 12px 14px; }
@@ -173,9 +168,6 @@ header.top .sous { font-size: 13px; opacity: .85; }
   .sorties { gap: 6px; }
   .sortie { padding: 6px 10px; gap: 2px; }
   .sortie .date { font-size: 16px; }
-  .touches { gap: 6px; }
-  .key { padding: 8px 0; font-size: 15px; }
-  .key.op { font-size: 12.5px; }
 }
 /* écrans d'ordinateur peu hauts (portables 13") */
 @media (min-width: 1150px) and (max-height: 860px) {
@@ -184,7 +176,6 @@ header.top .sous { font-size: 13px; opacity: .85; }
   .global { display: none; }
   .infos div { padding: 4px 10px; }
   .situ-tete .titre { font-size: 15px; }
-  .key { padding: 6px 0; }
   .ecran .res { font-size: 20px; }
   .sortie .date { font-size: 15px; }
 }
@@ -253,15 +244,13 @@ header.top .sous { font-size: 13px; opacity: .85; }
       </div>
 
       <div class="card">
-        <h2>Calculette de dates</h2>
+        <h2>Dates <button class="btn btn-mini" id="cAuj" type="button">Aujourd'hui</button></h2>
         <div class="calc">
-          <div class="ecran"><div class="expr" id="cExpr"></div><div class="res" id="cRes"></div></div>
+          <div class="ecran"><label class="expr" for="cDate" id="cExpr">Date de départ</label><input type="date" id="cDate" class="res"></div>
           <div class="sorties">
             <div class="sortie"><div class="decal"><span class="lbl">+ 30 jours</span></div><div class="date" id="o0r">—</div></div>
             <div class="sortie"><div class="decal"><span class="lbl">+ 65 jours</span></div><div class="date" id="o1r">—</div></div>
           </div>
-          <div class="touches" id="touches"></div>
-          <input type="date" id="cPick" class="cache" tabindex="-1" aria-hidden="true">
         </div>
       </div>
     </section>
@@ -443,29 +432,12 @@ $("ouiVider").onclick = () => {
   $("nonVider").onclick(); rendu();
 };
 
-/* ═══ Calculette de dates ═══
-   on tape une date de départ (JJ MM AAAA), elle donne la date à +30 et à +65 jours */
-const CCLE = "racco-d2-calc";
+/* ═══ Dates : une date de départ donne la date à +30 et à +65 jours ═══ */
+const CCLE = "racco-d2-date";
 const DELAIS = [30, 65]; // jours calendaires
-let cal = { chiffres: "" };
-try { const c = JSON.parse(localStorage.getItem(CCLE) || "null"); if (c && /^\d{0,8}$/.test(c.chiffres)) cal.chiffres = c.chiffres; } catch (e) {}
-const sauverCal = () => { try { localStorage.setItem(CCLE, JSON.stringify(cal)); } catch (e) {} };
-
 const pad = n => String(n).padStart(2, "0");
-const versChiffres = d => pad(d.getDate()) + pad(d.getMonth() + 1) + d.getFullYear();
 const versIso = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 const jour = (d, n) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
-function dateSaisie() {
-  const c = cal.chiffres; if (c.length !== 8) return null;
-  const j = +c.slice(0, 2), m = +c.slice(2, 4), a = +c.slice(4);
-  const d = new Date(a, m - 1, j);
-  return a >= 1900 && d.getFullYear() === a && d.getMonth() === m - 1 && d.getDate() === j ? d : null;
-}
-function ajouterMois(d, n) {
-  const r = new Date(d.getFullYear(), d.getMonth() + n, 1);
-  r.setDate(Math.min(d.getDate(), new Date(r.getFullYear(), r.getMonth() + 1, 0).getDate())); // 31/01 + 1 mois = 28 ou 29/02
-  return r;
-}
 /* jours fériés français (Pâques par l'algorithme grégorien anonyme) */
 function paques(a) {
   const b = a % 19, c = Math.floor(a / 100), d = a % 100, e = Math.floor(c / 4), f = c % 4, g = Math.floor((c + 8) / 25), h = Math.floor((c - g + 1) / 3);
@@ -473,20 +445,21 @@ function paques(a) {
   const mois = Math.floor((i + m - 7 * n + 114) / 31), j = ((i + m - 7 * n + 114) % 31) + 1;
   return new Date(a, mois - 1, j);
 }
-const cleJ = d => versIso(d), FERIES = {};
+const FERIES = {};
 function ferie(d) {
   const a = d.getFullYear();
-  if (!FERIES[a]) { const p = paques(a); FERIES[a] = new Set([new Date(a, 0, 1), jour(p, 1), new Date(a, 4, 1), new Date(a, 4, 8), jour(p, 39), jour(p, 50), new Date(a, 6, 14), new Date(a, 7, 15), new Date(a, 10, 1), new Date(a, 10, 11), new Date(a, 11, 25)].map(cleJ)); }
-  return FERIES[a].has(cleJ(d));
+  if (!FERIES[a]) { const p = paques(a); FERIES[a] = new Set([new Date(a, 0, 1), jour(p, 1), new Date(a, 4, 1), new Date(a, 4, 8), jour(p, 39), jour(p, 50), new Date(a, 6, 14), new Date(a, 7, 15), new Date(a, 10, 1), new Date(a, 10, 11), new Date(a, 11, 25)].map(versIso)); }
+  return FERIES[a].has(versIso(d));
 }
 const ouvre = d => d.getDay() % 6 !== 0 && !ferie(d);
 const fmtD = d => d.toLocaleDateString("fr-FR", { weekday: "short", day: "2-digit", month: "2-digit", year: "numeric" });
-
+function dateChoisie() {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec($("cDate").value);
+  return m ? new Date(+m[1], +m[2] - 1, +m[3]) : null;
+}
 function majCalc() {
-  const c = (cal.chiffres + "________").slice(0, 8), d = dateSaisie();
-  $("cRes").textContent = `${c.slice(0, 2)}/${c.slice(2, 4)}/${c.slice(4)}`;
-  $("cExpr").textContent = d ? `Départ : ${d.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}`
-    : cal.chiffres.length === 8 ? "Date invalide" : "Tape la date de départ (JJ MM AAAA)";
+  const d = dateChoisie();
+  $("cExpr").textContent = d ? `Départ : ${d.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}` : "Date de départ";
   DELAIS.forEach((n, i) => {
     if (!d) { $(`o${i}r`).textContent = "—"; return; }
     const r = jour(d, n);
@@ -494,37 +467,9 @@ function majCalc() {
     $(`o${i}r`).innerHTML = `${note}<span>${esc(fmtD(r))}</span>`;
   });
 }
-function touche(k) {
-  const d = dateSaisie();
-  if (/^\d$/.test(k)) cal.chiffres = cal.chiffres.length >= 8 ? k : cal.chiffres + k;
-  else if (k === "C") cal.chiffres = "";
-  else if (k === "BS") cal.chiffres = cal.chiffres.slice(0, -1);
-  else if (k === "AUJ") cal.chiffres = versChiffres(new Date());
-  else if (k === "CAL") {
-    const p = $("cPick"); p.value = d ? versIso(d) : "";
-    try { p.showPicker(); } catch (e) { p.focus(); p.click(); }
-    return;
-  }
-  else if (d && k === "J-") cal.chiffres = versChiffres(jour(d, -1));
-  else if (d && k === "J+") cal.chiffres = versChiffres(jour(d, 1));
-  else if (d && k === "M-") cal.chiffres = versChiffres(ajouterMois(d, -1));
-  else if (d && k === "M+") cal.chiffres = versChiffres(ajouterMois(d, 1));
-  sauverCal(); majCalc();
-}
-const TOUCHES = [["C", "C", "fn"], ["BS", "⌫", "fn"], ["AUJ", "Auj.", "fn"], ["CAL", "Cal.", "fn"],
-  ["7"], ["8"], ["9"], ["J-", "−1 j", "op"], ["4"], ["5"], ["6"], ["J+", "+1 j", "op"],
-  ["1"], ["2"], ["3"], ["M-", "−1 mois", "op"], ["0", "0", "large"], ["M+", "+1 mois", "op"]];
-const AIDE = { C: "Effacer", BS: "Effacer le dernier chiffre", AUJ: "Aujourd'hui", CAL: "Choisir dans le calendrier", "J-": "Jour précédent", "J+": "Jour suivant", "M-": "Mois précédent", "M+": "Mois suivant" };
-$("touches").innerHTML = TOUCHES.map(([k, l, c]) => `<button type="button" class="key ${c || ""}" data-k="${k}"${AIDE[k] ? ` aria-label="${AIDE[k]}" title="${AIDE[k]}"` : ""}>${l || k}</button>`).join("");
-$("touches").addEventListener("click", e => { const b = e.target.closest("[data-k]"); if (b) touche(b.dataset.k); });
-$("cPick").addEventListener("change", e => { if (e.target.value) { const [a, m, j] = e.target.value.split("-"); cal.chiffres = j + m + a; sauverCal(); majCalc(); } });
-document.addEventListener("keydown", e => {
-  if (e.ctrlKey || e.metaKey || e.altKey || e.target.closest("input, textarea, select")) return;
-  if (e.target.closest("button, a, label") && !e.target.closest("#touches") && (e.key === "Enter" || e.key === " ")) return;
-  if (/^\d$/.test(e.key)) touche(e.key);
-  else if (e.key === "Backspace") { e.preventDefault(); touche("BS"); }
-  else if (e.key === "Escape") touche("C");
-});
+try { const v = localStorage.getItem(CCLE); if (v && /^\d{4}-\d{2}-\d{2}$/.test(v)) $("cDate").value = v; } catch (e) {}
+$("cDate").addEventListener("input", () => { try { localStorage.setItem(CCLE, $("cDate").value); } catch (e) {} majCalc(); });
+$("cAuj").onclick = () => { $("cDate").value = versIso(new Date()); $("cDate").dispatchEvent(new Event("input")); };
 
 rendu(); majCalc();
 </script>
