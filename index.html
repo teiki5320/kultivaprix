@@ -144,6 +144,50 @@ header.top .sous { font-size: 13px; opacity: .85; }
 
 /* ── Confirmation ── */
 .confirm { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-size: 13px; font-weight: 700; }
+/* ── Grand écran : la colonne droite tient dans la hauteur et reste visible ── */
+@media (min-width: 1150px) {
+  .page { padding-block: 12px 20px; gap: 12px; }
+  header.top { padding: 10px 20px; }
+  .split { gap: 12px; }
+  .col.droite { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px); display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; align-content: start;
+    max-height: calc(100vh - 24px); overflow-y: auto; }
+  .col.droite .dossier { grid-column: 1 / -1; }
+  .col.droite .card { padding: 12px 14px; }
+  .col.droite .card h2 { margin-bottom: 8px; }
+  .fiche { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px 8px; }
+  .champ.adr { grid-column: span 2; }
+  .champ input { min-height: 30px; padding: 5px 9px; }
+  .imb { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .frise { gap: 4px; margin-bottom: 10px; }
+  .etape { padding: 6px 2px; }
+  .etape .t { display: none; }
+  .situ-tete { margin-bottom: 8px; }
+  .situ-tete .titre { font-size: 16px; }
+  .infos { grid-template-columns: 92px minmax(0, 1fr); font-size: 13.5px; }
+  .infos div { padding: 6px 10px; }
+  .global { margin-top: 8px; font-size: 12px; }
+  .calc { gap: 8px; }
+  .ecran { padding: 6px 12px; }
+  .ecran .expr { font-size: 11.5px; min-height: 16px; }
+  .ecran .res { font-size: 22px; }
+  .sorties { gap: 6px; }
+  .sortie { padding: 6px 10px; gap: 2px; }
+  .sortie .date { font-size: 16px; }
+  .touches { gap: 6px; }
+  .key { padding: 8px 0; font-size: 15px; }
+  .key.op { font-size: 12.5px; }
+}
+/* écrans d'ordinateur peu hauts (portables 13") */
+@media (min-width: 1150px) and (max-height: 860px) {
+  header.top { padding: 6px 18px; }
+  header.top h1 { font-size: 18px; }
+  .global { display: none; }
+  .infos div { padding: 4px 10px; }
+  .situ-tete .titre { font-size: 15px; }
+  .key { padding: 6px 0; }
+  .ecran .res { font-size: 20px; }
+  .sortie .date { font-size: 15px; }
+}
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; } }
 </style>
 </head>
@@ -175,15 +219,15 @@ header.top .sous { font-size: 13px; opacity: .85; }
     </section>
 
     <!-- Droite : fiche, situation, calculette -->
-    <section class="col">
+    <section class="col droite">
       <div class="card dossier">
         <h2>Dossier</h2>
         <div class="fiche">
           <div class="champ"><label for="f_ant">N° POI anticipation</label><input id="f_ant" data-f="ant" placeholder="POI anticipation"></div>
           <div class="champ"><label for="f_racco">N° POI Racco D2</label><input id="f_racco" data-f="racco" placeholder="POI Racco D2"></div>
-          <div class="champ large"><label for="f_adr">Adresse</label><input id="f_adr" data-f="adr" placeholder="Adresse de l'immeuble"></div>
           <div class="champ"><label for="f_el">Nombre d'EL</label><input id="f_el" data-f="el" inputmode="numeric" placeholder="0"></div>
           <div class="champ"><label for="f_pc">Permis de construire</label><input id="f_pc" data-f="pc" placeholder="N° PC"></div>
+          <div class="champ large adr"><label for="f_adr">Adresse</label><input id="f_adr" data-f="adr" placeholder="Adresse de l'immeuble"></div>
           <div class="champ"><label for="f_cab">Cabinet conseil</label><input id="f_cab" data-f="cab" placeholder="Nom du cabinet"></div>
           <div class="champ"><label for="f_dlpi">DLPI</label><input id="f_dlpi" data-f="dlpi" type="date"></div>
           <div class="champ large"><label for="f_imb1">IMB</label>
