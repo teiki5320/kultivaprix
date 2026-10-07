@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Racco D2</title>
+<style>
+[hidden] { display: none !important; }
+/* Mise en page : écran coupé en deux — questionnaire à gauche, fiche + situation + calculette à droite. Thème « Clay » clair du dashboard. */
+:root {
+  --fond: #efe3d6; --side: #cfe2d8; --side-text: #3f5a4c;
+  --carte: #fffaf4; --carte-2: #f3e7db;
+  --texte: #4a4238; --muted: #6d6259; --ligne: rgba(74, 66, 56, .1);
+  --peach: #f6d5c9; --sun: #f9e9b8; --sky: #cfdcef; --mint: #d8e9dc;
+  --peach-ink: #b5563a; --sun-ink: #8a6410; --sky-ink: #395884; --mint-ink: #2f6b4a;
+  --accent: #e8907a; --accent-fort: #f0a48f; --accent-ink: #33190f; --accent-dim: rgba(232, 144, 122, .28);
+  --ok: #3d7f55; --ok-tint: #d9ead9; --ko: #c1523f; --ko-tint: #f6d5c9;
+  --run: #96660f; --run-tint: #f9e9b8; --none: #7d7670; --none-tint: #ebe4dc;
+  --clay: inset 2px 2px 5px rgba(255,255,255,.9), inset -3px -3px 8px rgba(120,90,60,.14), 0 10px 22px rgba(120,90,60,.16);
+  --clay-sm: inset 1px 1px 3px rgba(255,255,255,.95), inset -2px -2px 5px rgba(120,90,60,.14), 0 5px 12px rgba(120,90,60,.16);
+  --inset: inset 2px 2px 6px rgba(120,90,60,.12), inset -1px -1px 3px rgba(255,255,255,.6);
+  --pouss: 0 5px 0 rgba(120,90,60,.22); --pouss-bas: 0 2px 0 rgba(120,90,60,.22);
+  --font: -apple-system, ui-rounded, "SF Pro Rounded", "Segoe UI", system-ui, sans-serif;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --bounce: cubic-bezier(.34, 1.56, .64, 1);
+  --r-sm: 12px; --r-md: 16px; --r-lg: 22px; --r-xl: 30px;
+  color-scheme: light;
+}
+*, *::before, *::after { box-sizing: border-box; }
+body { margin: 0; background: var(--fond); color: var(--texte); font-family: var(--font); font-size: 15px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+button, input { font-family: inherit; font-size: inherit; color: inherit; }
+
+.page { max-width: 1500px; margin: 0 auto; padding: 18px 16px 32px; display: flex; flex-direction: column; gap: 18px; }
+
+header.top { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  background: var(--side); color: var(--side-text); border-radius: var(--r-xl); padding: 14px 22px; box-shadow: var(--clay-sm); }
+header.top h1 { margin: 0; font-size: 22px; font-weight: 800; letter-spacing: .02em; }
+header.top .sous { font-size: 13px; opacity: .85; }
+.actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.btn { border: 0; border-radius: var(--r-md); padding: 10px 16px; font-weight: 800; font-size: 13.5px; cursor: pointer;
+  background: var(--carte-2); box-shadow: var(--clay-sm); transition: transform .18s var(--bounce); }
+.btn:hover { transform: translateY(-1px); }
+.btn:active { transform: scale(.97); }
+.btn-accent { background: var(--accent); color: var(--accent-ink); box-shadow: var(--pouss); }
+.btn-accent:active { transform: translateY(3px); box-shadow: var(--pouss-bas); }
+.btn:focus-visible, .chev:focus-visible, .etape:focus-visible, .key:focus-visible { outline: none; box-shadow: var(--clay-sm), 0 0 0 3px var(--accent-dim); }
+
+.split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px; align-items: start; }
+@media (max-width: 900px) { .split { grid-template-columns: 1fr; } }
+.col { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+
+.card { background: var(--carte); border-radius: var(--r-lg); box-shadow: var(--clay); padding: 18px 20px; min-width: 0; }
+.card h2 { margin: 0 0 14px; font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+
+/* ── Questionnaire ── */
+.gt { border-radius: var(--r-md); background: var(--carte-2); box-shadow: var(--inset); padding: 4px 8px 6px; }
+.gt + .gt { margin-top: 10px; }
+.gt.actif { box-shadow: var(--inset), 0 0 0 2px var(--accent); }
+.ligne { display: flex; align-items: center; gap: 10px; padding: 7px 4px; border-radius: 10px; min-height: 40px; }
+.ligne.d1 { font-weight: 800; font-size: 16px; }
+.ligne.d2 { padding-left: 38px; font-weight: 700; }
+.ligne.d3 { padding-left: 70px; }
+.ligne.d4 { padding-left: 102px; }
+.ligne.d5 { padding-left: 134px; }
+.ligne .lib { flex: 1; min-width: 0; cursor: pointer; }
+.ligne.valide .lib { color: var(--ok); }
+.num { font-family: var(--mono); font-size: 13px; color: var(--muted); margin-right: 4px; }
+.chev { border: 0; background: var(--carte); box-shadow: var(--clay-sm); width: 30px; height: 30px; border-radius: 10px; cursor: pointer; flex: none;
+  display: grid; place-items: center; transition: transform .2s var(--bounce); font-size: 12px; }
+.gt.ferme .chev { transform: rotate(-90deg); }
+.chev.vide { background: none; box-shadow: none; cursor: default; }
+.gt.ferme .enfants { display: none; }
+.enfants { border-left: 2px dashed var(--ligne); margin-left: 18px; }
+.cb { appearance: none; -webkit-appearance: none; width: 24px; height: 24px; flex: none; margin: 0; border-radius: 8px; cursor: pointer;
+  background: var(--carte); box-shadow: var(--inset); display: grid; place-items: center; transition: background .2s; }
+.cb::after { content: ""; width: 7px; height: 12px; border: solid var(--carte); border-width: 0 3px 3px 0; transform: rotate(45deg) translate(-1px, -1px); opacity: 0; }
+.cb:checked { background: var(--ok); box-shadow: var(--clay-sm); }
+.cb:checked::after { opacity: 1; }
+.cb.auto:checked { background: var(--mint-ink); }
+.cb:focus-visible { outline: none; box-shadow: var(--inset), 0 0 0 3px var(--accent-dim); }
+.tag { font-size: 11px; font-weight: 800; padding: 2px 9px; border-radius: 99px; white-space: nowrap; }
+.tag.ok { background: var(--ok-tint); color: var(--ok); }
+.tag.run { background: var(--run-tint); color: var(--run); }
+.tag.ko { background: var(--ko-tint); color: var(--ko); }
+.tag.none { background: var(--none-tint); color: var(--none); }
+.ou { font-size: 11px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: .1em; padding: 0 0 0 38px; }
+
+/* ── Fiche dossier ── */
+.fiche { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 10px 22px; }
+@media (max-width: 560px) { .fiche { grid-template-columns: 1fr; } }
+.fiche .bloc { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.champ { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.champ label { font-size: 12px; font-weight: 800; color: var(--muted); }
+.champ.sous { padding-left: 18px; }
+.champ input { width: 100%; border: 0; border-radius: var(--r-sm); background: var(--carte-2); box-shadow: var(--inset); padding: 9px 12px; outline: none; }
+.champ input:focus { box-shadow: var(--inset), 0 0 0 3px var(--accent-dim); }
+.champ input::placeholder { color: var(--muted); opacity: .7; }
+.imb { display: flex; flex-direction: column; gap: 6px; }
+.imb input { font-family: var(--mono); font-size: 13.5px; }
+.duo { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+/* ── Situation ── */
+.frise { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; margin-bottom: 16px; }
+.etape { border: 0; cursor: pointer; border-radius: var(--r-sm); padding: 8px 4px; background: var(--none-tint); color: var(--none);
+  display: flex; flex-direction: column; align-items: center; gap: 2px; font-weight: 800; transition: transform .18s var(--bounce); min-width: 0; }
+.etape:hover { transform: translateY(-1px); }
+.etape .n { font-size: 17px; font-variant-numeric: tabular-nums; }
+.etape .t { font-size: 10.5px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+.etape.ok { background: var(--ok-tint); color: var(--ok); }
+.etape.run { background: var(--run-tint); color: var(--run); }
+.etape.ko { background: var(--ko-tint); color: var(--ko); }
+.etape.sel { box-shadow: 0 0 0 2px var(--texte); }
+.situ-tete { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+.situ-tete .titre { font-size: 18px; font-weight: 800; }
+.infos { display: grid; grid-template-columns: 130px minmax(0, 1fr); border-radius: var(--r-md); overflow: hidden; background: var(--carte-2); box-shadow: var(--inset); }
+.infos div { padding: 10px 14px; border-bottom: 1px solid var(--ligne); min-width: 0; }
+.infos div:nth-last-child(-n+2) { border-bottom: 0; }
+.infos .k { font-size: 12px; font-weight: 800; color: var(--muted); }
+.infos .v { font-weight: 700; }
+.infos .v ul { margin: 0; padding-left: 18px; font-weight: 600; }
+.global { margin-top: 12px; font-size: 13px; color: var(--muted); }
+
+/* ── Calculette ── */
+.calc { display: grid; gap: 10px; }
+.ecran { background: var(--carte-2); box-shadow: var(--inset); border-radius: var(--r-md); padding: 10px 14px; text-align: right; font-family: var(--mono); min-width: 0; }
+.ecran .expr { font-size: 13px; color: var(--muted); min-height: 20px; overflow-x: auto; white-space: nowrap; }
+.ecran .res { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; overflow-x: auto; white-space: nowrap; }
+.touches { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.key { border: 0; border-radius: var(--r-sm); padding: 12px 0; font-weight: 800; font-size: 17px; cursor: pointer; background: var(--carte); box-shadow: var(--clay-sm); transition: transform .15s var(--bounce); font-variant-numeric: tabular-nums; }
+.key:active { transform: scale(.94); }
+.key.op { background: var(--sky); color: var(--sky-ink); }
+.key.fn { background: var(--peach); color: var(--peach-ink); }
+.key.eg { background: var(--accent); color: var(--accent-ink); }
+.histo { font-family: var(--mono); font-size: 12.5px; color: var(--muted); display: flex; flex-direction: column; gap: 2px; max-height: 84px; overflow-y: auto; }
+.histo button { all: unset; cursor: pointer; text-align: right; }
+.histo button:hover { color: var(--texte); }
+
+/* ── Confirmation ── */
+.confirm { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-size: 13px; font-weight: 700; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="top">
+    <div>
+      <h1>Racco D2</h1>
+      <div class="sous" id="sousTitre">Nouveau dossier</div>
+    </div>
+    <div class="actions">
+      <div class="confirm" id="confirmZone" hidden>
+        Effacer la fiche et toutes les cases ?
+        <button class="btn btn-accent" id="ouiVider" type="button">Oui, effacer</button>
+        <button class="btn" id="nonVider" type="button">Annuler</button>
+      </div>
+      <button class="btn" id="btnTout" type="button">Tout réduire</button>
+      <button class="btn" id="btnNouveau" type="button">Nouveau dossier</button>
+    </div>
+  </header>
+
+  <div class="split">
+    <!-- Gauche : questionnaire -->
+    <section class="col">
+      <div class="card">
+        <h2>Tâches <span class="tag none" id="compteur">0 / 7</span></h2>
+        <div id="arbre"></div>
+      </div>
+    </section>
+
+    <!-- Droite : fiche, situation, calculette -->
+    <section class="col">
+      <div class="card">
+        <h2>Dossier</h2>
+        <div class="fiche">
+          <div class="bloc">
+            <div class="champ"><label>N° POI</label></div>
+            <div class="champ sous"><label for="f_ant">Anticipation</label><input id="f_ant" data-f="ant" placeholder="N° POI anticipation"></div>
+            <div class="champ sous"><label for="f_racco">Racco D2</label><input id="f_racco" data-f="racco" placeholder="N° POI Racco D2"></div>
+            <div class="champ"><label for="f_adr">Adresse</label><input id="f_adr" data-f="adr" placeholder="Adresse de l'immeuble"></div>
+            <div class="duo">
+              <div class="champ"><label for="f_el">Nombre d'EL</label><input id="f_el" data-f="el" inputmode="numeric" placeholder="0"></div>
+              <div class="champ"><label for="f_pc">Permis de construire</label><input id="f_pc" data-f="pc" placeholder="N° PC"></div>
+            </div>
+            <div class="champ"><label for="f_imb1">IMB</label>
+              <div class="imb">
+                <input id="f_imb1" data-f="imb1" placeholder="IMB/…">
+                <input id="f_imb2" data-f="imb2" placeholder="IMB/…" aria-label="IMB 2">
+                <input id="f_imb3" data-f="imb3" placeholder="IMB/…" aria-label="IMB 3">
+                <input id="f_imb4" data-f="imb4" placeholder="IMB/…" aria-label="IMB 4">
+              </div>
+            </div>
+          </div>
+          <div class="bloc">
+            <div class="champ"><label for="f_cab">Cabinet conseil</label><input id="f_cab" data-f="cab" placeholder="Nom du cabinet"></div>
+            <div class="champ"><label for="f_dlpi">DLPI</label><input id="f_dlpi" data-f="dlpi" type="date"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Situation <span class="tag run" id="etatGlobal"></span></h2>
+        <div class="frise" id="frise"></div>
+        <div class="situ-tete">
+          <div class="titre" id="situTitre"></div>
+          <span class="tag run" id="situTag"></span>
+        </div>
+        <div class="infos" id="infos"></div>
+        <div class="global" id="situNote">Touche une étape de la frise ou le nom d'une grande tâche pour voir sa situation.</div>
+      </div>
+
+      <div class="card">
+        <h2>Calculette</h2>
+        <div class="calc">
+          <div class="ecran"><div class="expr" id="cExpr"></div><div class="res" id="cRes">0</div></div>
+          <div class="touches" id="touches"></div>
+          <div class="histo" id="cHisto"></div>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<script>
+/* ═══ Structure du questionnaire ═══
+   mode "tout" : validé quand toutes les sous-tâches le sont
+   mode "un"   : branches au choix, une seule valide la tâche */
+const TACHES = [
+  { id: "t1", lib: "Réception dossier", mode: "tout", kids: [
+    { id: "t1a", lib: "Demande de raccordement reçue" },
+    { id: "t1b", lib: "Plans de l'immeuble reçus" },
+    { id: "t1c", lib: "Permis de construire joint" },
+    { id: "t1d", lib: "Coordonnées du cabinet conseil" } ] },
+  { id: "t2", lib: "Conformité", mode: "un", kids: [
+    { id: "t2a", lib: "2a  Conforme", mode: "tout", kids: [
+      { id: "t2a1", lib: "Plans vérifiés" },
+      { id: "t2a2", lib: "Nombre d'EL cohérent avec les plans" },
+      { id: "t2a3", lib: "Adresse et IMB contrôlés" } ] },
+    { id: "t2b", lib: "2b  Non conforme", mode: "tout", kids: [
+      { id: "t2b1", lib: "Anomalies notifiées au cabinet conseil" },
+      { id: "t2b2", lib: "Compléments demandés" } ] } ] },
+  { id: "t3", lib: "Étape 3 (à définir)" },
+  { id: "t4", lib: "Étape 4 (à définir)" },
+  { id: "t5", lib: "Étape 5 (à définir)" },
+  { id: "t6", lib: "Étape 6 (à définir)" },
+  { id: "t7", lib: "Étape 7 (à définir)" }
+];
+
+const PLIABLES = TACHES.filter(t => t.kids);
+const CLE = "racco-d2-v1";
+let etat = { coches: {}, fiche: {}, fermes: {}, sel: null };
+try { const s = JSON.parse(localStorage.getItem(CLE) || "null"); if (s && typeof s === "object") ["coches", "fiche", "fermes"].forEach(k => { if (s[k] && typeof s[k] === "object") etat[k] = s[k]; }), etat.sel = typeof s.sel === "string" ? s.sel : null; } catch (e) {}
+const sauver = () => { try { localStorage.setItem(CLE, JSON.stringify(etat)); } catch (e) {} };
+
+/* index parent / nœuds */
+const NOEUDS = {}, PARENT = {};
+(function idx(list, p) { list.forEach(n => { NOEUDS[n.id] = n; PARENT[n.id] = p; if (n.kids) idx(n.kids, n); }); })(TACHES, null);
+const desc = n => (n.kids || []).flatMap(k => [k, ...desc(k)]);
+/* descendants à cocher en cascade : on ne descend pas dans les branches au choix */
+const cascade = n => n.mode === "un" ? [] : (n.kids || []).flatMap(k => [k, ...cascade(k)]);
+const anc = n => { const a = []; let p = PARENT[n.id]; while (p) { a.push(p); p = PARENT[p.id]; } return a; };
+
+function valide(n) {
+  if (etat.coches[n.id]) return true;
+  if (!n.kids) return false;
+  return n.mode === "un" ? n.kids.some(valide) : n.kids.every(valide);
+}
+
+function basculer(n, on) {
+  if (on) {
+    etat.coches[n.id] = true;
+    cascade(n).forEach(d => etat.coches[d.id] = true);
+    // branches au choix : cocher dans une branche efface les autres
+    [n, ...anc(n)].forEach(x => {
+      const p = PARENT[x.id];
+      if (p && p.mode === "un") p.kids.filter(k => k !== x).forEach(k => { delete etat.coches[k.id]; desc(k).forEach(d => delete etat.coches[d.id]); });
+    });
+  } else {
+    delete etat.coches[n.id];
+    desc(n).forEach(d => delete etat.coches[d.id]);
+    anc(n).forEach(a => delete etat.coches[a.id]);
+  }
+  sauver(); rendu();
+}
+
+/* ═══ Résultats : 5 informations selon les cases ═══ */
+const manquants = n => desc(n).filter(d => !d.kids && !valide(d)).map(d => d.lib);
+const fiche = k => (etat.fiche[k] || "").trim();
+function delaiDLPI() {
+  if (!fiche("dlpi")) return "DLPI non renseignée";
+  const j = Math.round((new Date(fiche("dlpi") + "T00:00") - new Date(new Date().toDateString())) / 864e5);
+  return j > 0 ? `J-${j} avant la DLPI` : j === 0 ? "DLPI aujourd'hui" : `DLPI dépassée de ${-j} j`;
+}
+function resultat(t) {
+  const cab = fiche("cab") || "Cabinet conseil";
+  const ok = valide(t);
+  if (t.id === "t1") {
+    if (ok) return { tag: "ok", txt: "Validée", statut: "Dossier complet", decision: "Recevable", action: "Passer au contrôle de conformité", resp: "Moi", delai: delaiDLPI() };
+    const m = manquants(t);
+    return { tag: "run", txt: "Incomplète", statut: `Réception incomplète (${t.kids.length - m.length}/${t.kids.length})`, decision: "En attente des pièces", action: m, resp: cab, delai: delaiDLPI() };
+  }
+  if (t.id === "t2") {
+    const [a, b] = t.kids;
+    if (valide(a)) return { tag: "ok", txt: "Conforme", statut: "Conforme", decision: "Accepté", action: "Lancer l'étape suivante", resp: "Moi", delai: delaiDLPI() };
+    if (valide(b)) return { tag: "ko", txt: "Non conforme", statut: "Non conforme", decision: "Suspendu", action: "Attendre les compléments du cabinet", resp: cab, delai: delaiDLPI() };
+    const enA = a.kids.some(valide), enB = b.kids.some(valide);
+    if (etat.coches[t.id] && !enA && !enB) return { tag: "ok", txt: "Validée", statut: "Validée sans précision", decision: "À préciser", action: "Indiquer conforme ou non conforme", resp: "Moi", delai: delaiDLPI() };
+    if (enA) return { tag: "run", txt: "Contrôle en cours", statut: "Vers conforme", decision: "En cours", action: manquants(a), resp: "Moi", delai: delaiDLPI() };
+    if (enB) return { tag: "run", txt: "Non-conformité en cours", statut: "Vers non conforme", decision: "En cours", action: manquants(b), resp: "Moi", delai: delaiDLPI() };
+    return { tag: "none", txt: "À contrôler", statut: "Pas encore contrôlé", decision: "—", action: "Faire le contrôle de conformité", resp: "Moi", delai: delaiDLPI() };
+  }
+  return ok
+    ? { tag: "ok", txt: "Validée", statut: "Étape validée", decision: "—", action: "Passer à l'étape suivante", resp: "—", delai: delaiDLPI() }
+    : { tag: "none", txt: "À faire", statut: "Pas commencée", decision: "—", action: "Contenu de l'étape à définir", resp: "—", delai: delaiDLPI() };
+}
+
+/* ═══ Rendu ═══ */
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+function ligneHTML(n, d, num) {
+  const v = valide(n), auto = v && !etat.coches[n.id];
+  let h = `<div class="ligne d${d}${v ? " valide" : ""}">`;
+  if (d === 1) h += n.kids ? `<button class="chev" type="button" data-chev="${n.id}" aria-label="Réduire ou déplier" aria-expanded="${!etat.fermes[n.id]}">▼</button>` : `<span class="chev vide" aria-hidden="true"></span>`;
+  h += `<input type="checkbox" class="cb${auto ? " auto" : ""}" id="cb_${n.id}" data-cb="${n.id}"${v ? " checked" : ""} aria-label="${esc(n.lib)}">`;
+  h += `<label class="lib" for="cb_${n.id}" ${d === 1 ? `data-sel="${n.id}"` : ""}>${d === 1 ? `<span class="num">${num}</span>` : ""}${esc(n.lib)}</label>`;
+  if (d === 1) { const r = resultat(n); h += `<span class="tag ${r.tag}">${r.txt}</span>`; }
+  h += `</div>`;
+  if (n.kids) {
+    const inner = n.kids.map((k, i) => (n.mode === "un" && i > 0 ? `<div class="ou">ou</div>` : "") + ligneHTML(k, d + 1)).join("");
+    h += d === 1 ? `<div class="enfants">${inner}</div>` : inner;
+  }
+  return h;
+}
+
+/* une tâche est acquise quand elle est validée sans être bloquante (non conforme = suspendu) */
+const acquise = t => valide(t) && resultat(t).tag !== "ko";
+function etapeCourante() { return TACHES.find(t => !acquise(t)) || null; }
+
+function rendu() {
+  const focus = document.activeElement && document.activeElement.id;
+  const cour = etapeCourante();
+  const sel = TACHES.find(t => t.id === etat.sel) || cour || TACHES[TACHES.length - 1];
+  $("arbre").innerHTML = TACHES.map((t, i) =>
+    `<div class="gt${etat.fermes[t.id] ? " ferme" : ""}${t === sel ? " actif" : ""}">${ligneHTML(t, 1, i + 1)}</div>`).join("");
+
+  const nbOk = TACHES.filter(acquise).length;
+  $("compteur").textContent = `${nbOk} / ${TACHES.length}`;
+  $("compteur").className = "tag " + (nbOk === TACHES.length ? "ok" : nbOk ? "run" : "none");
+
+  $("frise").innerHTML = TACHES.map((t, i) => {
+    const r = resultat(t);
+    const cls = r.tag === "ko" ? "ko" : acquise(t) ? "ok" : t === cour ? "run" : "";
+    return `<button type="button" id="et_${t.id}" class="etape ${cls}${t === sel ? " sel" : ""}" data-sel="${t.id}" title="${esc(t.lib)}"><span class="n">${i + 1}</span><span class="t">${esc(t.lib)}</span></button>`;
+  }).join("");
+
+  const r = resultat(sel);
+  $("situTitre").textContent = `${TACHES.indexOf(sel) + 1} · ${sel.lib}`;
+  $("situTag").className = "tag " + r.tag; $("situTag").textContent = r.txt;
+  const act = Array.isArray(r.action) ? `<ul>${r.action.map(a => `<li>${esc(a)}</li>`).join("")}</ul>` : esc(r.action);
+  $("infos").innerHTML = [["Statut", esc(r.statut)], ["Décision", esc(r.decision)], ["Action suivante", act], ["Responsable", esc(r.resp)], ["Délai", esc(r.delai)]]
+    .map(([k, v]) => `<div class="k">${k}</div><div class="v">${v}</div>`).join("");
+
+  $("etatGlobal").className = "tag " + (cour ? "run" : "ok");
+  $("etatGlobal").textContent = cour ? `Étape ${TACHES.indexOf(cour) + 1} en cours` : "Dossier terminé";
+  $("situNote").textContent = sel === cour || !cour ? "Touche une étape de la frise ou le nom d'une grande tâche pour voir sa situation."
+    : `Étape en cours : ${TACHES.indexOf(cour) + 1} · ${cour.lib}`;
+
+  const nom = fiche("racco") || fiche("ant");
+  $("sousTitre").textContent = nom ? `POI ${nom}${fiche("adr") ? " · " + fiche("adr") : ""}` : "Nouveau dossier";
+  if (focus && $(focus) && document.activeElement !== $(focus)) $(focus).focus();
+  $("btnTout").textContent = PLIABLES.every(t => etat.fermes[t.id]) ? "Tout déplier" : "Tout réduire";
+}
+
+document.addEventListener("change", e => {
+  const id = e.target.dataset.cb; if (id) basculer(NOEUDS[id], e.target.checked);
+});
+document.addEventListener("click", e => {
+  const c = e.target.closest("[data-chev]");
+  if (c) { const id = c.dataset.chev; etat.fermes[id] = !etat.fermes[id]; sauver(); rendu(); return; }
+  const s = e.target.closest("[data-sel]");
+  if (s) { if (s.tagName === "LABEL") e.preventDefault(); etat.sel = s.dataset.sel; sauver(); rendu(); }
+});
+$("btnTout").onclick = () => { const tous = PLIABLES.every(t => etat.fermes[t.id]); PLIABLES.forEach(t => etat.fermes[t.id] = !tous); sauver(); rendu(); };
+
+/* fiche */
+document.querySelectorAll("[data-f]").forEach(inp => {
+  inp.value = etat.fiche[inp.dataset.f] || "";
+  inp.addEventListener("input", () => { etat.fiche[inp.dataset.f] = inp.value; sauver(); rendu(); });
+});
+$("btnNouveau").onclick = () => { $("confirmZone").hidden = false; $("btnNouveau").hidden = true; };
+$("nonVider").onclick = () => { $("confirmZone").hidden = true; $("btnNouveau").hidden = false; };
+$("ouiVider").onclick = () => {
+  etat = { coches: {}, fiche: {}, fermes: {}, sel: null }; sauver();
+  document.querySelectorAll("[data-f]").forEach(i => i.value = "");
+  $("nonVider").onclick(); rendu();
+};
+
+/* ═══ Calculette ═══ */
+const TOUCHES = [["C","fn"],["(","fn"],[")","fn"],["÷","op"],["7"],["8"],["9"],["×","op"],["4"],["5"],["6"],["−","op"],["1"],["2"],["3"],["+","op"],["%","fn"],["0"],[",",""],["=","eg"]];
+$("touches").innerHTML = TOUCHES.map(([k, c]) => `<button type="button" class="key ${c || ""}" data-k="${k}">${k}</button>`).join("");
+let expr = "", histo = [], fini = false;
+function evaluer(s) {
+  const t = s.replace(/×/g, "*").replace(/÷/g, "/").replace(/−/g, "-").replace(/,/g, ".");
+  if (!/^[\d+\-*/().%e\s]*$/.test(t) || !t.trim()) return null;
+  try { const v = calcul(t); return Number.isFinite(v) ? Math.round(v * 1e10) / 1e10 : null; } catch (e) { return null; }
+}
+/* analyseur récursif : expr = terme (+|- terme)* ; terme = facteur (*|/ facteur)* ; facteur = -facteur | nombre[%] | (expr)[%]
+   « a + b% » et « a − b% » s'appliquent à a (200 + 10% = 220), comme sur une calculette de poche */
+function calcul(s) {
+  const tk = s.match(/\d+(?:\.\d*)?(?:e[+-]?\d+)?|\.\d+(?:e[+-]?\d+)?|[+\-*/()%]/g) || []; let i = 0;
+  if (tk.join("") !== s.replace(/\s/g, "")) throw 0;
+  let pct = false;
+  const expr = () => {
+    let v = terme();
+    while (tk[i] === "+" || tk[i] === "-") {
+      const op = tk[i++]; pct = false; const w = terme(); const d = pct ? v * w : w;
+      v = op === "+" ? v + d : v - d;
+    }
+    return v;
+  };
+  const terme = () => { let v = fact(); while (tk[i] === "*" || tk[i] === "/") { const op = tk[i++]; const w = fact(); v = op === "*" ? v * w : v / w; pct = false; } return v; };
+  const fact = () => {
+    const t = tk[i++]; let v;
+    if (t === "-") return -fact();
+    if (t === "+") return fact();
+    if (t === "(") { v = expr(); if (tk[i++] !== ")") throw 0; }
+    else if (t !== undefined && !isNaN(t)) v = parseFloat(t);
+    else throw 0;
+    pct = false;
+    if (tk[i] === "%") { i++; v /= 100; pct = true; }
+    return v;
+  };
+  const v = expr(); if (i !== tk.length) throw 0; return v;
+}
+const fmt = v => v === null ? "" : v.toLocaleString("fr-FR", { maximumFractionDigits: 10 });
+const enExpr = v => String(v).replace(".", ",").replace("-", "−");
+function majCalc() {
+  $("cExpr").textContent = fini ? "" : expr;
+  const v = evaluer(expr); $("cRes").textContent = expr ? (v === null ? "…" : fmt(v)) : "0";
+  $("cHisto").innerHTML = histo.slice(-6).reverse().map(h => `<button type="button" data-h="${esc(h.r)}">${esc(h.e)} = ${esc(fmt(h.v))}</button>`).join("");
+}
+function touche(k) {
+  if (k === "C") { expr = ""; fini = false; }
+  else if (k === "⌫") { expr = fini ? "" : expr.slice(0, -1); fini = false; }
+  else if (k === "=") {
+    const v = evaluer(expr);
+    if (v !== null && !fini) { histo.push({ e: expr, v, r: enExpr(v) }); expr = enExpr(v); fini = true; }
+  }
+  else {
+    // après un résultat, un chiffre démarre un nouveau calcul, un opérateur le prolonge
+    if (fini && /[\d,(]/.test(k)) expr = "";
+    fini = false; expr += k;
+  }
+  majCalc();
+}
+$("touches").addEventListener("click", e => { const b = e.target.closest("[data-k]"); if (b) touche(b.dataset.k); });
+$("cHisto").addEventListener("click", e => { const b = e.target.closest("[data-h]"); if (b) { expr = b.dataset.h; fini = true; majCalc(); } });
+document.addEventListener("keydown", e => {
+  if (e.ctrlKey || e.metaKey || e.altKey || e.target.closest("input, textarea, select")) return;
+  const horsCalc = e.target.closest("button, a, label") && !e.target.closest("#touches, #cHisto");
+  if (horsCalc && (e.key === "Enter" || e.key === " ")) return;
+  const m = { "*": "×", "/": "÷", "-": "−", "+": "+", "Enter": "=", "=": "=", "Escape": "C", ".": ",", ",": ",", "(": "(", ")": ")", "%": "%" };
+  if (/^\d$/.test(e.key)) touche(e.key);
+  else if (m[e.key]) { e.preventDefault(); touche(m[e.key]); }
+  else if (e.key === "Backspace") { e.preventDefault(); touche("⌫"); }
+});
+
+rendu(); majCalc();
+</script>
+</body>
+</html>
