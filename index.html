@@ -9,10 +9,10 @@
 /* Mise en page : écran coupé en deux — questionnaire à gauche, fiche + situation + calculette à droite. Thème « Clay » clair du dashboard. */
 :root {
   --fond: #efe3d6; --side: #cfe2d8; --side-text: #3f5a4c;
-  --carte: #fffaf4; --carte-2: #f3e7db;
+  --carte: #fffaf4; --carte-2: #f3e7db; --carte-fonce: #ecdccb;
   --texte: #4a4238; --muted: #6d6259; --ligne: rgba(74, 66, 56, .1);
   --peach: #f6d5c9; --sun: #f9e9b8; --sky: #cfdcef; --mint: #d8e9dc;
-  --peach-ink: #b5563a; --sun-ink: #8a6410; --sun-fort: #ecd27f; --sun-fort-ink: #5e4307; --sky-ink: #395884; --mint-ink: #2f6b4a;
+  --peach-ink: #b5563a; --sun-ink: #8a6410;  --sky-ink: #395884; --mint-ink: #2f6b4a;
   --accent: #e8907a; --accent-fort: #f0a48f; --accent-ink: #33190f; --accent-dim: rgba(232, 144, 122, .28);
   --ok: #3d7f55; --ok-tint: #d9ead9; --ko: #c1523f; --ko-tint: #f6d5c9;
   --run: #96660f; --run-tint: #f9e9b8; --none: #7d7670; --none-tint: #ebe4dc;
@@ -126,15 +126,16 @@ header.top .sous { font-size: 13px; opacity: .85; }
 
 /* ── Info ── */
 .h2-droite { display: flex; align-items: center; gap: 8px; }
+.card.info { background: var(--carte-fonce); }
 .info-dates { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-bottom: 12px; }
 .info-dates:last-child { margin-bottom: 0; }
-.code-bloc { background: var(--sun-fort); color: var(--sun-fort-ink); box-shadow: var(--clay-sm); border-radius: var(--r-md); padding: 6px 12px 8px; display: grid; justify-items: center; gap: 4px; margin-bottom: 12px; text-align: center; }
+.code-bloc { background: var(--carte-2); box-shadow: var(--inset); border-radius: var(--r-md); padding: 6px 12px 8px; display: grid; justify-items: center; gap: 4px; margin-bottom: 12px; text-align: center; }
 .code-ligne { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; min-width: 0; }
 .code-ligne .btn { flex: none; }
 .code-ligne .btn-mini { color: var(--accent-ink); }
-.code-bloc label { font-size: 12px; font-weight: 800; color: var(--sun-fort-ink); text-transform: uppercase; letter-spacing: .08em; }
-.code-bloc output { min-width: 0; border-radius: var(--r-sm); background: none; color: var(--sun-fort-ink); padding: 5px 12px; font-family: var(--mono); font-size: 17px; font-weight: 700; letter-spacing: .06em; white-space: nowrap; overflow-x: auto; user-select: all; font-variant-numeric: tabular-nums; }
-.code-note { font-size: 12px; color: var(--sun-fort-ink); }
+.code-bloc label { font-size: 12px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; }
+.code-bloc output { min-width: 0; border-radius: var(--r-sm); background: none; color: var(--texte); padding: 5px 12px; font-family: var(--mono); font-size: 17px; font-weight: 700; letter-spacing: .06em; white-space: nowrap; overflow-x: auto; user-select: all; font-variant-numeric: tabular-nums; }
+.code-note { font-size: 12px; color: var(--muted); }
 .code-note:empty { display: none; }
 
 /* ── Calculette ── */
@@ -481,6 +482,7 @@ $("ouiVider").onclick = () => {
 const VCLE = "racco-d2-vue";
 function vue(info) {
   $("vueSituation").hidden = info; $("vueInfo").hidden = !info; $("etatGlobal").hidden = info;
+  $("vueInfo").closest(".card").classList.toggle("info", info);
   $("vueTitre").textContent = info ? "Info" : "Situation";
   $("btnVue").textContent = info ? "Situation" : "Info";
   $("btnVue").setAttribute("aria-pressed", String(info));
