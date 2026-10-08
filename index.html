@@ -68,6 +68,8 @@ header.top .sous { font-size: 13px; opacity: .85; }
 .ligne.d5 { padding-left: 134px; }
 .ligne .lib { flex: 1; min-width: 0; cursor: pointer; }
 .ligne.valide .lib { color: var(--ok); }
+.ligne.barre .lib { text-decoration: line-through; text-decoration-thickness: 2px; color: var(--muted); opacity: .75; }
+.ligne .lib { -webkit-user-select: none; user-select: none; }
 .num { font-family: var(--mono); font-size: 13px; color: var(--muted); margin-right: 4px; }
 .chev { border: 0; background: var(--carte); box-shadow: var(--clay-sm); width: 30px; height: 30px; border-radius: 10px; cursor: pointer; flex: none;
   display: grid; place-items: center; transition: transform .2s var(--bounce); font-size: 12px; }
@@ -401,59 +403,114 @@ header.top .sous { font-size: 13px; opacity: .85; }
 </div>
 
 <script>
-/* ═══ Structure du questionnaire ═══
-   mode "tout" : validé quand toutes les sous-tâches le sont
-   mode "un"   : branches au choix, une seule valide la tâche */
+/* ═══ Tâches : les 7 grandes étapes et leurs tâches (4 niveaux au plus) ═══
+   mode "tout" : validé quand toutes les sous-tâches sont faites (une tâche barrée ne bloque pas)
+   mode "un" + choix : une seule option à cocher, les autres sont barrées automatiquement (contraste) */
 const TACHES = [
-  { id: "t1", lib: "Réception dossier", mode: "tout", resp: "cab", enCours: "Incomplète", attente: "En attente des pièces",
-    okStatut: "Dossier complet", okDecision: "Recevable", apres: "Passer au contrôle de conformité", kids: [
-    { id: "t1a", lib: "Demande de raccordement reçue" },
-    { id: "t1b", lib: "Plans de l'immeuble reçus" },
-    { id: "t1c", lib: "Permis de construire joint" },
-    { id: "t1d", lib: "Coordonnées du cabinet conseil" } ] },
-  { id: "t2", lib: "Conformité", mode: "un", apres: "Lancer l'étude technique", kids: [
-    { id: "t2a", lib: "2a  Conforme", court: "Conforme", mode: "tout", kids: [
-      { id: "t2a1", lib: "Plans vérifiés" },
-      { id: "t2a2", lib: "Nombre d'EL cohérent avec les plans" },
-      { id: "t2a3", lib: "Adresse et IMB contrôlés" } ] },
-    { id: "t2b", lib: "2b  Non conforme", court: "Non conforme", mode: "tout", resp: "cab", attente: "Attendre les compléments du cabinet", kids: [
-      { id: "t2b1", lib: "Anomalies notifiées au cabinet conseil" },
-      { id: "t2b2", lib: "Compléments demandés" } ] } ] },
-  /* étapes 3 à 7 : contenu inventé pour la démonstration */
-  { id: "t3", lib: "Étude technique", mode: "tout", resp: "Bureau d'études", attente: "Étude en cours",
-    okStatut: "Étude terminée", okDecision: "Faisable", apres: "Planifier l'intervention", kids: [
-    { id: "t3a", lib: "Point de branchement (PBO) identifié" },
-    { id: "t3b", lib: "Cheminement du câble validé" },
-    { id: "t3c", lib: "Devis de raccordement envoyé" },
-    { id: "t3d", lib: "Commande reçue" } ] },
-  { id: "t4", lib: "Planification", mode: "tout", resp: "Moi", attente: "Rendez-vous à caler",
-    okStatut: "Intervention planifiée", okDecision: "Date confirmée", apres: "Lancer les travaux", kids: [
-    { id: "t4a", lib: "Date d'intervention fixée" },
-    { id: "t4b", lib: "Technicien affecté" },
-    { id: "t4c", lib: "Syndic ou gestionnaire prévenu" } ] },
-  { id: "t5", lib: "Travaux", mode: "tout", resp: "Sous-traitant", attente: "Chantier en cours",
-    okStatut: "Travaux terminés", okDecision: "Prêt pour la recette", apres: "Faire la recette", kids: [
-    { id: "t5a", lib: "Câblage de la colonne montante" },
-    { id: "t5b", lib: "Pose des prises (PTO) dans les logements" },
-    { id: "t5c", lib: "Raccordement au point de branchement" },
-    { id: "t5d", lib: "Photos d'intervention reçues" } ] },
-  { id: "t6", lib: "Recette", mode: "un", apres: "Mettre en service", kids: [
-    { id: "t6a", lib: "6a  Recette conforme", court: "Recette conforme", mode: "tout", kids: [
-      { id: "t6a1", lib: "Mesures optiques dans les tolérances" },
-      { id: "t6a2", lib: "PV de recette signé" } ] },
-    { id: "t6b", lib: "6b  Recette avec réserves", court: "Réserves", mode: "tout", resp: "Sous-traitant", attente: "Faire lever les réserves", kids: [
-      { id: "t6b1", lib: "Réserves notifiées au sous-traitant" },
-      { id: "t6b2", lib: "Reprise planifiée" } ] } ] },
-  { id: "t7", lib: "Mise en service", mode: "tout", resp: "Moi", attente: "Clôture en cours",
-    okStatut: "Immeuble raccordé", okDecision: "Dossier clos", apres: "Archiver le dossier", kids: [
-    { id: "t7a", lib: "Dossier de récolement transmis" },
-    { id: "t7b", lib: "IMB passés actifs dans le SI" },
-    { id: "t7c", lib: "Dossier clôturé" } ] }
+  { id: "t1", lib: "Réception de la POI", mode: "tout", kids: [
+    { id: "t1_1", lib: "Classer les docs GEDAFFAIRE" },
+    { id: "t1_2", lib: "Mettre un Geosignet dans GEORESO" },
+    { id: "t1_3", lib: "Regarder s’il y a de l’aérien" },
+    { id: "t1_4", lib: "Regarder place au PA" },
+    { id: "t1_5", lib: "Mettre un ComL + modifier DRE/DLR + passer la POI à l’état 5" } ] },
+  { id: "t2", lib: "Réception APD", mode: "tout", kids: [
+    { id: "t2_1", lib: "Regarder conformité de l’APD", mode: "tout", kids: [
+      { id: "t2_1_1", lib: "APD non conforme", mode: "tout", kids: [
+        { id: "t2_1_1_1", lib: "Mettre ComL + modifier DRE/DLR" },
+        { id: "t2_1_1_2", lib: "Faire un mail GED à ZZZ Amaris OSA : Bonjour, APD non conforme (indiquer les docs manquants)" } ] },
+      { id: "t2_1_2", lib: "APD conforme", mode: "tout", kids: [
+        { id: "t2_1_2_1", lib: "Mettre ComL + modifier DRE/DLR" },
+        { id: "t2_1_2_2", lib: "Faire un mail GED à ZZZ Amaris OSA : Bonjour, APD conforme." } ] } ] } ] },
+  { id: "t3", lib: "Traiter la pré-étude", mode: "tout", kids: [
+    { id: "t3_1", lib: "Repasser la POI à l’état 1" },
+    { id: "t3_2", lib: "Faire CMS", mode: "tout", kids: [
+      { id: "t3_2_1", lib: "Retour CMS OK" } ] },
+    { id: "t3_3", lib: "Faire resa au PA", mode: "tout", kids: [
+      { id: "t3_3_1", lib: "Faire Desat PMZ" } ] },
+    { id: "t3_4", lib: "Faire la demande BANBOU pour dessin TIGRE si j’ai tous les docs", mode: "tout", kids: [
+      { id: "t3_4_1", lib: "Faire import PIT quand j’ai le retour BANBOU" } ] },
+    { id: "t3_5", lib: "Traiter l’aérien", mode: "tout", kids: [
+      { id: "t3_5_1", lib: "Faire le SEPALE" },
+      { id: "t3_5_2", lib: "…" } ] },
+    { id: "t3_6", lib: "Repasser la POI à l’état 5" } ] },
+  { id: "t4", lib: "Traiter la POI d’anticipation", mode: "tout", kids: [
+    { id: "t4_1", lib: "Anticipation non nécessaire", mode: "tout", kids: [
+      { id: "t4_1_1", lib: "Mettre un ComL d’annulation de la POI" } ] },
+    { id: "t4_2", lib: "Anticipation nécessaire", mode: "tout", kids: [
+      { id: "t4_2_1", lib: "Repasser la POI à l’état 1" },
+      { id: "t4_2_2", lib: "Mettre ComL + modifier DRE/DLR" },
+      { id: "t4_2_3", lib: "Monter le dossier travaux d’anticipation", mode: "tout", kids: [
+        { id: "t4_2_3_1", lib: "….." },
+        { id: "t4_2_3_2", lib: "….." },
+        { id: "t4_2_3_3", lib: "….." } ] },
+      { id: "t4_2_4", lib: "Envoyer en travaux", mode: "tout", kids: [
+        { id: "t4_2_4_1", lib: "Mettre ComL + modifier DRE/DLR" } ] },
+      { id: "t4_2_5", lib: "Valider tâche dans SPI ????" },
+      { id: "t4_2_6", lib: "Réception du DOE d’anticipation", mode: "tout", kids: [
+        { id: "t4_2_6_1", lib: "DOE non conforme" },
+        { id: "t4_2_6_2", lib: "DOE Conforme" } ] },
+      { id: "t4_2_7", lib: "Faire contraste", mode: "un", choix: true, kids: [
+        { id: "t4_2_7_1", lib: "Non conforme avec reprise" },
+        { id: "t4_2_7_2", lib: "Non conforme sans reprise" },
+        { id: "t4_2_7_3", lib: "Conforme" } ] },
+      { id: "t4_2_8", lib: "Payer attachement" },
+      { id: "t4_2_9", lib: "Mettre DOE dans SPI ???" },
+      { id: "t4_2_10", lib: "Mettre à jour le SI", mode: "tout", kids: [
+        { id: "t4_2_10_1", lib: "Étape MAJ SI" },
+        { id: "t4_2_10_2", lib: "Étape MAJ SI" },
+        { id: "t4_2_10_3", lib: "Étape MAJ SI" } ] },
+      { id: "t4_2_11", lib: "Archiver la POI d’anticipation dans PPR" } ] } ] },
+  { id: "t5", lib: "Réception DOE précâblage", mode: "tout", kids: [
+    { id: "t5_1", lib: "Regarder conformité du DOE", mode: "tout", kids: [
+      { id: "t5_1_1", lib: "DOE non conforme", mode: "tout", kids: [
+        { id: "t5_1_1_1", lib: "Mettre ComL + modifier DRE/DLR" },
+        { id: "t5_1_1_2", lib: "Faire un mail GED à ZZZ Amaris OSA : Bonjour, DOE non conforme (indiquer les docs manquants)" } ] },
+      { id: "t5_1_2", lib: "DOE conforme", mode: "tout", kids: [
+        { id: "t5_1_2_1", lib: "Mettre ComL + modifier DRE/DLR" },
+        { id: "t5_1_2_2", lib: "Faire un mail GED à ZZZ Amaris OSA : Bonjour, DOE conforme." } ] } ] } ] },
+  { id: "t6", lib: "Finaliser l’étude", mode: "tout", kids: [
+    { id: "t6_1", lib: "Repasser la POI à l’état 1" },
+    { id: "t6_2", lib: "Faire la demande BANBOU pour dessin TIGRE si pas déjà faite", mode: "tout", kids: [
+      { id: "t6_2_1", lib: "Faire import PIT quand j’ai le retour BANBOU" } ] },
+    { id: "t6_3", lib: "Faire le GEORESO + IPON", mode: "tout", kids: [
+      { id: "t6_3_1", lib: "Racco D2" },
+      { id: "t6_3_2", lib: "DTER (PDO ou DTIO)" } ] },
+    { id: "t6_4", lib: "Faire la valo" },
+    { id: "t6_5", lib: "Faire la FI" },
+    { id: "t6_6", lib: "Faire le LINE" },
+    { id: "t6_7", lib: "Envoyer en travaux", mode: "tout", kids: [
+      { id: "t6_7_1", lib: "Mettre ComL" } ] },
+    { id: "t6_8", lib: "Valider tâche « Lancement travaux » dans SPI" },
+    { id: "t6_9", lib: "Demander la MAD anticipée si POI à l’état DMS" } ] },
+  { id: "t7", lib: "Réception du DOE Racco D2", mode: "tout", kids: [
+    { id: "t7_1", lib: "Vérification faites" },
+    { id: "t7_2", lib: "Faire contraste", mode: "un", choix: true, kids: [
+      { id: "t7_2_1", lib: "Non conforme avec reprise" },
+      { id: "t7_2_2", lib: "Non conforme sans reprise" },
+      { id: "t7_2_3", lib: "Conforme" } ] },
+    { id: "t7_3", lib: "Payer attachement" },
+    { id: "t7_4", lib: "Mettre à jour le SI", mode: "tout", kids: [
+      { id: "t7_4_1", lib: "IPON", mode: "tout", kids: [
+        { id: "t7_4_1_1", lib: "Récoler tous les projets" },
+        { id: "t7_4_1_2", lib: "Vérifier si les dates remontent bien dans IPON" } ] },
+      { id: "t7_4_2", lib: "GEORESO", mode: "tout", kids: [
+        { id: "t7_4_2_1", lib: "Récoler le projet" } ] },
+      { id: "t7_4_3", lib: "SPI", mode: "tout", kids: [
+        { id: "t7_4_3_1", lib: "Valider la tâche « Insertion & Vérification DOE »" },
+        { id: "t7_4_3_2", lib: "Déposer le DOE au format zip que je retrouve dans LINE (si MAD anticipé on a validé les taches avant de le déposer)" } ] },
+      { id: "t7_4_4", lib: "LINE", mode: "tout", kids: [
+        { id: "t7_4_4_1", lib: "Cliquer sur « Valider travaux »" },
+        { id: "t7_4_4_2", lib: "Cliquer sur « Clôturer le dossier »" },
+        { id: "t7_4_4_3", lib: "Cliquer sur « Archiver le dossier »" } ] },
+      { id: "t7_4_5", lib: "OPTIMUM", mode: "tout", kids: [
+        { id: "t7_4_5_1", lib: "Aller voir si les dates sont bonnes (le lendemain du récolement)" } ] } ] },
+    { id: "t7_5", lib: "Demander la MAD au PBLO si je n’ai pas fait de MAD anticipée" },
+    { id: "t7_6", lib: "Archiver la POI dans PPR" } ] }
 ];
 
 const CLE = "racco-d2-v1";
-let etat = { coches: {}, fiche: {}, fermes: {}, sel: null };
-try { const s = JSON.parse(localStorage.getItem(CLE) || "null"); if (s && typeof s === "object") ["coches", "fiche", "fermes"].forEach(k => { if (s[k] && typeof s[k] === "object") etat[k] = s[k]; }), etat.sel = typeof s.sel === "string" ? s.sel : null; } catch (e) {}
+let etat = { coches: {}, barres: {}, fiche: {}, fermes: {}, sel: null };
+try { const s = JSON.parse(localStorage.getItem(CLE) || "null"); if (s && typeof s === "object") ["coches", "barres", "fiche", "fermes"].forEach(k => { if (s[k] && typeof s[k] === "object") etat[k] = s[k]; }), etat.sel = typeof s.sel === "string" ? s.sel : null; } catch (e) {}
 const sauver = () => { try { localStorage.setItem(CLE, JSON.stringify(etat)); } catch (e) {} };
 
 /* index parent / nœuds */
@@ -467,10 +524,12 @@ const anc = n => { const a = []; let p = PARENT[n.id]; while (p) { a.push(p); p 
 /* état enregistré avant l'ajout des sous-tâches : une étape cochée coche ses sous-tâches */
 Object.keys(etat.coches).forEach(id => { const n = NOEUDS[id]; if (!n) delete etat.coches[id]; else cascade(n).forEach(d => etat.coches[d.id] = true); });
 
+/* tâche barrée (double-clic sur sa case) : reste visible mais ne bloque pas la tâche du dessus */
+const estBarre = n => !!etat.barres[n.id];
 function valide(n) {
   if (etat.coches[n.id]) return true;
   if (!n.kids) return false;
-  return n.mode === "un" ? n.kids.some(valide) : n.kids.every(valide);
+  return n.mode === "un" ? n.kids.some(valide) : n.kids.every(k => valide(k) || estBarre(k));
 }
 
 function basculer(n, on) {
@@ -483,16 +542,22 @@ function basculer(n, on) {
       const p = PARENT[x.id];
       if (p && p.mode === "un") p.kids.filter(k => k !== x).forEach(k => { delete etat.coches[k.id]; desc(k).forEach(d => delete etat.coches[d.id]); });
     });
+    // contraste : l'option choisie barre les autres
+    const p = PARENT[n.id];
+    if (p && p.choix) { p.kids.forEach(k => { if (k === n) delete etat.barres[k.id]; else etat.barres[k.id] = true; }); }
   } else {
     delete etat.coches[n.id];
     desc(n).forEach(d => delete etat.coches[d.id]);
     anc(n).forEach(a => delete etat.coches[a.id]);
+    const p = PARENT[n.id];
+    if (p && p.choix) p.kids.forEach(k => delete etat.barres[k.id]);
   }
   sauver(); rendu();
 }
 
 /* ═══ Résultats : 5 informations selon les cases ═══ */
-const manquants = n => desc(n).filter(d => !d.kids && !valide(d)).map(d => d.lib);
+const manquants = n => (n.kids || []).flatMap(k => estBarre(k) || valide(k) ? [] : k.kids ? manquants(k) : [k.lib]);
+const feuillesActives = n => (n.kids || []).flatMap(k => estBarre(k) ? [] : k.kids ? feuillesActives(k) : [k]);
 const fiche = k => (etat.fiche[k] || "").trim();
 function delaiDLPI() {
   if (!fiche("dlpi")) return "DLPI non renseignée";
@@ -515,7 +580,7 @@ function resultat(t) {
     return { tag: "none", txt: "À contrôler", statut: "Pas encore contrôlé", decision: "—", action: `Choisir « ${a.court} » ou « ${b.court} »`, resp: "Moi", delai: D };
   }
   if (valide(t)) return { tag: "ok", txt: "Validée", statut: t.okStatut || "Étape validée", decision: t.okDecision || "—", action: t.apres || "Passer à l'étape suivante", resp: "Moi", delai: D };
-  const m = manquants(t), total = desc(t).filter(d => !d.kids).length, fait = total - m.length;
+  const m = manquants(t), fa = feuillesActives(t), total = fa.length, fait = fa.filter(valide).length;
   if (fait > 0 || t.enCours) return { tag: "run", txt: t.enCours || "En cours", statut: `${t.lib} : ${fait}/${total}`, decision: t.attente || "En cours", action: m, resp: qui(t), delai: D };
   return { tag: "none", txt: "À faire", statut: "Pas commencée", decision: "—", action: m, resp: qui(t), delai: D };
 }
@@ -526,14 +591,14 @@ const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;",
 
 function ligneHTML(n, d, num) {
   const v = valide(n), auto = v && !etat.coches[n.id];
-  let h = `<div class="ligne d${d}${v ? " valide" : ""}">`;
+  let h = `<div class="ligne d${d}${v ? " valide" : ""}${estBarre(n) ? " barre" : ""}">`;
   if (d === 1) h += n.kids ? `<button class="chev" type="button" data-chev="${n.id}" aria-label="Réduire ou déplier" aria-expanded="${!etat.fermes[n.id]}">▼</button>` : `<span class="chev vide" aria-hidden="true"></span>`;
   h += `<input type="checkbox" class="cb${auto ? " auto" : ""}" id="cb_${n.id}" data-cb="${n.id}"${v ? " checked" : ""}${verrouillee(n) ? " disabled" : ""} aria-label="${esc(n.lib)}">`;
   h += `<label class="lib" for="cb_${n.id}" ${d === 1 ? `data-sel="${n.id}"` : ""}>${d === 1 ? `<span class="num">${num}</span>` : ""}${esc(n.lib)}</label>`;
   if (d === 1) { const r = resultat(n), ok = r.tag === "ok"; h += `<span class="led ${ok ? "on" : "off"}" role="img" aria-label="${esc(r.txt)}" title="${esc(r.txt)}"></span>`; }
   h += `</div>`;
   if (n.kids) {
-    const inner = n.kids.map((k, i) => (n.mode === "un" && i > 0 ? `<div class="ou">ou</div>` : "") + ligneHTML(k, d + 1)).join("");
+    const inner = n.kids.map((k, i) => (n.mode === "un" && !n.choix && i > 0 ? `<div class="ou">ou</div>` : "") + ligneHTML(k, d + 1)).join("");
     h += d === 1 ? `<div class="enfants">${inner}</div>` : inner;
   }
   return h;
@@ -541,9 +606,9 @@ function ligneHTML(n, d, num) {
 
 /* une tâche est acquise quand elle est validée sans être bloquante (non conforme = suspendu) */
 const acquise = t => !verrouillee(t) && valide(t) && resultat(t).tag !== "ko";
-/* une grande tâche n'est accessible que si la précédente est validée */
+/* plus de verrouillage : toutes les étapes restent accessibles */
 const racine = n => { let r = n; while (PARENT[r.id]) r = PARENT[r.id]; return r; };
-function verrouillee(n) { const i = TACHES.indexOf(racine(n)); return i > 0 && !acquise(TACHES[i - 1]); }
+function verrouillee(n) { return false; }
 function etapeCourante() { return TACHES.find(t => !acquise(t)) || null; }
 
 function rendu() {
@@ -579,8 +644,19 @@ function rendu() {
   if (focus && $(focus) && document.activeElement !== $(focus)) $(focus).focus();
 }
 
+/* clic : coche ou décoche ; double-clic : barre ou débarre la tâche (les deux clics sont annulés) */
+let dernierClic = { id: null, t: 0 };
 document.addEventListener("change", e => {
-  const id = e.target.dataset.cb; if (id) basculer(NOEUDS[id], e.target.checked);
+  const id = e.target.dataset.cb; if (!id) return;
+  const t = Date.now();
+  if (dernierClic.id === id && t - dernierClic.t < 450) {
+    etat.coches = dernierClic.coches; etat.barres = dernierClic.barres;
+    if (etat.barres[id]) delete etat.barres[id]; else etat.barres[id] = true;
+    dernierClic = { id: null, t: 0 };
+    sauver(); rendu(); return;
+  }
+  dernierClic = { id, t, coches: { ...etat.coches }, barres: { ...etat.barres } };
+  basculer(NOEUDS[id], e.target.checked);
 });
 document.addEventListener("click", e => {
   const c = e.target.closest("[data-chev]");
