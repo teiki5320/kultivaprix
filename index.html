@@ -127,9 +127,13 @@ header.top .sous { font-size: 13px; opacity: .85; }
 /* ── Info ── */
 .h2-droite { display: flex; align-items: center; gap: 8px; }
 .info-dates { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-bottom: 12px; }
-.code-bloc { background: var(--carte-2); box-shadow: var(--inset); border-radius: var(--r-md); padding: 12px 14px; display: grid; justify-items: center; gap: 8px; margin-bottom: 12px; text-align: center; }
+.info-dates:last-child { margin-bottom: 0; }
+.code-bloc { background: var(--carte-2); box-shadow: var(--inset); border-radius: var(--r-md); padding: 6px 12px 8px; display: grid; justify-items: center; gap: 4px; margin-bottom: 12px; text-align: center; }
+.code-ligne { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; min-width: 0; }
+.code-ligne .btn { flex: none; }
+.code-ligne .btn-mini { color: var(--accent-ink); }
 .code-bloc label { font-size: 12px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; }
-.code-bloc output { max-width: 100%; border-radius: var(--r-sm); background: var(--carte); box-shadow: var(--clay-sm); padding: 10px 16px; font-family: var(--mono); font-size: 20px; font-weight: 700; letter-spacing: .06em; white-space: nowrap; overflow-x: auto; user-select: all; font-variant-numeric: tabular-nums; }
+.code-bloc output { min-width: 0; border-radius: var(--r-sm); background: var(--carte); box-shadow: var(--clay-sm); padding: 5px 12px; font-family: var(--mono); font-size: 17px; font-weight: 700; letter-spacing: .06em; white-space: nowrap; overflow-x: auto; user-select: all; font-variant-numeric: tabular-nums; }
 .code-note { font-size: 12px; color: var(--muted); }
 .code-note:empty { display: none; }
 
@@ -191,9 +195,7 @@ header.top .sous { font-size: 13px; opacity: .85; }
   .ecran .res { font-size: 20px; }
   .sortie .date { font-size: 15px; }
   .info-dates, .code-bloc { margin-bottom: 8px; }
-  .code-bloc { padding: 8px 12px; gap: 6px; }
-  .code-bloc output { padding: 6px 14px; font-size: 18px; }
-  .btn-accent { padding: 7px 14px; }
+
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; } }
 </style>
@@ -267,11 +269,16 @@ header.top .sous { font-size: 13px; opacity: .85; }
           </div>
           <div class="code-bloc">
             <label for="comlab">Code Comlab</label>
-            <output id="comlab" aria-live="polite"></output>
-            <button class="btn btn-accent" id="btnCopier" type="button">Copier le code</button>
+            <div class="code-ligne">
+              <output id="comlab" aria-live="polite"></output>
+              <button class="btn btn-accent btn-mini" id="btnCopier" type="button">Copier</button>
+            </div>
             <div class="code-note" id="codeNote"></div>
           </div>
-          <div class="infos" id="infosQ"></div>
+          <div class="info-dates">
+            <div class="sortie"><div class="decal"><span class="lbl">+ 90 jours</span></div><div class="date" id="i2r">—</div></div>
+            <div class="sortie"><div class="decal"><span class="lbl">+ 120 jours</span></div><div class="date" id="i3r">—</div></div>
+          </div>
         </div>
       </div>
 
@@ -441,7 +448,7 @@ function rendu() {
 
   const nom = fiche("racco") || fiche("ant");
   $("sousTitre").textContent = nom ? `POI ${nom}${fiche("adr") ? " · " + fiche("adr") : ""}` : "Nouveau dossier";
-  majCode(); majInfosQ(); $("codeNote").textContent = "";
+  majCode(); $("codeNote").textContent = "";
   if (focus && $(focus) && document.activeElement !== $(focus)) $(focus).focus();
   $("btnTout").textContent = PLIABLES.every(t => etat.fermes[t.id]) ? "Tout déplier" : "Tout réduire";
 }
@@ -482,18 +489,6 @@ function vue(info) {
 $("btnVue").onclick = () => vue($("vueInfo").hidden);
 try { vue(["info", "aide"].includes(localStorage.getItem(VCLE))); } catch (e) { vue(false); }
 
-/* infos selon le questionnaire (provisoire) */
-function majInfosQ() {
-  const cour = etapeCourante(), [t1, t2] = TACHES;
-  const r2 = resultat(t2), manque = manquants(t1);
-  const lignes = [
-    ["Étape en cours", cour ? `${TACHES.indexOf(cour) + 1} · ${cour.lib}` : "Dossier terminé"],
-    ["Pièces", manque.length ? `Manquantes : ${manque.join(", ")}` : "Dossier complet"],
-    ["Conformité", verrouillee(t2) ? "Pas encore accessible" : r2.txt],
-    ["Avancement", `${TACHES.filter(acquise).length} étape(s) validée(s) sur ${TACHES.length}`]
-  ];
-  $("infosQ").innerHTML = lignes.map(([k, v]) => `<div class="k">${k}</div><div class="v">${esc(v)}</div>`).join("");
-}
 
 /* ═══ Code Comlab (25 caractères) — MÉTHODE PROVISOIRE, à remplacer par la vraie règle ═══
    1 à 7   : une lettre par grande tâche (V validée, E en cours, N non conforme, A à faire)
@@ -521,7 +516,7 @@ $("btnCopier").onclick = () => {
 
 /* ═══ Dates : une date de départ donne la date à +30 et à +65 jours ═══ */
 const CCLE = "racco-d2-date";
-const DELAIS = [30, 65]; // jours calendaires
+const DELAIS = [30, 65, 90, 120]; // jours calendaires ; 90 et 120 provisoires (carte Info)
 const pad = n => String(n).padStart(2, "0");
 const versIso = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 const jour = (d, n) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
@@ -554,7 +549,7 @@ function majCalc() {
       const note = ouvre(r) ? "" : `<span class="tag ko">${ferie(r) ? "Férié" : "Week-end"}</span>`;
       h = `${note}<span>${esc(fmtD(r))}</span>`;
     }
-    $(`o${i}r`).innerHTML = h; $(`i${i}r`).innerHTML = h;
+    [`o${i}r`, `i${i}r`].forEach(id => { if ($(id)) $(id).innerHTML = h; });
   });
 }
 try { const v = localStorage.getItem(CCLE); if (v && /^\d{4}-\d{2}-\d{2}$/.test(v)) $("cDate").value = v; } catch (e) {}
