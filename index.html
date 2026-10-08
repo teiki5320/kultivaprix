@@ -144,10 +144,10 @@ header.top .sous { font-size: 13px; opacity: .85; }
 .code-bloc { background: var(--carte-2); box-shadow: var(--inset); border-radius: var(--r-md); padding: 6px 12px 8px; display: grid; justify-items: center; gap: 4px; margin-bottom: 12px; text-align: center; }
 .code-bloc { position: relative; }
 /* codes secondaires : pastilles « nom | code », deux par ligne */
-.pastilles { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 22px 10px; padding-top: 10px; }
-.pastille { position: relative; display: flex; align-items: center; min-width: 0; border-radius: 999px; background: var(--carte-2); box-shadow: var(--inset); padding: 13px 16px 9px 0; }
-.pastille .pl { flex: none; padding: 0 12px 0 16px; margin-right: 12px; border-right: 2px solid var(--ligne); font-size: 12px; font-weight: 800; letter-spacing: .08em; color: var(--muted); }
-.pastille output { flex: 1; min-width: 0; text-align: right; font-family: var(--mono); font-size: 15px; font-weight: 700; letter-spacing: .05em; white-space: nowrap; overflow-x: auto; user-select: all; }
+.pastilles { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; }
+.pastille { position: relative; display: flex; align-items: center; min-width: 0; border-radius: 999px; background: var(--carte-2); box-shadow: var(--inset); padding: 6px 6px 6px 0; gap: 8px; }
+.pastille .pl { flex: none; padding: 0 10px 0 14px; margin-right: 2px; border-right: 2px solid var(--ligne); font-size: 12px; font-weight: 800; letter-spacing: .08em; color: var(--muted); }
+.pastille output { flex: 1; min-width: 0; text-align: left; font-family: var(--mono); font-size: 13px; font-weight: 700; letter-spacing: .05em; white-space: nowrap; overflow-x: auto; user-select: all; }
 /* petite icône de copie posée sur le bord haut, à droite */
 .copie { position: absolute; top: -12px; right: 18px; width: 22px; height: 22px; border: 0; border-radius: 8px; padding: 0; cursor: pointer;
   display: grid; place-items: center; background: var(--accent); color: var(--accent-ink); box-shadow: var(--clay-sm); transition: transform .15s var(--bounce); }
@@ -159,6 +159,7 @@ header.top .sous { font-size: 13px; opacity: .85; }
 .copie.fait .ic-ok { display: block; }
 .copie.fait { background: var(--ok); color: var(--carte); }
 .code-bloc .copie { top: 8px; right: 10px; }
+.pastille .copie { position: static; flex: none; }
 .code-bloc label { font-size: 12px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; }
 .code-bloc output { max-width: calc(100% - 40px); min-width: 0; border-radius: var(--r-sm); background: none; color: var(--texte); padding: 5px 12px; font-family: var(--mono); font-size: 17px; font-weight: 700; letter-spacing: .06em; white-space: nowrap; overflow-x: auto; user-select: all; font-variant-numeric: tabular-nums; }
 @media (max-width: 560px) { .code-bloc output { font-size: 15px; padding: 5px 4px; max-width: 100%; white-space: normal; text-align: center; } .code-bloc label { margin-right: 28px; } }
