@@ -613,7 +613,26 @@ try { const v = localStorage.getItem(CCLE); if (v && /^\d{4}-\d{2}-\d{2}$/.test(
 $("cDate").addEventListener("input", () => { try { localStorage.setItem(CCLE, $("cDate").value); } catch (e) {} majCalc(); });
 $("cAuj").onclick = () => { $("cDate").value = versIso(new Date()); $("cDate").dispatchEvent(new Event("input")); };
 
-rendu(); majCalc();
+/* ═══ Grand écran : la page grossit pour remplir l'écran, sans que la colonne droite dépasse la hauteur ═══ */
+const LARGEUR_BASE = 1440;
+function ajusterEchelle() {
+  const page = document.querySelector(".page"), droite = document.querySelector(".col.droite");
+  page.style.zoom = ""; page.style.maxWidth = ""; droite.style.maxHeight = "";
+  if (innerWidth < 1150) return;
+  const parLargeur = innerWidth / LARGEUR_BASE;
+  // tout doit tenir à l'ouverture : bandeau du haut + colonne droite + marge du bas
+  const haut = droite.getBoundingClientRect().top + scrollY;
+  const parHauteur = innerHeight / (haut + droite.scrollHeight + 16);
+  const z = Math.max(1, Math.min(parLargeur, parHauteur, 2));
+  if (z <= 1.02) return;
+  page.style.zoom = z;
+  page.style.maxWidth = "none";
+  droite.style.maxHeight = `${(innerHeight - 24) / z}px`;
+}
+let attenteEchelle;
+addEventListener("resize", () => { clearTimeout(attenteEchelle); attenteEchelle = setTimeout(ajusterEchelle, 100); });
+
+rendu(); majCalc(); ajusterEchelle();
 </script>
 </body>
 </html>
