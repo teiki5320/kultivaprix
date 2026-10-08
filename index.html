@@ -9,7 +9,7 @@
 /* Mise en page : écran coupé en deux — questionnaire à gauche, fiche + situation + calculette à droite. Thème « Clay » clair du dashboard. */
 :root {
   --fond: #efe3d6; --side: #cfe2d8; --side-text: #3f5a4c;
-  --carte: #fffaf4; --carte-2: #f3e7db; --carte-fonce: #ecdccb;
+  --carte: #fffaf4; --carte-2: #f3e7db; --corail: #f4c6b5;
   --texte: #4a4238; --muted: #6d6259; --ligne: rgba(74, 66, 56, .1);
   --peach: #f6d5c9; --sun: #f9e9b8; --sky: #cfdcef; --mint: #d8e9dc;
   --peach-ink: #b5563a; --sun-ink: #8a6410;  --sky-ink: #395884; --mint-ink: #2f6b4a;
@@ -126,7 +126,14 @@ header.top .sous { font-size: 13px; opacity: .85; }
 
 /* ── Info ── */
 .h2-droite { display: flex; align-items: center; gap: 8px; }
-.card.info { background: var(--carte-fonce); }
+.card.info { background: var(--corail); }
+.card.info h2 { color: var(--peach-ink); }
+/* les deux écrans occupent la même case : la carte garde la taille de la Situation */
+.vues { display: grid; }
+.vues > .vue { grid-area: 1 / 1; min-width: 0; }
+.vues > .vue.cachee { visibility: hidden; }
+#vueInfo { display: flex; flex-direction: column; justify-content: space-between; gap: 12px; }
+#vueInfo .info-dates, #vueInfo .code-bloc { margin-bottom: 0; }
 .info-dates { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-bottom: 12px; }
 .info-dates:last-child { margin-bottom: 0; }
 .code-bloc { background: var(--carte-2); box-shadow: var(--inset); border-radius: var(--r-md); padding: 6px 12px 8px; display: grid; justify-items: center; gap: 4px; margin-bottom: 12px; text-align: center; }
@@ -254,7 +261,8 @@ header.top .sous { font-size: 13px; opacity: .85; }
       <div class="card">
         <h2><span id="vueTitre">Situation</span>
           <span class="h2-droite"><span class="tag run" id="etatGlobal"></span><button class="btn btn-mini" id="btnVue" type="button" aria-pressed="false">Info</button></span></h2>
-        <div id="vueSituation">
+        <div class="vues">
+        <div class="vue" id="vueSituation">
           <div class="frise" id="frise"></div>
           <div class="situ-tete">
             <div class="titre" id="situTitre"></div>
@@ -263,7 +271,7 @@ header.top .sous { font-size: 13px; opacity: .85; }
           <div class="infos" id="infos"></div>
           <div class="global" id="situNote">Touche une étape de la frise ou le nom d'une grande tâche pour voir sa situation.</div>
         </div>
-        <div id="vueInfo" hidden>
+        <div class="vue cachee" id="vueInfo">
           <div class="info-dates">
             <div class="sortie"><div class="decal"><span class="lbl">+ 30 jours</span></div><div class="date" id="i0r">—</div></div>
             <div class="sortie"><div class="decal"><span class="lbl">+ 65 jours</span></div><div class="date" id="i1r">—</div></div>
@@ -280,6 +288,7 @@ header.top .sous { font-size: 13px; opacity: .85; }
             <div class="sortie"><div class="decal"><span class="lbl">+ 90 jours</span></div><div class="date" id="i2r">—</div></div>
             <div class="sortie"><div class="decal"><span class="lbl">+ 120 jours</span></div><div class="date" id="i3r">—</div></div>
           </div>
+        </div>
         </div>
       </div>
 
@@ -481,14 +490,14 @@ $("ouiVider").onclick = () => {
 /* ═══ Bascule Situation / Info ═══ */
 const VCLE = "racco-d2-vue";
 function vue(info) {
-  $("vueSituation").hidden = info; $("vueInfo").hidden = !info; $("etatGlobal").hidden = info;
+  $("vueSituation").classList.toggle("cachee", info); $("vueInfo").classList.toggle("cachee", !info); $("etatGlobal").hidden = info;
   $("vueInfo").closest(".card").classList.toggle("info", info);
   $("vueTitre").textContent = info ? "Info" : "Situation";
   $("btnVue").textContent = info ? "Situation" : "Info";
   $("btnVue").setAttribute("aria-pressed", String(info));
   try { localStorage.setItem(VCLE, info ? "info" : "situation"); } catch (e) {}
 }
-$("btnVue").onclick = () => vue($("vueInfo").hidden);
+$("btnVue").onclick = () => vue($("vueInfo").classList.contains("cachee"));
 try { vue(["info", "aide"].includes(localStorage.getItem(VCLE))); } catch (e) { vue(false); }
 
 
