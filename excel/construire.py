@@ -12,6 +12,8 @@ import datetime as dt
 from pathlib import Path
 
 import xlsxwriter
+
+import interface
 from xlsxwriter.utility import xl_col_to_name
 
 ICI = Path(__file__).resolve().parent
@@ -181,21 +183,24 @@ class Construction:
         self.ws = wb.add_worksheet(FEUILLE)
         self.kc = wb.add_worksheet("Calcul")
         self.pa = wb.add_worksheet("Paramètres")
-        self.md = wb.add_worksheet("Modèles") if self.macro else None
+        self.md = wb.add_worksheet("Rendu") if self.macro else None
         if self.macro:
             for ws, nom in [(self.ws, "Feuil1"), (self.kc, "Feuil2"), (self.pa, "Feuil3"), (self.md, "Feuil4")]:
                 ws.set_vba_name(nom)
         self.ws.activate()
         self.parametres()
-        self.page()
-        self.calcul()
-        self.arbre(self.ws)
-        self.dossier()
-        self.bloc(self.ws, L_BLOC, "situation", boutons=self.macro)
-        self.dates()
         if self.macro:
-            self.modeles()
+            # interface en formes : les cellules ne portent que la saisie, le VBA dessine le reste (table Rendu)
+            self.page_formes()
+            self.calcul()
+            interface.construire_rendu(self)
         else:
+            self.page()
+            self.calcul()
+            self.arbre(self.ws)
+            self.dossier()
+            self.bloc(self.ws, L_BLOC, "situation", boutons=False)
+            self.dates()
             self.espace(L_INFO_XLSX - 1)
             self.bloc(self.ws, L_INFO_XLSX, "info", boutons=False)
         self.noms()
@@ -204,6 +209,28 @@ class Construction:
         if self.md:
             self.md.hide()
         wb.close()
+
+    # ── Version à macros : grille fine (1 colonne = 1 ligne = 9 pt) et cellules de saisie seulement ──
+    def page_formes(self):
+        ws, F = self.ws, self.F
+        fond = F(bg_color=C["fond"])
+        ws.hide_gridlines(2)
+        ws.hide_row_col_headers()
+        ws.set_zoom(100)
+        ws.set_column(0, 160, 1.0, fond)          # 12 px = 9 pt
+        ws.set_default_row(9)
+        for r in range(0, 260):
+            ws.set_row(r, 9, fond)
+        self.saisies = interface.SAISIES
+        for cle, (x, y, w, h), fmt in interface.cellules_saisie():
+            c0, c1, r0, r1 = x // 9, (x + w) // 9 - 1, y // 9, (y + h) // 9 - 1
+            f = F(bg_color=C["carte"], font_name=interface.POLICE if cle not in ("dep",) else MONO, **fmt)
+            ws.merge_range(r0, c0, r1, c1, "", f)
+            self.wb.define_name("f_" + cle, f"='{FEUILLE}'!{cellule(r0, c0)}:{cellule(r1, c1)}")
+            self.wb.define_name("v_" + cle, f"='{FEUILLE}'!{cellule(r0, c0)}")      # une cellule, pour les formules
+            if cle in ("dlpi", "dep"):
+                ws.data_validation(r0, c0, r1, c1, {"validate": "date", "criteria": ">", "value": dt.date(2000, 1, 1),
+                                                    "error_title": "Date", "error_message": "Entre une date, par ex. 07/10/2026."})
 
     # ── Paramètres : délais, jours fériés, alphabet ──
     def parametres(self):
@@ -317,8 +344,8 @@ class Construction:
             return f"{K}${xl_col_to_name(col[h])}${T0 + 2 + i}"
         self.tc = tc
 
-        CAB = f'IF({M}$V$7="","Cabinet conseil",{M}$V$7)'
-        DLPI = f"{M}$AC$7"
+        CAB = 'IF(v_cab="","Cabinet conseil",v_cab)'
+        DLPI = "v_dlpi"
         self.DELAI_DLPI = (f'IF({DLPI}="","DLPI non renseignée",IF({DLPI}-TODAY()>0,"J-"&({DLPI}-TODAY())&" avant la DLPI",'
                            f'IF({DLPI}-TODAY()=0,"DLPI aujourd\'hui","DLPI dépassée de "&(TODAY()-{DLPI})&" j")))')
         COUR = f"{K}$B${T0 + 10}"
@@ -397,6 +424,8 @@ class Construction:
         kc.write(T0 + 11, 1, "Situation")
         kc.write(T0 + 12, 0, "étape mémorisée")
         kc.write(T0 + 12, 1, "")
+        kc.write(T0 + 13, 0, "étape choisie")
+        kc.write(T0 + 13, 1, "")
         self.cellules_etat = {"cour": (T0 + 9, 1), "sel": (T0 + 10, 1), "vue": (T0 + 11, 1), "selMemo": (T0 + 12, 1)}
 
         # verrou et tag par nœud (pour les mises en forme de l'arbre)
@@ -463,7 +492,7 @@ class Construction:
             r += 2
 
         # ── dates ──
-        DEP = f"{M}$H$29"
+        DEP = "v_dep"
         self.D_ = []
         for k in range(2):
             rr = r + k
@@ -783,6 +812,12 @@ class Construction:
             nom(n, "Calcul", r, c)
         nom("noeuds", "Calcul", 1, 0, len(self.tous), 13)
         nom("taches", "Calcul", self.T0 + 1, 0, self.T0 + 7, len(self.col) - 1)
+        if self.macro:
+            nom("etapeChoisie", "Calcul", self.T0 + 13, 1)
+            return
+        nom("v_cab", FEUILLE, L_DOSSIER + 4, R0 + 14)
+        nom("v_dlpi", FEUILLE, L_DOSSIER + 4, R0 + 21)
+        nom("v_dep", FEUILLE, L_DATES + 2, R0)
         nom("arbre", FEUILLE, L_ARBRE0, CHEV, L_ARBRE1, LED)
         nom("aide", FEUILLE, L_ARBRE0, AIDE, L_ARBRE1, AIDE)
         nom("etapeChoisie", FEUILLE, L_BLOC, R0 + 19)      # une seule cellule : un nom sur deux cellules casse ISNUMBER()
@@ -799,11 +834,6 @@ class Construction:
         for i, n in enumerate(AUTRES):
             r, k0 = L_BLOC + 7 + 2 * (i // 2), 14 * (i % 2)
             nom("cp_" + n.upper(), FEUILLE, r, R0 + k0 + 12, r, R0 + k0 + 13)
-        if self.macro:
-            for typ, r in self.tpl.items():
-                nom("tpl_" + typ, "Modèles", r, CHEV, r, LED)
-            nom("tpl_situation", "Modèles", 12, R0, 12 + H_BLOC - 1, R1)
-            nom("tpl_info", "Modèles", 30, R0, 30 + H_BLOC - 1, R1)
 
 
 def construire(chemin, macro, vba_bin=None):
