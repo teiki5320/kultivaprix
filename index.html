@@ -14,7 +14,7 @@
   --peach: #f6d5c9; --sun: #f9e9b8; --sky: #cfdcef; --mint: #d8e9dc;
   --peach-ink: #b5563a; --sun-ink: #8a6410;  --sky-ink: #395884; --mint-ink: #2f6b4a;
   --accent: #e8907a; --accent-fort: #f0a48f; --accent-ink: #33190f; --accent-dim: rgba(232, 144, 122, .28);
-  --ok: #3d7f55; --ok-tint: #d9ead9; --ko: #c1523f; --ko-tint: #f6d5c9;
+  --led-vert: #36c26a; --led-rouge: #e2493a; --ok: #3d7f55; --ok-tint: #d9ead9; --ko: #c1523f; --ko-tint: #f6d5c9;
   --run: #96660f; --run-tint: #f9e9b8; --none: #7d7670; --none-tint: #ebe4dc;
   --clay: inset 2px 2px 5px rgba(255,255,255,.9), inset -3px -3px 8px rgba(120,90,60,.14), 0 10px 22px rgba(120,90,60,.16);
   --clay-sm: inset 1px 1px 3px rgba(255,255,255,.95), inset -2px -2px 5px rgba(120,90,60,.14), 0 5px 12px rgba(120,90,60,.16);
@@ -87,6 +87,9 @@ header.top .sous { font-size: 13px; opacity: .85; }
 .tag.run { background: var(--run-tint); color: var(--run); }
 .tag.ko { background: var(--ko-tint); color: var(--ko); }
 .tag.none { background: var(--none-tint); color: var(--none); }
+.led { width: 12px; height: 12px; border-radius: 50%; flex: none; margin-right: 6px; }
+.led.on { background: radial-gradient(circle at 35% 35%, #c9f5d8 0 18%, var(--led-vert) 45%); box-shadow: 0 0 0 2px rgba(54,194,106,.18), 0 0 8px rgba(54,194,106,.75); }
+.led.off { background: radial-gradient(circle at 35% 35%, #ffd2cb 0 18%, var(--led-rouge) 45%); box-shadow: 0 0 0 2px rgba(226,73,58,.16), 0 0 8px rgba(226,73,58,.6); }
 .ou { font-size: 11px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: .1em; padding: 0 0 0 38px; }
 
 /* ── Fiche dossier ── */
@@ -301,24 +304,50 @@ header.top .sous { font-size: 13px; opacity: .85; }
    mode "tout" : validé quand toutes les sous-tâches le sont
    mode "un"   : branches au choix, une seule valide la tâche */
 const TACHES = [
-  { id: "t1", lib: "Réception dossier", mode: "tout", kids: [
+  { id: "t1", lib: "Réception dossier", mode: "tout", resp: "cab", enCours: "Incomplète", attente: "En attente des pièces",
+    okStatut: "Dossier complet", okDecision: "Recevable", apres: "Passer au contrôle de conformité", kids: [
     { id: "t1a", lib: "Demande de raccordement reçue" },
     { id: "t1b", lib: "Plans de l'immeuble reçus" },
     { id: "t1c", lib: "Permis de construire joint" },
     { id: "t1d", lib: "Coordonnées du cabinet conseil" } ] },
-  { id: "t2", lib: "Conformité", mode: "un", kids: [
-    { id: "t2a", lib: "2a  Conforme", mode: "tout", kids: [
+  { id: "t2", lib: "Conformité", mode: "un", apres: "Lancer l'étude technique", kids: [
+    { id: "t2a", lib: "2a  Conforme", court: "Conforme", mode: "tout", kids: [
       { id: "t2a1", lib: "Plans vérifiés" },
       { id: "t2a2", lib: "Nombre d'EL cohérent avec les plans" },
       { id: "t2a3", lib: "Adresse et IMB contrôlés" } ] },
-    { id: "t2b", lib: "2b  Non conforme", mode: "tout", kids: [
+    { id: "t2b", lib: "2b  Non conforme", court: "Non conforme", mode: "tout", resp: "cab", attente: "Attendre les compléments du cabinet", kids: [
       { id: "t2b1", lib: "Anomalies notifiées au cabinet conseil" },
       { id: "t2b2", lib: "Compléments demandés" } ] } ] },
-  { id: "t3", lib: "Étape 3 (à définir)" },
-  { id: "t4", lib: "Étape 4 (à définir)" },
-  { id: "t5", lib: "Étape 5 (à définir)" },
-  { id: "t6", lib: "Étape 6 (à définir)" },
-  { id: "t7", lib: "Étape 7 (à définir)" }
+  /* étapes 3 à 7 : contenu inventé pour la démonstration */
+  { id: "t3", lib: "Étude technique", mode: "tout", resp: "Bureau d'études", attente: "Étude en cours",
+    okStatut: "Étude terminée", okDecision: "Faisable", apres: "Planifier l'intervention", kids: [
+    { id: "t3a", lib: "Point de branchement (PBO) identifié" },
+    { id: "t3b", lib: "Cheminement du câble validé" },
+    { id: "t3c", lib: "Devis de raccordement envoyé" },
+    { id: "t3d", lib: "Commande reçue" } ] },
+  { id: "t4", lib: "Planification", mode: "tout", resp: "Moi", attente: "Rendez-vous à caler",
+    okStatut: "Intervention planifiée", okDecision: "Date confirmée", apres: "Lancer les travaux", kids: [
+    { id: "t4a", lib: "Date d'intervention fixée" },
+    { id: "t4b", lib: "Technicien affecté" },
+    { id: "t4c", lib: "Syndic ou gestionnaire prévenu" } ] },
+  { id: "t5", lib: "Travaux", mode: "tout", resp: "Sous-traitant", attente: "Chantier en cours",
+    okStatut: "Travaux terminés", okDecision: "Prêt pour la recette", apres: "Faire la recette", kids: [
+    { id: "t5a", lib: "Câblage de la colonne montante" },
+    { id: "t5b", lib: "Pose des prises (PTO) dans les logements" },
+    { id: "t5c", lib: "Raccordement au point de branchement" },
+    { id: "t5d", lib: "Photos d'intervention reçues" } ] },
+  { id: "t6", lib: "Recette", mode: "un", apres: "Mettre en service", kids: [
+    { id: "t6a", lib: "6a  Recette conforme", court: "Recette conforme", mode: "tout", kids: [
+      { id: "t6a1", lib: "Mesures optiques dans les tolérances" },
+      { id: "t6a2", lib: "PV de recette signé" } ] },
+    { id: "t6b", lib: "6b  Recette avec réserves", court: "Réserves", mode: "tout", resp: "Sous-traitant", attente: "Faire lever les réserves", kids: [
+      { id: "t6b1", lib: "Réserves notifiées au sous-traitant" },
+      { id: "t6b2", lib: "Reprise planifiée" } ] } ] },
+  { id: "t7", lib: "Mise en service", mode: "tout", resp: "Moi", attente: "Clôture en cours",
+    okStatut: "Immeuble raccordé", okDecision: "Dossier clos", apres: "Archiver le dossier", kids: [
+    { id: "t7a", lib: "Dossier de récolement transmis" },
+    { id: "t7b", lib: "IMB passés actifs dans le SI" },
+    { id: "t7c", lib: "Dossier clôturé" } ] }
 ];
 
 const CLE = "racco-d2-v1";
@@ -333,6 +362,9 @@ const desc = n => (n.kids || []).flatMap(k => [k, ...desc(k)]);
 /* descendants à cocher en cascade : on ne descend pas dans les branches au choix */
 const cascade = n => n.mode === "un" ? [] : (n.kids || []).flatMap(k => [k, ...cascade(k)]);
 const anc = n => { const a = []; let p = PARENT[n.id]; while (p) { a.push(p); p = PARENT[p.id]; } return a; };
+
+/* état enregistré avant l'ajout des sous-tâches : une étape cochée coche ses sous-tâches */
+Object.keys(etat.coches).forEach(id => { const n = NOEUDS[id]; if (!n) delete etat.coches[id]; else cascade(n).forEach(d => etat.coches[d.id] = true); });
 
 function valide(n) {
   if (etat.coches[n.id]) return true;
@@ -367,27 +399,24 @@ function delaiDLPI() {
   return j > 0 ? `J-${j} avant la DLPI` : j === 0 ? "DLPI aujourd'hui" : `DLPI dépassée de ${-j} j`;
 }
 function resultat(t) {
-  const cab = fiche("cab") || "Cabinet conseil";
-  if (verrouillee(t)) { const p = TACHES.indexOf(t); return { tag: "none", txt: "Verrouillée", statut: "Pas encore accessible", decision: "—", action: `Valider d'abord l'étape ${p} · ${TACHES[p - 1].lib}`, resp: "—", delai: delaiDLPI() }; }
-  const ok = valide(t);
-  if (t.id === "t1") {
-    if (ok) return { tag: "ok", txt: "Validée", statut: "Dossier complet", decision: "Recevable", action: "Passer au contrôle de conformité", resp: "Moi", delai: delaiDLPI() };
-    const m = manquants(t);
-    return { tag: "run", txt: "Incomplète", statut: `Réception incomplète (${t.kids.length - m.length}/${t.kids.length})`, decision: "En attente des pièces", action: m, resp: cab, delai: delaiDLPI() };
-  }
-  if (t.id === "t2") {
+  const cab = fiche("cab") || "Cabinet conseil", D = delaiDLPI();
+  const qui = n => n.resp === "cab" ? cab : (n.resp || "Moi");
+  if (verrouillee(t)) { const p = TACHES.indexOf(t); return { tag: "none", txt: "Verrouillée", statut: "Pas encore accessible", decision: "—", action: `Valider d'abord l'étape ${p} · ${TACHES[p - 1].lib}`, resp: "—", delai: D }; }
+  if (t.mode === "un") {
+    // première branche = issue favorable, seconde = blocage
     const [a, b] = t.kids;
-    if (valide(a)) return { tag: "ok", txt: "Conforme", statut: "Conforme", decision: "Accepté", action: "Lancer l'étape suivante", resp: "Moi", delai: delaiDLPI() };
-    if (valide(b)) return { tag: "ko", txt: "Non conforme", statut: "Non conforme", decision: "Suspendu", action: "Attendre les compléments du cabinet", resp: cab, delai: delaiDLPI() };
+    if (valide(a)) return { tag: "ok", txt: a.court, statut: a.court, decision: "Accepté", action: t.apres, resp: "Moi", delai: D };
+    if (valide(b)) return { tag: "ko", txt: b.court, statut: b.court, decision: "Suspendu", action: b.attente, resp: qui(b), delai: D };
     const enA = a.kids.some(valide), enB = b.kids.some(valide);
-    if (etat.coches[t.id] && !enA && !enB) return { tag: "ok", txt: "Validée", statut: "Validée sans précision", decision: "À préciser", action: "Indiquer conforme ou non conforme", resp: "Moi", delai: delaiDLPI() };
-    if (enA) return { tag: "run", txt: "Contrôle en cours", statut: "Vers conforme", decision: "En cours", action: manquants(a), resp: "Moi", delai: delaiDLPI() };
-    if (enB) return { tag: "run", txt: "Non-conformité en cours", statut: "Vers non conforme", decision: "En cours", action: manquants(b), resp: "Moi", delai: delaiDLPI() };
-    return { tag: "none", txt: "À contrôler", statut: "Pas encore contrôlé", decision: "—", action: "Faire le contrôle de conformité", resp: "Moi", delai: delaiDLPI() };
+    if (etat.coches[t.id] && !enA && !enB) return { tag: "ok", txt: "Validée", statut: "Validée sans précision", decision: "À préciser", action: `Indiquer « ${a.court} » ou « ${b.court} »`, resp: "Moi", delai: D };
+    if (enA) return { tag: "run", txt: "En cours", statut: `Vers « ${a.court} »`, decision: "En cours", action: manquants(a), resp: "Moi", delai: D };
+    if (enB) return { tag: "run", txt: "En cours", statut: `Vers « ${b.court} »`, decision: "En cours", action: manquants(b), resp: "Moi", delai: D };
+    return { tag: "none", txt: "À contrôler", statut: "Pas encore contrôlé", decision: "—", action: `Choisir « ${a.court} » ou « ${b.court} »`, resp: "Moi", delai: D };
   }
-  return ok
-    ? { tag: "ok", txt: "Validée", statut: "Étape validée", decision: "—", action: "Passer à l'étape suivante", resp: "—", delai: delaiDLPI() }
-    : { tag: "none", txt: "À faire", statut: "Pas commencée", decision: "—", action: "Contenu de l'étape à définir", resp: "—", delai: delaiDLPI() };
+  if (valide(t)) return { tag: "ok", txt: "Validée", statut: t.okStatut || "Étape validée", decision: t.okDecision || "—", action: t.apres || "Passer à l'étape suivante", resp: "Moi", delai: D };
+  const m = manquants(t), total = desc(t).filter(d => !d.kids).length, fait = total - m.length;
+  if (fait > 0 || t.enCours) return { tag: "run", txt: t.enCours || "En cours", statut: `${t.lib} : ${fait}/${total}`, decision: t.attente || "En cours", action: m, resp: qui(t), delai: D };
+  return { tag: "none", txt: "À faire", statut: "Pas commencée", decision: "—", action: m, resp: qui(t), delai: D };
 }
 
 /* ═══ Rendu ═══ */
@@ -400,7 +429,7 @@ function ligneHTML(n, d, num) {
   if (d === 1) h += n.kids ? `<button class="chev" type="button" data-chev="${n.id}" aria-label="Réduire ou déplier" aria-expanded="${!etat.fermes[n.id]}">▼</button>` : `<span class="chev vide" aria-hidden="true"></span>`;
   h += `<input type="checkbox" class="cb${auto ? " auto" : ""}" id="cb_${n.id}" data-cb="${n.id}"${v ? " checked" : ""}${verrouillee(n) ? " disabled" : ""} aria-label="${esc(n.lib)}">`;
   h += `<label class="lib" for="cb_${n.id}" ${d === 1 ? `data-sel="${n.id}"` : ""}>${d === 1 ? `<span class="num">${num}</span>` : ""}${esc(n.lib)}</label>`;
-  if (d === 1) { const r = resultat(n); h += `<span class="tag ${r.tag}">${r.txt}</span>`; }
+  if (d === 1) { const r = resultat(n), ok = r.tag === "ok"; h += `<span class="led ${ok ? "on" : "off"}" role="img" aria-label="${esc(r.txt)}" title="${esc(r.txt)}"></span>`; }
   h += `</div>`;
   if (n.kids) {
     const inner = n.kids.map((k, i) => (n.mode === "un" && i > 0 ? `<div class="ou">ou</div>` : "") + ligneHTML(k, d + 1)).join("");
@@ -481,7 +510,7 @@ try { vue(["info", "aide"].includes(localStorage.getItem(VCLE))); } catch (e) { 
 
 /* ═══ Code Comlab (25 caractères) — MÉTHODE PROVISOIRE, à remplacer par la vraie règle ═══
    1 à 7   : une lettre par grande tâche (V validée, E en cours, N non conforme, A à faire)
-   8 à 21  : une case par sous-tâche finale, 1 cochée / 0 non (complété par des 0)
+   8 à 21  : les sous-tâches finales, 1 cochée / 0 non, regroupées par 5 en un caractère base 32 (70 cases max)
    22 à 25 : contrôle, empreinte FNV-1a des 21 premiers caractères en base 32 (sans I, L, O, U) */
 const B32 = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
 const feuilles = n => n.kids ? n.kids.flatMap(feuilles) : [n];
@@ -489,7 +518,8 @@ function codeComlab() {
   const cour = etapeCourante();
   const etats = TACHES.map(t => { const r = resultat(t); return r.tag === "ko" ? "N" : acquise(t) ? "V" : (t === cour && r.tag === "run") ? "E" : "A"; }).join("");
   const cases = TACHES.flatMap(t => t.kids ? feuilles(t).filter(f => f !== t) : [t]).map(f => valide(f) ? "1" : "0").join("");
-  const corps = (etats + cases + "0".repeat(21)).slice(0, 21);
+  const bits = (cases + "0".repeat(70)).slice(0, 70);
+  const corps = (etats + bits.match(/.{5}/g).map(b => B32[parseInt(b, 2)]).join("")).slice(0, 21);
   let h = 0x811c9dc5;
   for (const c of corps) { h ^= c.charCodeAt(0); h = Math.imul(h, 0x01000193) >>> 0; }
   let ctrl = ""; for (let i = 0; i < 4; i++) { ctrl += B32[h & 31]; h >>>= 5; }
