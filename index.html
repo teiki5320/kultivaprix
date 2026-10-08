@@ -57,6 +57,9 @@ header.top .sous { font-size: 13px; opacity: .85; }
 .gt { border-radius: var(--r-md); background: var(--carte-2); box-shadow: var(--inset); padding: 4px 8px 6px; }
 .gt + .gt { margin-top: 10px; }
 .gt.actif { box-shadow: var(--inset), 0 0 0 2px var(--accent); }
+.gt.verrou .ligne.d1 { opacity: .5; }
+.cb:disabled { cursor: not-allowed; }
+.cb:disabled + .lib { cursor: default; }
 .ligne { display: flex; align-items: center; gap: 10px; padding: 7px 4px; border-radius: 10px; min-height: 40px; }
 .ligne.d1 { font-weight: 800; font-size: 16px; }
 .ligne.d2 { padding-left: 38px; font-weight: 700; }
@@ -121,15 +124,14 @@ header.top .sous { font-size: 13px; opacity: .85; }
 .infos .v ul { margin: 0; padding-left: 18px; font-weight: 600; }
 .global { margin-top: 12px; font-size: 13px; color: var(--muted); }
 
-/* ── Aide ── */
+/* ── Info ── */
 .h2-droite { display: flex; align-items: center; gap: 8px; }
-.code-bloc { background: var(--carte-2); box-shadow: var(--inset); border-radius: var(--r-md); padding: 10px 14px; display: grid; gap: 6px; margin-bottom: 12px; }
+.info-dates { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-bottom: 12px; }
+.code-bloc { background: var(--carte-2); box-shadow: var(--inset); border-radius: var(--r-md); padding: 12px 14px; display: grid; justify-items: center; gap: 8px; margin-bottom: 12px; text-align: center; }
 .code-bloc label { font-size: 12px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; }
-.code-ligne { display: flex; gap: 8px; align-items: center; }
-.code-ligne output { flex: 1; min-width: 0; border-radius: var(--r-sm); background: var(--carte); box-shadow: var(--clay-sm); padding: 8px 12px; font-family: var(--mono); font-size: 18px; font-weight: 700; letter-spacing: .06em; white-space: nowrap; overflow-x: auto; user-select: all; font-variant-numeric: tabular-nums; }
+.code-bloc output { max-width: 100%; border-radius: var(--r-sm); background: var(--carte); box-shadow: var(--clay-sm); padding: 10px 16px; font-family: var(--mono); font-size: 20px; font-weight: 700; letter-spacing: .06em; white-space: nowrap; overflow-x: auto; user-select: all; font-variant-numeric: tabular-nums; }
 .code-note { font-size: 12px; color: var(--muted); }
-.aide-liste { margin: 0; padding-left: 18px; display: grid; gap: 6px; font-size: 14px; }
-.aide-liste b { font-weight: 800; }
+.code-note:empty { display: none; }
 
 /* ── Calculette ── */
 .calc { display: grid; gap: 10px; }
@@ -188,6 +190,10 @@ header.top .sous { font-size: 13px; opacity: .85; }
   .situ-tete .titre { font-size: 15px; }
   .ecran .res { font-size: 20px; }
   .sortie .date { font-size: 15px; }
+  .info-dates, .code-bloc { margin-bottom: 8px; }
+  .code-bloc { padding: 8px 12px; gap: 6px; }
+  .code-bloc output { padding: 6px 14px; font-size: 18px; }
+  .btn-accent { padding: 7px 14px; }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; } }
 </style>
@@ -244,7 +250,7 @@ header.top .sous { font-size: 13px; opacity: .85; }
 
       <div class="card">
         <h2><span id="vueTitre">Situation</span>
-          <span class="h2-droite"><span class="tag run" id="etatGlobal"></span><button class="btn btn-mini" id="btnVue" type="button" aria-pressed="false">Aide</button></span></h2>
+          <span class="h2-droite"><span class="tag run" id="etatGlobal"></span><button class="btn btn-mini" id="btnVue" type="button" aria-pressed="false">Info</button></span></h2>
         <div id="vueSituation">
           <div class="frise" id="frise"></div>
           <div class="situ-tete">
@@ -254,23 +260,18 @@ header.top .sous { font-size: 13px; opacity: .85; }
           <div class="infos" id="infos"></div>
           <div class="global" id="situNote">Touche une étape de la frise ou le nom d'une grande tâche pour voir sa situation.</div>
         </div>
-        <div id="vueAide" hidden>
+        <div id="vueInfo" hidden>
+          <div class="info-dates">
+            <div class="sortie"><div class="decal"><span class="lbl">+ 30 jours</span></div><div class="date" id="i0r">—</div></div>
+            <div class="sortie"><div class="decal"><span class="lbl">+ 65 jours</span></div><div class="date" id="i1r">—</div></div>
+          </div>
           <div class="code-bloc">
             <label for="comlab">Code Comlab</label>
-            <div class="code-ligne">
-              <output id="comlab" aria-live="polite"></output>
-              <button class="btn btn-accent" id="btnCopier" type="button">Copier</button>
-            </div>
-            <div class="code-note" id="codeNote">Calculé à partir des cases cochées. Méthode provisoire.</div>
+            <output id="comlab" aria-live="polite"></output>
+            <button class="btn btn-accent" id="btnCopier" type="button">Copier le code</button>
+            <div class="code-note" id="codeNote"></div>
           </div>
-          <ul class="aide-liste">
-            <li><b>Tâches</b> : coche les cases au fur et à mesure. Une grande tâche se valide quand toutes ses sous-tâches sont cochées.</li>
-            <li><b>Conformité</b> : coche soit « Conforme », soit « Non conforme ». Un dossier non conforme reste bloqué à l'étape 2.</li>
-            <li><b>Situation</b> : touche une étape de la frise ou le nom d'une grande tâche pour voir son statut et l'action suivante.</li>
-            <li><b>Dates</b> : choisis une date de départ, la page donne la date à +30 et à +65 jours.</li>
-            <li><b>Code Comlab</b> : 25 caractères calculés à partir des cases cochées, mis à jour à chaque case. Le bouton Copier le copie sans les espaces.</li>
-            <li><b>Nouveau dossier</b> : efface la fiche et toutes les cases.</li>
-          </ul>
+          <div class="infos" id="infosQ"></div>
         </div>
       </div>
 
@@ -334,6 +335,7 @@ function valide(n) {
 }
 
 function basculer(n, on) {
+  if (verrouillee(n)) { rendu(); return; }
   if (on) {
     etat.coches[n.id] = true;
     cascade(n).forEach(d => etat.coches[d.id] = true);
@@ -360,6 +362,7 @@ function delaiDLPI() {
 }
 function resultat(t) {
   const cab = fiche("cab") || "Cabinet conseil";
+  if (verrouillee(t)) { const p = TACHES.indexOf(t); return { tag: "none", txt: "Verrouillée", statut: "Pas encore accessible", decision: "—", action: `Valider d'abord l'étape ${p} · ${TACHES[p - 1].lib}`, resp: "—", delai: delaiDLPI() }; }
   const ok = valide(t);
   if (t.id === "t1") {
     if (ok) return { tag: "ok", txt: "Validée", statut: "Dossier complet", decision: "Recevable", action: "Passer au contrôle de conformité", resp: "Moi", delai: delaiDLPI() };
@@ -389,7 +392,7 @@ function ligneHTML(n, d, num) {
   const v = valide(n), auto = v && !etat.coches[n.id];
   let h = `<div class="ligne d${d}${v ? " valide" : ""}">`;
   if (d === 1) h += n.kids ? `<button class="chev" type="button" data-chev="${n.id}" aria-label="Réduire ou déplier" aria-expanded="${!etat.fermes[n.id]}">▼</button>` : `<span class="chev vide" aria-hidden="true"></span>`;
-  h += `<input type="checkbox" class="cb${auto ? " auto" : ""}" id="cb_${n.id}" data-cb="${n.id}"${v ? " checked" : ""} aria-label="${esc(n.lib)}">`;
+  h += `<input type="checkbox" class="cb${auto ? " auto" : ""}" id="cb_${n.id}" data-cb="${n.id}"${v ? " checked" : ""}${verrouillee(n) ? " disabled" : ""} aria-label="${esc(n.lib)}">`;
   h += `<label class="lib" for="cb_${n.id}" ${d === 1 ? `data-sel="${n.id}"` : ""}>${d === 1 ? `<span class="num">${num}</span>` : ""}${esc(n.lib)}</label>`;
   if (d === 1) { const r = resultat(n); h += `<span class="tag ${r.tag}">${r.txt}</span>`; }
   h += `</div>`;
@@ -401,7 +404,10 @@ function ligneHTML(n, d, num) {
 }
 
 /* une tâche est acquise quand elle est validée sans être bloquante (non conforme = suspendu) */
-const acquise = t => valide(t) && resultat(t).tag !== "ko";
+const acquise = t => !verrouillee(t) && valide(t) && resultat(t).tag !== "ko";
+/* une grande tâche n'est accessible que si la précédente est validée */
+const racine = n => { let r = n; while (PARENT[r.id]) r = PARENT[r.id]; return r; };
+function verrouillee(n) { const i = TACHES.indexOf(racine(n)); return i > 0 && !acquise(TACHES[i - 1]); }
 function etapeCourante() { return TACHES.find(t => !acquise(t)) || null; }
 
 function rendu() {
@@ -409,7 +415,7 @@ function rendu() {
   const cour = etapeCourante();
   const sel = TACHES.find(t => t.id === etat.sel) || cour || TACHES[TACHES.length - 1];
   $("arbre").innerHTML = TACHES.map((t, i) =>
-    `<div class="gt${etat.fermes[t.id] ? " ferme" : ""}${t === sel ? " actif" : ""}">${ligneHTML(t, 1, i + 1)}</div>`).join("");
+    `<div class="gt${etat.fermes[t.id] || verrouillee(t) ? " ferme" : ""}${verrouillee(t) ? " verrou" : ""}${t === sel ? " actif" : ""}">${ligneHTML(t, 1, i + 1)}</div>`).join("");
 
   const nbOk = TACHES.filter(acquise).length;
   $("compteur").textContent = `${nbOk} / ${TACHES.length}`;
@@ -435,7 +441,7 @@ function rendu() {
 
   const nom = fiche("racco") || fiche("ant");
   $("sousTitre").textContent = nom ? `POI ${nom}${fiche("adr") ? " · " + fiche("adr") : ""}` : "Nouveau dossier";
-  majCode(); $("codeNote").textContent = "Calculé à partir des cases cochées. Méthode provisoire.";
+  majCode(); majInfosQ(); $("codeNote").textContent = "";
   if (focus && $(focus) && document.activeElement !== $(focus)) $(focus).focus();
   $("btnTout").textContent = PLIABLES.every(t => etat.fermes[t.id]) ? "Tout déplier" : "Tout réduire";
 }
@@ -464,17 +470,31 @@ $("ouiVider").onclick = () => {
   $("nonVider").onclick(); rendu();
 };
 
-/* ═══ Bascule Situation / Aide ═══ */
+/* ═══ Bascule Situation / Info ═══ */
 const VCLE = "racco-d2-vue";
-function vue(aide) {
-  $("vueSituation").hidden = aide; $("vueAide").hidden = !aide; $("etatGlobal").hidden = aide;
-  $("vueTitre").textContent = aide ? "Aide" : "Situation";
-  $("btnVue").textContent = aide ? "Situation" : "Aide";
-  $("btnVue").setAttribute("aria-pressed", String(aide));
-  try { localStorage.setItem(VCLE, aide ? "aide" : "situation"); } catch (e) {}
+function vue(info) {
+  $("vueSituation").hidden = info; $("vueInfo").hidden = !info; $("etatGlobal").hidden = info;
+  $("vueTitre").textContent = info ? "Info" : "Situation";
+  $("btnVue").textContent = info ? "Situation" : "Info";
+  $("btnVue").setAttribute("aria-pressed", String(info));
+  try { localStorage.setItem(VCLE, info ? "info" : "situation"); } catch (e) {}
 }
-$("btnVue").onclick = () => vue($("vueAide").hidden);
-try { vue(localStorage.getItem(VCLE) === "aide"); } catch (e) { vue(false); }
+$("btnVue").onclick = () => vue($("vueInfo").hidden);
+try { vue(["info", "aide"].includes(localStorage.getItem(VCLE))); } catch (e) { vue(false); }
+
+/* infos selon le questionnaire (provisoire) */
+function majInfosQ() {
+  const cour = etapeCourante(), [t1, t2] = TACHES;
+  const r2 = resultat(t2), manque = manquants(t1);
+  const lignes = [
+    ["Étape en cours", cour ? `${TACHES.indexOf(cour) + 1} · ${cour.lib}` : "Dossier terminé"],
+    ["Pièces", manque.length ? `Manquantes : ${manque.join(", ")}` : "Dossier complet"],
+    ["Conformité", verrouillee(t2) ? "Pas encore accessible" : r2.txt],
+    ["Avancement", `${TACHES.filter(acquise).length} étape(s) validée(s) sur ${TACHES.length}`]
+  ];
+  $("infosQ").innerHTML = lignes.map(([k, v]) => `<div class="k">${k}</div><div class="v">${esc(v)}</div>`).join("");
+}
+
 /* ═══ Code Comlab (25 caractères) — MÉTHODE PROVISOIRE, à remplacer par la vraie règle ═══
    1 à 7   : une lettre par grande tâche (V validée, E en cours, N non conforme, A à faire)
    8 à 21  : une case par sous-tâche finale, 1 cochée / 0 non (complété par des 0)
@@ -528,10 +548,13 @@ function majCalc() {
   const d = dateChoisie();
   $("cExpr").textContent = d ? `Départ · ${d.toLocaleDateString("fr-FR", { weekday: "short", day: "numeric", month: "short", year: "numeric" })}` : "Date de départ";
   DELAIS.forEach((n, i) => {
-    if (!d) { $(`o${i}r`).textContent = "—"; return; }
-    const r = jour(d, n);
-    const note = ouvre(r) ? "" : `<span class="tag ko">${ferie(r) ? "Férié" : "Week-end"}</span>`;
-    $(`o${i}r`).innerHTML = `${note}<span>${esc(fmtD(r))}</span>`;
+    let h = "—";
+    if (d) {
+      const r = jour(d, n);
+      const note = ouvre(r) ? "" : `<span class="tag ko">${ferie(r) ? "Férié" : "Week-end"}</span>`;
+      h = `${note}<span>${esc(fmtD(r))}</span>`;
+    }
+    $(`o${i}r`).innerHTML = h; $(`i${i}r`).innerHTML = h;
   });
 }
 try { const v = localStorage.getItem(CCLE); if (v && /^\d{4}-\d{2}-\d{2}$/.test(v)) $("cDate").value = v; } catch (e) {}
