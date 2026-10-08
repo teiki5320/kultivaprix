@@ -121,6 +121,17 @@ header.top .sous { font-size: 13px; opacity: .85; }
 .infos .v ul { margin: 0; padding-left: 18px; font-weight: 600; }
 .global { margin-top: 12px; font-size: 13px; color: var(--muted); }
 
+/* ── Aide ── */
+.h2-droite { display: flex; align-items: center; gap: 8px; }
+.code-bloc { background: var(--carte-2); box-shadow: var(--inset); border-radius: var(--r-md); padding: 10px 14px; display: grid; gap: 6px; margin-bottom: 12px; }
+.code-bloc label { font-size: 12px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; }
+.code-ligne { display: flex; gap: 8px; align-items: center; }
+.code-ligne input { flex: 1; min-width: 0; border: 0; border-radius: var(--r-sm); background: var(--carte); box-shadow: var(--clay-sm); padding: 8px 12px; font-family: var(--mono); font-size: 20px; font-weight: 700; letter-spacing: .04em; outline: none; }
+.code-ligne input:focus { box-shadow: var(--clay-sm), 0 0 0 3px var(--accent-dim); }
+.code-note { font-size: 12px; color: var(--muted); }
+.aide-liste { margin: 0; padding-left: 18px; display: grid; gap: 6px; font-size: 14px; }
+.aide-liste b { font-weight: 800; }
+
 /* ── Calculette ── */
 .calc { display: grid; gap: 10px; }
 .ecran { background: var(--carte-2); box-shadow: var(--inset); border-radius: var(--r-md); padding: 10px 14px; text-align: right; font-family: var(--mono); min-width: 0; }
@@ -233,14 +244,34 @@ header.top .sous { font-size: 13px; opacity: .85; }
       </div>
 
       <div class="card">
-        <h2>Situation <span class="tag run" id="etatGlobal"></span></h2>
-        <div class="frise" id="frise"></div>
-        <div class="situ-tete">
-          <div class="titre" id="situTitre"></div>
-          <span class="tag run" id="situTag"></span>
+        <h2><span id="vueTitre">Situation</span>
+          <span class="h2-droite"><span class="tag run" id="etatGlobal"></span><button class="btn btn-mini" id="btnVue" type="button" aria-pressed="false">Aide</button></span></h2>
+        <div id="vueSituation">
+          <div class="frise" id="frise"></div>
+          <div class="situ-tete">
+            <div class="titre" id="situTitre"></div>
+            <span class="tag run" id="situTag"></span>
+          </div>
+          <div class="infos" id="infos"></div>
+          <div class="global" id="situNote">Touche une étape de la frise ou le nom d'une grande tâche pour voir sa situation.</div>
         </div>
-        <div class="infos" id="infos"></div>
-        <div class="global" id="situNote">Touche une étape de la frise ou le nom d'une grande tâche pour voir sa situation.</div>
+        <div id="vueAide" hidden>
+          <div class="code-bloc">
+            <label for="comlab">Code Comlab</label>
+            <div class="code-ligne">
+              <input id="comlab" autocomplete="off" spellcheck="false" placeholder="Colle le code ici">
+              <button class="btn btn-accent" id="btnCopier" type="button">Copier</button>
+            </div>
+            <div class="code-note" id="codeNote">Enregistré dans ce navigateur uniquement.</div>
+          </div>
+          <ul class="aide-liste">
+            <li><b>Tâches</b> : coche les cases au fur et à mesure. Une grande tâche se valide quand toutes ses sous-tâches sont cochées.</li>
+            <li><b>Conformité</b> : coche soit « Conforme », soit « Non conforme ». Un dossier non conforme reste bloqué à l'étape 2.</li>
+            <li><b>Situation</b> : touche une étape de la frise ou le nom d'une grande tâche pour voir son statut et l'action suivante.</li>
+            <li><b>Dates</b> : choisis une date de départ, la page donne la date à +30 et à +65 jours.</li>
+            <li><b>Nouveau dossier</b> : efface la fiche et toutes les cases. Le code Comlab est conservé.</li>
+          </ul>
+        </div>
       </div>
 
       <div class="card">
@@ -430,6 +461,27 @@ $("ouiVider").onclick = () => {
   etat = { coches: {}, fiche: {}, fermes: {}, sel: null }; sauver();
   document.querySelectorAll("[data-f]").forEach(i => i.value = "");
   $("nonVider").onclick(); rendu();
+};
+
+/* ═══ Bascule Situation / Aide ═══ */
+const VCLE = "racco-d2-vue", KCLE = "racco-d2-comlab";
+function vue(aide) {
+  $("vueSituation").hidden = aide; $("vueAide").hidden = !aide; $("etatGlobal").hidden = aide;
+  $("vueTitre").textContent = aide ? "Aide" : "Situation";
+  $("btnVue").textContent = aide ? "Situation" : "Aide";
+  $("btnVue").setAttribute("aria-pressed", String(aide));
+  try { localStorage.setItem(VCLE, aide ? "aide" : "situation"); } catch (e) {}
+}
+$("btnVue").onclick = () => vue($("vueAide").hidden);
+try { vue(localStorage.getItem(VCLE) === "aide"); } catch (e) { vue(false); }
+try { $("comlab").value = localStorage.getItem(KCLE) || ""; } catch (e) {}
+$("comlab").addEventListener("input", () => { try { localStorage.setItem(KCLE, $("comlab").value); } catch (e) {} $("codeNote").textContent = "Enregistré dans ce navigateur uniquement."; });
+$("btnCopier").onclick = () => {
+  const v = $("comlab").value.trim();
+  if (!v) { $("codeNote").textContent = "Aucun code à copier : colle-le d'abord dans la case."; return; }
+  const ok = () => { $("codeNote").textContent = "Code copié."; };
+  const repli = () => { $("comlab").focus(); $("comlab").select(); $("codeNote").textContent = "Code sélectionné : fais Ctrl+C (ou Cmd+C) pour le copier."; };
+  try { navigator.clipboard.writeText(v).then(ok, repli); } catch (e) { repli(); }
 };
 
 /* ═══ Dates : une date de départ donne la date à +30 et à +65 jours ═══ */
