@@ -98,6 +98,8 @@ header.top .sous { font-size: 13px; opacity: .85; }
 .champ label { font-size: 11.5px; font-weight: 800; color: var(--muted); }
 .champ input { width: 100%; border: 0; border-radius: 10px; background: var(--carte-2); box-shadow: var(--inset); padding: 6px 10px; font-size: 14px; outline: none; min-height: 32px; }
 .champ input:focus { box-shadow: var(--inset), 0 0 0 3px var(--accent-dim); }
+.champ input[type="date"] { -webkit-appearance: none; appearance: none; min-width: 0; display: block; text-align: left; }
+.champ input[type="date"]::-webkit-date-and-time-value { text-align: left; }
 .champ input::placeholder { color: var(--muted); opacity: .7; }
 .imb { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
 @media (max-width: 1250px) { .imb { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
@@ -211,19 +213,7 @@ header.top .sous { font-size: 13px; opacity: .85; }
 <body>
 <div class="page">
   <header class="top">
-    <div>
-      <h1>Racco D2</h1>
-      <div class="sous" id="sousTitre">Nouveau dossier</div>
-    </div>
-    <div class="actions">
-      <div class="confirm" id="confirmZone" hidden>
-        Effacer la fiche et toutes les cases ?
-        <button class="btn btn-accent" id="ouiVider" type="button">Oui, effacer</button>
-        <button class="btn" id="nonVider" type="button">Annuler</button>
-      </div>
-      <button class="btn" id="btnTout" type="button">Tout réduire</button>
-      <button class="btn" id="btnNouveau" type="button">Nouveau dossier</button>
-    </div>
+    <h1>Racco D2</h1>
   </header>
 
   <div class="split">
@@ -331,7 +321,6 @@ const TACHES = [
   { id: "t7", lib: "Étape 7 (à définir)" }
 ];
 
-const PLIABLES = TACHES.filter(t => t.kids);
 const CLE = "racco-d2-v1";
 let etat = { coches: {}, fiche: {}, fermes: {}, sel: null };
 try { const s = JSON.parse(localStorage.getItem(CLE) || "null"); if (s && typeof s === "object") ["coches", "fiche", "fermes"].forEach(k => { if (s[k] && typeof s[k] === "object") etat[k] = s[k]; }), etat.sel = typeof s.sel === "string" ? s.sel : null; } catch (e) {}
@@ -456,11 +445,8 @@ function rendu() {
   $("situNote").textContent = sel === cour || !cour ? "Touche une étape de la frise ou le nom d'une grande tâche pour voir sa situation."
     : `Étape en cours : ${TACHES.indexOf(cour) + 1} · ${cour.lib}`;
 
-  const nom = fiche("racco") || fiche("ant");
-  $("sousTitre").textContent = nom ? `POI ${nom}${fiche("adr") ? " · " + fiche("adr") : ""}` : "Nouveau dossier";
   majCode(); $("codeNote").textContent = "";
   if (focus && $(focus) && document.activeElement !== $(focus)) $(focus).focus();
-  $("btnTout").textContent = PLIABLES.every(t => etat.fermes[t.id]) ? "Tout déplier" : "Tout réduire";
 }
 
 document.addEventListener("change", e => {
@@ -472,20 +458,12 @@ document.addEventListener("click", e => {
   const s = e.target.closest("[data-sel]");
   if (s) { if (s.tagName === "LABEL") e.preventDefault(); etat.sel = s.dataset.sel; sauver(); rendu(); }
 });
-$("btnTout").onclick = () => { const tous = PLIABLES.every(t => etat.fermes[t.id]); PLIABLES.forEach(t => etat.fermes[t.id] = !tous); sauver(); rendu(); };
 
 /* fiche */
 document.querySelectorAll("[data-f]").forEach(inp => {
   inp.value = etat.fiche[inp.dataset.f] || "";
   inp.addEventListener("input", () => { etat.fiche[inp.dataset.f] = inp.value; sauver(); rendu(); });
 });
-$("btnNouveau").onclick = () => { $("confirmZone").hidden = false; $("btnNouveau").hidden = true; };
-$("nonVider").onclick = () => { $("confirmZone").hidden = true; $("btnNouveau").hidden = false; };
-$("ouiVider").onclick = () => {
-  etat = { coches: {}, fiche: {}, fermes: {}, sel: null }; sauver();
-  document.querySelectorAll("[data-f]").forEach(i => i.value = "");
-  $("nonVider").onclick(); rendu();
-};
 
 /* ═══ Bascule Situation / Info ═══ */
 const VCLE = "racco-d2-vue";
