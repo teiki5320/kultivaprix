@@ -81,9 +81,8 @@ header.top .sous { font-size: 13px; opacity: .85; }
 .modop-btn { width: 28px; height: 28px; border: 0; border-radius: 9px; padding: 0; cursor: pointer; display: grid; place-items: center;
   background: var(--carte); color: var(--muted); box-shadow: var(--clay-sm); }
 .modop-btn svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-.modop-btn.vide { box-shadow: none; outline: 1.5px dashed var(--muted); outline-offset: -2px; background: none; opacity: .7; }
-.modop-btn.plein { background: var(--accent); color: var(--accent-ink); }
-.modop-btn:hover { opacity: 1; }
+.modop-btn, .modop-btn.vide, .modop-btn.plein { background: #f5a04b; color: #4a2508; border: 1.5px solid #c46a1c; box-shadow: var(--clay-sm); }
+.modop-btn:hover { background: #f7ae63; }
 .lien-edit { position: absolute; top: -8px; right: -8px; width: 18px; height: 18px; border: 0; border-radius: 50%; padding: 0; cursor: pointer; font-size: 10px; line-height: 18px;
   background: var(--carte); color: var(--texte); box-shadow: var(--clay-sm); display: none; }
 .modop:hover .lien-edit { display: block; }
