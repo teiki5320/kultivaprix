@@ -66,11 +66,13 @@ header.top .sous { font-size: 13px; opacity: .85; }
 .ligne.d3 { padding-left: 70px; }
 .ligne.d4 { padding-left: 102px; }
 .ligne.d5 { padding-left: 134px; }
-.ligne .lib { flex: 1; min-width: 0; cursor: pointer; }
+.ligne .lib { flex: 0 1 auto; min-width: 0; cursor: default; }
+.ligne.d1 .lib { cursor: pointer; }
+.ligne .led { margin-left: auto; }
 /* outils d'une tâche : date (calendrier) et lien vers le Modop OneDrive */
-.outils { display: flex; align-items: center; gap: 6px; flex: none; }
+.outils { display: flex; align-items: center; gap: 6px; flex: none; margin-right: auto; }   /* juste après le texte de la tâche */
 .date-mini { position: relative; }
-.date-mini input:not(.date-cachee) { width: 118px; border: 0; border-radius: 9px; background: var(--carte); box-shadow: var(--inset); padding: 4px 30px 4px 8px;
+.date-mini input:not(.date-cachee) { width: 128px; border: 0; border-radius: 9px; background: var(--carte); box-shadow: var(--inset); padding: 4px 30px 4px 8px;
   font: inherit; font-size: 12.5px; font-weight: 600; font-variant-numeric: tabular-nums; outline: none; min-height: 28px; }
 .date-mini input:focus { box-shadow: var(--inset), 0 0 0 3px var(--accent-dim); }
 .date-mini input.invalide { box-shadow: var(--inset), 0 0 0 2px var(--ko); }
@@ -637,7 +639,8 @@ function ligneHTML(n, d, num) {
   let h = `<div class="ligne d${d}${v ? " valide" : ""}${estBarre(n) ? " barre" : ""}">`;
   if (d === 1) h += n.kids ? `<button class="chev" type="button" data-chev="${n.id}" aria-label="Réduire ou déplier" aria-expanded="${!etat.fermes[n.id]}">▼</button>` : `<span class="chev vide" aria-hidden="true"></span>`;
   h += `<input type="checkbox" class="cb${auto ? " auto" : ""}" id="cb_${n.id}" data-cb="${n.id}"${v ? " checked" : ""}${verrouillee(n) ? " disabled" : ""} aria-label="${esc(n.lib)}">`;
-  h += `<label class="lib" for="cb_${n.id}" ${d === 1 ? `data-sel="${n.id}"` : ""}>${d === 1 ? `<span class="num">${num}</span>` : ""}${esc(n.lib)}</label>`;
+  // le texte ne coche pas : seule la case coche (le titre d'une étape sert à l'afficher dans la Situation)
+  h += d === 1 ? `<span class="lib" data-sel="${n.id}"><span class="num">${num}</span>${esc(n.lib)}</span>` : `<span class="lib">${esc(n.lib)}</span>`;
   h += outilsHTML(n);
   if (d === 1) { const r = resultat(n), ok = r.tag === "ok"; h += `<span class="led ${ok ? "on" : "off"}" role="img" aria-label="${esc(r.txt)}" title="${esc(r.txt)}"></span>`; }
   h += `</div>`;
