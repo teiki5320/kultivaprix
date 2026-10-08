@@ -67,6 +67,29 @@ header.top .sous { font-size: 13px; opacity: .85; }
 .ligne.d4 { padding-left: 102px; }
 .ligne.d5 { padding-left: 134px; }
 .ligne .lib { flex: 1; min-width: 0; cursor: pointer; }
+/* outils d'une tâche : date (calendrier) et lien vers le Modop OneDrive */
+.outils { display: flex; align-items: center; gap: 6px; flex: none; }
+.date-mini { position: relative; }
+.date-mini input:not(.date-cachee) { width: 118px; border: 0; border-radius: 9px; background: var(--carte); box-shadow: var(--inset); padding: 4px 30px 4px 8px;
+  font: inherit; font-size: 12.5px; font-weight: 600; font-variant-numeric: tabular-nums; outline: none; min-height: 28px; }
+.date-mini input:focus { box-shadow: var(--inset), 0 0 0 3px var(--accent-dim); }
+.date-mini input.invalide { box-shadow: var(--inset), 0 0 0 2px var(--ko); }
+.date-mini .cal { width: 22px; height: 22px; right: 3px; }
+.modop { position: relative; display: flex; align-items: center; }
+.modop-btn { width: 28px; height: 28px; border: 0; border-radius: 9px; padding: 0; cursor: pointer; display: grid; place-items: center;
+  background: var(--carte); color: var(--muted); box-shadow: var(--clay-sm); }
+.modop-btn svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.modop-btn.vide { box-shadow: none; outline: 1.5px dashed var(--muted); outline-offset: -2px; background: none; opacity: .7; }
+.modop-btn.plein { background: var(--accent); color: var(--accent-ink); }
+.modop-btn:hover { opacity: 1; }
+.lien-edit { position: absolute; top: -8px; right: -8px; width: 18px; height: 18px; border: 0; border-radius: 50%; padding: 0; cursor: pointer; font-size: 10px; line-height: 18px;
+  background: var(--carte); color: var(--texte); box-shadow: var(--clay-sm); display: none; }
+.modop:hover .lien-edit { display: block; }
+.lien-pop { position: fixed; z-index: 60; width: min(360px, 90vw); background: var(--carte); border-radius: var(--r-md); box-shadow: var(--clay), 0 0 0 1px var(--ligne); padding: 10px 12px; display: grid; gap: 8px; }
+.lien-pop input { width: 100%; border: 0; border-radius: 10px; background: var(--carte-2); box-shadow: var(--inset); padding: 7px 10px; font: inherit; font-size: 13px; outline: none; }
+.lien-pop input:focus { box-shadow: var(--inset), 0 0 0 3px var(--accent-dim); }
+.lien-pop .actions { display: flex; gap: 6px; justify-content: flex-end; flex-wrap: wrap; }
+.lien-pop .ko { color: var(--ko); font-size: 12px; font-weight: 700; }
 .ligne.valide .lib { color: var(--ok); }
 .ligne.barre .lib { text-decoration: line-through; text-decoration-thickness: 2px; color: var(--muted); opacity: .75; }
 .ligne .lib { -webkit-user-select: none; user-select: none; }
@@ -509,8 +532,8 @@ const TACHES = [
 ];
 
 const CLE = "racco-d2-v1";
-let etat = { coches: {}, barres: {}, fiche: {}, fermes: {}, sel: null };
-try { const s = JSON.parse(localStorage.getItem(CLE) || "null"); if (s && typeof s === "object") ["coches", "barres", "fiche", "fermes"].forEach(k => { if (s[k] && typeof s[k] === "object") etat[k] = s[k]; }), etat.sel = typeof s.sel === "string" ? s.sel : null; } catch (e) {}
+let etat = { coches: {}, barres: {}, dates: {}, liens: {}, fiche: {}, fermes: {}, sel: null };
+try { const s = JSON.parse(localStorage.getItem(CLE) || "null"); if (s && typeof s === "object") ["coches", "barres", "dates", "liens", "fiche", "fermes"].forEach(k => { if (s[k] && typeof s[k] === "object") etat[k] = s[k]; }), etat.sel = typeof s.sel === "string" ? s.sel : null; } catch (e) {}
 const sauver = () => { try { localStorage.setItem(CLE, JSON.stringify(etat)); } catch (e) {} };
 
 /* index parent / nœuds */
@@ -585,6 +608,26 @@ function resultat(t) {
   return { tag: "none", txt: "À faire", statut: "Pas commencée", decision: "—", action: m, resp: qui(t), delai: D };
 }
 
+/* ═══ Outils des tâches : date (comme la DLPI) et lien vers le Modop sur OneDrive ═══ */
+const AVEC_DATE = new Set(["t1", "t2_1_1", "t2_1_2", "t5_1_1", "t5_1_2", "t6_7", "t6_9", "t7", "t7_5", "t7_6"]);
+const AVEC_MODOP = new Set(["t1_5", "t2_1_1_1", "t2_1_2_1", "t3_2", "t3_3", "t3_3_1", "t3_4", "t3_4_1", "t4_1_1", "t4_2_2", "t4_2_4_1",
+  "t4_2_5", "t4_2_7", "t4_2_8", "t4_2_9", "t5_1_1_1", "t5_1_2_1", "t6_1", "t6_2", "t6_2_1", "t6_3", "t6_4", "t6_5", "t6_6", "t6_7_1", "t6_8",
+  "t6_9", "t7_1", "t7_2", "t7_3", "t7_4_1_2", "t7_4_2_1", "t7_4_3_1", "t7_4_3_2", "t7_4_5_1", "t7_5"]);
+const ICO_CAL = '<svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>';
+const ICO_DOC = '<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M7 3h7l5 5v11a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg>';
+function outilsHTML(n) {
+  let h = "";
+  if (AVEC_DATE.has(n.id)) h += `<span class="date-mini date-champ"><input data-date="${n.id}" id="dt_${n.id}" value="${isoVersFr(etat.dates[n.id])}" placeholder="JJ/MM/AAAA" inputmode="numeric" maxlength="10" autocomplete="off" aria-label="Date · ${esc(n.lib)}">` +
+    `<button class="cal" type="button" data-calbtn="${n.id}" aria-label="Choisir la date dans le calendrier" title="Calendrier">${ICO_CAL}</button>` +
+    `<input type="date" class="date-cachee" data-calpick="${n.id}" tabindex="-1" aria-hidden="true"></span>`;
+  if (AVEC_MODOP.has(n.id)) {
+    const l = etat.liens[n.id];
+    h += `<span class="modop"><button class="modop-btn ${l ? "plein" : "vide"}" type="button" data-lien="${n.id}" aria-label="${l ? "Ouvrir le Modop" : "Ajouter le lien du Modop"}" title="${l ? "Ouvrir le Modop" : "Ajouter le lien OneDrive du Modop"}">${ICO_DOC}</button>` +
+      (l ? `<button class="lien-edit" type="button" data-lienedit="${n.id}" aria-label="Changer ou retirer le lien" title="Changer ou retirer le lien">✎</button>` : "") + `</span>`;
+  }
+  return h ? `<span class="outils">${h}</span>` : "";
+}
+
 /* ═══ Rendu ═══ */
 const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
@@ -595,6 +638,7 @@ function ligneHTML(n, d, num) {
   if (d === 1) h += n.kids ? `<button class="chev" type="button" data-chev="${n.id}" aria-label="Réduire ou déplier" aria-expanded="${!etat.fermes[n.id]}">▼</button>` : `<span class="chev vide" aria-hidden="true"></span>`;
   h += `<input type="checkbox" class="cb${auto ? " auto" : ""}" id="cb_${n.id}" data-cb="${n.id}"${v ? " checked" : ""}${verrouillee(n) ? " disabled" : ""} aria-label="${esc(n.lib)}">`;
   h += `<label class="lib" for="cb_${n.id}" ${d === 1 ? `data-sel="${n.id}"` : ""}>${d === 1 ? `<span class="num">${num}</span>` : ""}${esc(n.lib)}</label>`;
+  h += outilsHTML(n);
   if (d === 1) { const r = resultat(n), ok = r.tag === "ok"; h += `<span class="led ${ok ? "on" : "off"}" role="img" aria-label="${esc(r.txt)}" title="${esc(r.txt)}"></span>`; }
   h += `</div>`;
   if (n.kids) {
@@ -673,6 +717,75 @@ document.querySelectorAll("[data-f]").forEach(inp => {
     etat.fiche[inp.dataset.f] = inp.value; sauver(); rendu();
   });
 });
+
+/* ═══ Dates des tâches : même saisie que la DLPI ═══ */
+const formaterDate = v => { const ch = v.replace(/\D/g, "").slice(0, 8); return ch.length > 4 ? `${ch.slice(0, 2)}/${ch.slice(2, 4)}/${ch.slice(4)}` : ch.length > 2 ? `${ch.slice(0, 2)}/${ch.slice(2)}` : ch; };
+$("arbre").addEventListener("input", e => {
+  const id = e.target.dataset.date; if (!id) return;
+  e.target.value = formaterDate(e.target.value);
+  const iso = frVersIso(e.target.value), vide = !e.target.value;
+  e.target.classList.toggle("invalide", e.target.value.length === 10 && !iso);
+  if (iso) etat.dates[id] = iso; else if (vide) delete etat.dates[id];
+  if (iso || vide) sauver();
+});
+$("arbre").addEventListener("focusout", e => {
+  const id = e.target.dataset.date; if (!id) return;
+  if (!frVersIso(e.target.value)) { e.target.value = isoVersFr(etat.dates[id]); e.target.classList.remove("invalide"); }
+});
+$("arbre").addEventListener("click", e => {
+  const b = e.target.closest("[data-calbtn]"); if (!b) return;
+  const pick = b.parentElement.querySelector("[data-calpick]");
+  pick.value = etat.dates[b.dataset.calbtn] || versIso(new Date());
+  try { pick.showPicker(); } catch (err) { pick.focus(); pick.click(); }
+});
+$("arbre").addEventListener("change", e => {
+  const id = e.target.dataset.calpick; if (!id || !e.target.value) return;
+  etat.dates[id] = e.target.value; sauver();
+  const champ = $("dt_" + id); if (champ) { champ.value = isoVersFr(e.target.value); champ.classList.remove("invalide"); }
+});
+
+/* ═══ Liens Modop (OneDrive), un par tâche : clic = ouvrir ; sans lien = coller le lien ; ✎ = changer ou retirer ═══ */
+let lienPop = null;
+function fermerLienPop() { if (lienPop) { lienPop.remove(); lienPop = null; } }
+function ouvrirLienPop(id, ancre) {
+  fermerLienPop();
+  const actuel = etat.liens[id] || "";
+  lienPop = document.createElement("div");
+  lienPop.className = "lien-pop";
+  lienPop.innerHTML = `<div class="bulle-titre">Lien du Modop · ${esc(NOEUDS[id].lib)}</div>
+    <input type="url" id="lienSaisie" placeholder="Colle le lien OneDrive (clic droit › Copier le lien)" value="${esc(actuel)}">
+    <div class="ko" id="lienErreur" hidden>Le lien doit commencer par https://</div>
+    <div class="actions">${actuel ? '<button class="btn btn-mini" type="button" data-pop="retirer">Retirer le lien</button>' : ""}
+      <button class="btn btn-mini" type="button" data-pop="annuler">Annuler</button>
+      <button class="btn btn-mini btn-accent" type="button" data-pop="ok">Enregistrer</button></div>`;
+  document.body.appendChild(lienPop);
+  const r = ancre.getBoundingClientRect(), w = lienPop.offsetWidth, hh = lienPop.offsetHeight;
+  lienPop.style.left = Math.max(8, Math.min(r.right - w, innerWidth - w - 8)) + "px";
+  lienPop.style.top = (r.bottom + 6 + hh > innerHeight ? Math.max(8, r.top - hh - 6) : r.bottom + 6) + "px";
+  const saisie = lienPop.querySelector("#lienSaisie");
+  saisie.focus(); saisie.select();
+  const enregistrer = () => {
+    const v = saisie.value.trim();
+    if (!/^https?:\/\//i.test(v)) { lienPop.querySelector("#lienErreur").hidden = false; return; }
+    etat.liens[id] = v; sauver(); fermerLienPop(); rendu();
+  };
+  saisie.addEventListener("keydown", e => { if (e.key === "Enter") enregistrer(); });
+  lienPop.addEventListener("click", e => {
+    const a = e.target.closest("[data-pop]")?.dataset.pop;
+    if (a === "ok") enregistrer();
+    else if (a === "annuler") fermerLienPop();
+    else if (a === "retirer") { delete etat.liens[id]; sauver(); fermerLienPop(); rendu(); }
+  });
+}
+$("arbre").addEventListener("click", e => {
+  const ed = e.target.closest("[data-lienedit]");
+  if (ed) { ouvrirLienPop(ed.dataset.lienedit, ed); return; }
+  const b = e.target.closest("[data-lien]"); if (!b) return;
+  const l = etat.liens[b.dataset.lien];
+  if (l) window.open(l, "_blank", "noopener"); else ouvrirLienPop(b.dataset.lien, b);
+});
+document.addEventListener("pointerdown", e => { if (lienPop && !lienPop.contains(e.target) && !e.target.closest("[data-lien],[data-lienedit]")) fermerLienPop(); });
+document.addEventListener("keydown", e => { if (e.key === "Escape" && lienPop) fermerLienPop(); });
 
 /* ═══ DLPI : JJ/MM/AAAA au clavier, ou calendrier ; enregistrée en AAAA-MM-JJ ═══ */
 const dlpi = $("f_dlpi"), dlpiCal = $("f_dlpi_cal");
