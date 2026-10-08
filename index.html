@@ -126,8 +126,7 @@ header.top .sous { font-size: 13px; opacity: .85; }
 .code-bloc { background: var(--carte-2); box-shadow: var(--inset); border-radius: var(--r-md); padding: 10px 14px; display: grid; gap: 6px; margin-bottom: 12px; }
 .code-bloc label { font-size: 12px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; }
 .code-ligne { display: flex; gap: 8px; align-items: center; }
-.code-ligne input { flex: 1; min-width: 0; border: 0; border-radius: var(--r-sm); background: var(--carte); box-shadow: var(--clay-sm); padding: 8px 12px; font-family: var(--mono); font-size: 20px; font-weight: 700; letter-spacing: .04em; outline: none; }
-.code-ligne input:focus { box-shadow: var(--clay-sm), 0 0 0 3px var(--accent-dim); }
+.code-ligne output { flex: 1; min-width: 0; border-radius: var(--r-sm); background: var(--carte); box-shadow: var(--clay-sm); padding: 8px 12px; font-family: var(--mono); font-size: 18px; font-weight: 700; letter-spacing: .06em; white-space: nowrap; overflow-x: auto; user-select: all; font-variant-numeric: tabular-nums; }
 .code-note { font-size: 12px; color: var(--muted); }
 .aide-liste { margin: 0; padding-left: 18px; display: grid; gap: 6px; font-size: 14px; }
 .aide-liste b { font-weight: 800; }
@@ -259,17 +258,18 @@ header.top .sous { font-size: 13px; opacity: .85; }
           <div class="code-bloc">
             <label for="comlab">Code Comlab</label>
             <div class="code-ligne">
-              <input id="comlab" autocomplete="off" spellcheck="false" placeholder="Colle le code ici">
+              <output id="comlab" aria-live="polite"></output>
               <button class="btn btn-accent" id="btnCopier" type="button">Copier</button>
             </div>
-            <div class="code-note" id="codeNote">Enregistré dans ce navigateur uniquement.</div>
+            <div class="code-note" id="codeNote">Calculé à partir des cases cochées. Méthode provisoire.</div>
           </div>
           <ul class="aide-liste">
             <li><b>Tâches</b> : coche les cases au fur et à mesure. Une grande tâche se valide quand toutes ses sous-tâches sont cochées.</li>
             <li><b>Conformité</b> : coche soit « Conforme », soit « Non conforme ». Un dossier non conforme reste bloqué à l'étape 2.</li>
             <li><b>Situation</b> : touche une étape de la frise ou le nom d'une grande tâche pour voir son statut et l'action suivante.</li>
             <li><b>Dates</b> : choisis une date de départ, la page donne la date à +30 et à +65 jours.</li>
-            <li><b>Nouveau dossier</b> : efface la fiche et toutes les cases. Le code Comlab est conservé.</li>
+            <li><b>Code Comlab</b> : 25 caractères calculés à partir des cases cochées, mis à jour à chaque case. Le bouton Copier le copie sans les espaces.</li>
+            <li><b>Nouveau dossier</b> : efface la fiche et toutes les cases.</li>
           </ul>
         </div>
       </div>
@@ -435,6 +435,7 @@ function rendu() {
 
   const nom = fiche("racco") || fiche("ant");
   $("sousTitre").textContent = nom ? `POI ${nom}${fiche("adr") ? " · " + fiche("adr") : ""}` : "Nouveau dossier";
+  majCode(); $("codeNote").textContent = "Calculé à partir des cases cochées. Méthode provisoire.";
   if (focus && $(focus) && document.activeElement !== $(focus)) $(focus).focus();
   $("btnTout").textContent = PLIABLES.every(t => etat.fermes[t.id]) ? "Tout déplier" : "Tout réduire";
 }
@@ -464,7 +465,7 @@ $("ouiVider").onclick = () => {
 };
 
 /* ═══ Bascule Situation / Aide ═══ */
-const VCLE = "racco-d2-vue", KCLE = "racco-d2-comlab";
+const VCLE = "racco-d2-vue";
 function vue(aide) {
   $("vueSituation").hidden = aide; $("vueAide").hidden = !aide; $("etatGlobal").hidden = aide;
   $("vueTitre").textContent = aide ? "Aide" : "Situation";
@@ -474,13 +475,27 @@ function vue(aide) {
 }
 $("btnVue").onclick = () => vue($("vueAide").hidden);
 try { vue(localStorage.getItem(VCLE) === "aide"); } catch (e) { vue(false); }
-try { $("comlab").value = localStorage.getItem(KCLE) || ""; } catch (e) {}
-$("comlab").addEventListener("input", () => { try { localStorage.setItem(KCLE, $("comlab").value); } catch (e) {} $("codeNote").textContent = "Enregistré dans ce navigateur uniquement."; });
+/* ═══ Code Comlab (25 caractères) — MÉTHODE PROVISOIRE, à remplacer par la vraie règle ═══
+   1 à 7   : une lettre par grande tâche (V validée, E en cours, N non conforme, A à faire)
+   8 à 21  : une case par sous-tâche finale, 1 cochée / 0 non (complété par des 0)
+   22 à 25 : contrôle, empreinte FNV-1a des 21 premiers caractères en base 32 (sans I, L, O, U) */
+const B32 = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
+const feuilles = n => n.kids ? n.kids.flatMap(feuilles) : [n];
+function codeComlab() {
+  const cour = etapeCourante();
+  const etats = TACHES.map(t => { const r = resultat(t); return r.tag === "ko" ? "N" : acquise(t) ? "V" : (t === cour && r.tag === "run") ? "E" : "A"; }).join("");
+  const cases = TACHES.flatMap(t => t.kids ? feuilles(t).filter(f => f !== t) : [t]).map(f => valide(f) ? "1" : "0").join("");
+  const corps = (etats + cases + "0".repeat(21)).slice(0, 21);
+  let h = 0x811c9dc5;
+  for (const c of corps) { h ^= c.charCodeAt(0); h = Math.imul(h, 0x01000193) >>> 0; }
+  let ctrl = ""; for (let i = 0; i < 4; i++) { ctrl += B32[h & 31]; h >>>= 5; }
+  return corps + ctrl;
+}
+function majCode() { $("comlab").textContent = codeComlab().replace(/(.{5})(?=.)/g, "$1 "); }
 $("btnCopier").onclick = () => {
-  const v = $("comlab").value.trim();
-  if (!v) { $("codeNote").textContent = "Aucun code à copier : colle-le d'abord dans la case."; return; }
+  const v = codeComlab();
   const ok = () => { $("codeNote").textContent = "Code copié."; };
-  const repli = () => { $("comlab").focus(); $("comlab").select(); $("codeNote").textContent = "Code sélectionné : fais Ctrl+C (ou Cmd+C) pour le copier."; };
+  const repli = () => { const r = document.createRange(); r.selectNodeContents($("comlab")); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); $("codeNote").textContent = "Code sélectionné : fais Ctrl+C (ou Cmd+C) pour le copier."; };
   try { navigator.clipboard.writeText(v).then(ok, repli); } catch (e) { repli(); }
 };
 
