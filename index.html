@@ -138,6 +138,18 @@ header.top .sous { font-size: 13px; opacity: .85; }
 .regroup-tete { display: flex; align-items: center; gap: 10px; margin-bottom: 2px; }
 .regroup-tete label { flex: none; }
 .regroup-tete input { width: min(220px, 55%); }
+.regroup-tete .import { margin-left: auto; flex: none; }
+.regroup { position: relative; }
+.import-msg { font-size: 12px; font-weight: 700; color: var(--ok); margin: 2px 0 4px; }
+.import-msg.ko { color: var(--ko); }
+.imb-item.info input { box-shadow: var(--inset), inset 0 -2px 0 var(--accent-dim); }
+.imb-item.actif input { box-shadow: var(--inset), 0 0 0 2px var(--accent-dim); }
+.imb-bulle { right: auto; width: min(320px, 86vw); }
+.mini-lab { font-size: 11px; font-weight: 800; color: var(--muted); margin-bottom: -4px; }
+.el-trois { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.el-trois > div { display: grid; gap: 6px; }
+.bulle input { width: 100%; border: 0; border-radius: 10px; background: var(--carte-2); box-shadow: var(--inset); padding: 6px 9px; font: inherit; font-size: 13.5px; outline: none; min-height: 30px; }
+.bulle input:focus { box-shadow: var(--inset), 0 0 0 3px var(--accent-dim); }
 .imb-liste { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; scroll-snap-type: x proximity; }
 .imb-item { position: relative; flex: 0 0 calc((100% - 24px - 32px) / 4); min-width: 118px; scroll-snap-align: start; }
 .imb-liste::-webkit-scrollbar { height: 6px; }
@@ -319,9 +331,24 @@ header.top .sous { font-size: 13px; opacity: .85; }
               </div>
             </div>
           </div>
-          <div class="champ large regroup">
-            <div class="regroup-tete"><label for="imb0">Regroupement syndic</label><input id="f_ref" data-f="ref" placeholder="Regroupement syndic" aria-label="Référence du regroupement syndic"></div>
+          <div class="champ large regroup" id="regroupZone">
+            <div class="regroup-tete"><label for="imb0">Regroupement syndic</label><input id="f_ref" data-f="ref" placeholder="Regroupement syndic" aria-label="Référence du regroupement syndic">
+              <label class="btn btn-mini import" for="imbFichier" title="Importer l'export Excel des IMB (.xls, .xlsx ou .csv)">Importer Excel</label>
+              <input type="file" id="imbFichier" accept=".xls,.xlsx,.csv" hidden></div>
+            <div class="import-msg" id="importMsg" hidden></div>
             <div class="imb-liste" id="imbListe"></div>
+            <div class="bulle imb-bulle" id="imbBulle" hidden>
+              <div class="bulle-titre" id="imbBulleTitre">IMB</div>
+              <label class="mini-lab" for="imbAdr">Adresse</label>
+              <textarea id="imbAdr" data-info="adr" rows="2" placeholder="Adresse de l'IMB"></textarea>
+              <div class="el-trois">
+                <div><label class="mini-lab" for="imbEl">EL total</label><input id="imbEl" data-info="el" inputmode="numeric" placeholder="0"></div>
+                <div><label class="mini-lab" for="imbElR">EL particuliers</label><input id="imbElR" data-info="elR" inputmode="numeric" placeholder="0"></div>
+                <div><label class="mini-lab" for="imbElP">EL pro</label><input id="imbElP" data-info="elP" inputmode="numeric" placeholder="0"></div>
+              </div>
+              <label class="mini-lab" for="imbNote">Commentaire</label>
+              <textarea id="imbNote" data-info="note" rows="2" placeholder="Écris un commentaire…"></textarea>
+            </div>
           </div>
         </div>
       </div>
@@ -596,33 +623,126 @@ $("calDlpi").onclick = () => {
 };
 dlpiCal.addEventListener("change", () => { if (dlpiCal.value) poserDlpi(dlpiCal.value); });
 
-/* ═══ Regroupement syndic : autant d'IMB que voulu, défilement horizontal ═══ */
+/* ═══ Regroupement syndic : autant d'IMB que voulu, défilement horizontal ═══
+   chaque IMB : { imb, adr, el, elR, elP, note } ; adresse, EL et commentaire dans une bulle au survol */
+const imbVide = (imb = "") => ({ imb, adr: "", el: "", elR: "", elP: "", note: "" });
 if (!Array.isArray(etat.fiche.imbs)) {
   // anciens dossiers : les 4 cases IMB fixes deviennent la liste
   etat.fiche.imbs = [1, 2, 3, 4].map(i => etat.fiche["imb" + i] || "");
   [1, 2, 3, 4].forEach(i => delete etat.fiche["imb" + i]);
 }
-while (etat.fiche.imbs.length < 4) etat.fiche.imbs.push("");
+etat.fiche.imbs = etat.fiche.imbs.map(x => typeof x === "string" ? imbVide(x) : Object.assign(imbVide(), x));
+while (etat.fiche.imbs.length < 4) etat.fiche.imbs.push(imbVide());
+const aInfo = o => !!(o.adr || o.el || o.elR || o.elP || o.note);
 function rendreImbs(focusIndex) {
   const L = etat.fiche.imbs, liste = $("imbListe");
-  liste.innerHTML = L.map((v, i) =>
-    `<div class="imb-item"><input id="imb${i}" data-imb="${i}" value="${esc(v)}" placeholder="IMB/…" aria-label="IMB ${i + 1}" autocomplete="off">` +
-    (L.length > 4 && !v.trim() ? `<button class="suppr" type="button" data-suppr="${i}" aria-label="Supprimer la case IMB ${i + 1}" title="Supprimer">×</button>` : "") +
+  liste.innerHTML = L.map((o, i) =>
+    `<div class="imb-item${aInfo(o) ? " info" : ""}${i === imbOuvert ? " actif" : ""}" data-item="${i}"><input id="imb${i}" data-imb="${i}" value="${esc(o.imb)}" placeholder="IMB/…" aria-label="IMB ${i + 1}" autocomplete="off">` +
+    (L.length > 4 && !o.imb.trim() && !aInfo(o) ? `<button class="suppr" type="button" data-suppr="${i}" aria-label="Supprimer la case IMB ${i + 1}" title="Supprimer">×</button>` : "") +
     `</div>`).join("") + `<button class="imb-plus" type="button" id="imbPlus" aria-label="Ajouter un IMB" title="Ajouter un IMB">+</button>`;
   if (focusIndex != null) { const f = $("imb" + focusIndex); f.focus(); f.scrollIntoView({ block: "nearest", inline: "nearest" }); }
 }
 $("imbListe").addEventListener("input", e => {
   const i = e.target.dataset.imb; if (i == null) return;
-  const avant = etat.fiche.imbs[i].trim();
-  etat.fiche.imbs[i] = e.target.value; sauver();
-  if (etat.fiche.imbs.length > 4 && !avant !== !e.target.value.trim()) rendreImbs(+i);   // affiche ou retire la croix
+  const o = etat.fiche.imbs[i], avant = o.imb.trim();
+  o.imb = e.target.value; sauver();
+  if (+i === imbOuvert) $("imbBulleTitre").textContent = o.imb.trim() || `IMB ${+i + 1}`;
+  if (etat.fiche.imbs.length > 4 && !avant !== !o.imb.trim()) rendreImbs(+i);   // affiche ou retire la croix
 });
 $("imbListe").addEventListener("click", e => {
-  if (e.target.closest("#imbPlus")) { etat.fiche.imbs.push(""); sauver(); rendreImbs(etat.fiche.imbs.length - 1); return; }
+  if (e.target.closest("#imbPlus")) { fermerImb(); etat.fiche.imbs.push(imbVide()); sauver(); rendreImbs(etat.fiche.imbs.length - 1); return; }
   const s = e.target.closest("[data-suppr]");
-  if (s) { etat.fiche.imbs.splice(+s.dataset.suppr, 1); sauver(); rendreImbs(); }
+  if (s) { fermerImb(); etat.fiche.imbs.splice(+s.dataset.suppr, 1); sauver(); rendreImbs(); }
 });
+
+/* bulle d'un IMB : s'ouvre au survol, se ferme au clic ailleurs ou avec Échap (comme celle du Nombre d'EL) */
+let imbOuvert = null;
+const imbBulle = $("imbBulle");
+function ouvrirImb(i) {
+  const item = document.querySelector(`[data-item="${i}"]`); if (!item) return;
+  imbOuvert = i;
+  const o = etat.fiche.imbs[i];
+  $("imbBulleTitre").textContent = o.imb.trim() || `IMB ${i + 1}`;
+  imbBulle.querySelectorAll("[data-info]").forEach(c => c.value = o[c.dataset.info] || "");
+  imbBulle.hidden = false;
+  // sous la case survolée, sans sortir de la carte
+  const zone = $("regroupZone").getBoundingClientRect(), r = item.getBoundingClientRect();
+  const larg = imbBulle.offsetWidth;
+  imbBulle.style.left = Math.max(0, Math.min(r.left - zone.left, zone.width - larg)) + "px";
+  imbBulle.style.top = (r.bottom - zone.top) + "px";
+  document.querySelectorAll(".imb-item.actif").forEach(x => x.classList.remove("actif"));
+  item.classList.add("actif");
+}
+function fermerImb() {
+  if (imbOuvert == null) return;
+  imbOuvert = null; imbBulle.hidden = true;
+  if (imbBulle.contains(document.activeElement)) document.activeElement.blur();
+  rendreImbs();
+}
+$("imbListe").addEventListener("mouseover", e => {
+  const item = e.target.closest("[data-item]"); if (!item) return;
+  const i = +item.dataset.item;
+  // on ne change pas d'IMB pendant qu'on écrit dans la bulle
+  if (i !== imbOuvert && !imbBulle.contains(document.activeElement)) ouvrirImb(i);
+});
+imbBulle.addEventListener("input", e => {
+  const c = e.target.dataset.info; if (!c || imbOuvert == null) return;
+  if (c !== "adr" && c !== "note") e.target.value = e.target.value.replace(/\D/g, "");
+  etat.fiche.imbs[imbOuvert][c] = e.target.value; sauver();
+  document.querySelector(`[data-item="${imbOuvert}"]`)?.classList.toggle("info", aInfo(etat.fiche.imbs[imbOuvert]));
+});
+document.addEventListener("pointerdown", e => { if (imbOuvert != null && !imbBulle.contains(e.target) && !e.target.closest(".imb-item")) fermerImb(); });
+document.addEventListener("keydown", e => { if (e.key === "Escape" && imbOuvert != null) fermerImb(); });
+$("imbListe").addEventListener("scroll", () => { if (imbOuvert != null && !imbBulle.contains(document.activeElement)) fermerImb(); });
 rendreImbs();
+
+/* ═══ Import de l'export Excel des IMB (une ligne par IMB, un seul regroupement par fichier) ═══
+   colonnes : A Dossier (IMB), D Code Regroupement Syndic, W..AD adresse, AU / AV / AW logements (total, R = particuliers, P = pro) */
+const SHEETJS = "https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js";
+function chargerSheetJS() {
+  if (window.XLSX) return Promise.resolve();
+  return new Promise((ok, ko) => { const sc = document.createElement("script"); sc.src = SHEETJS; sc.onload = ok; sc.onerror = () => ko(new Error("lecteur Excel introuvable (connexion internet ?)")); document.head.appendChild(sc); });
+}
+const COL = { imb: 0, regroup: 3, num: 22, cplt: 23, voie: 24, adresse: 25, bat: 26, esc: 27, cp: 28, loc: 29, el: 46, elR: 47, elP: 48 };
+const txt = v => (v == null ? "" : String(v)).trim();
+const nombre = v => { const t = txt(v).replace(",", "."); return t === "" || isNaN(+t) ? t.replace(/\D/g, "") : String(Math.round(+t)); };
+function adresseLigne(r) {
+  const rue = [txt(r[COL.num]), txt(r[COL.cplt]), txt(r[COL.voie])].filter(Boolean).join(" ");
+  const ad = txt(r[COL.adresse]);
+  const parts = [];
+  if (rue) parts.push(rue);
+  if (ad && (!rue || !ad.toLowerCase().includes(rue.toLowerCase()))) parts.push(ad);
+  if (txt(r[COL.bat])) parts.push("Bât. " + txt(r[COL.bat]));
+  if (txt(r[COL.esc])) parts.push("Esc. " + txt(r[COL.esc]));
+  const ville = [txt(r[COL.cp]), txt(r[COL.loc])].filter(Boolean).join(" ");
+  if (ville) parts.push(ville);
+  return parts.join(", ");
+}
+function messageImport(t, ko) { const m = $("importMsg"); m.textContent = t; m.classList.toggle("ko", !!ko); m.hidden = false; clearTimeout(m._t); m._t = setTimeout(() => m.hidden = true, 6000); }
+$("imbFichier").addEventListener("change", async e => {
+  const f = e.target.files[0]; e.target.value = ""; if (!f) return;
+  try {
+    await chargerSheetJS();
+    const wb = XLSX.read(await f.arrayBuffer(), { type: "array" });
+    const lignes = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, defval: "", raw: true });
+    // la ligne d'en-tête est celle dont la colonne A vaut « Dossier »
+    const h = lignes.findIndex(r => txt(r[0]).toLowerCase() === "dossier");
+    if (h < 0) throw new Error("colonne « Dossier » introuvable");
+    const data = lignes.slice(h + 1).filter(r => txt(r[COL.imb]));
+    if (!data.length) throw new Error("aucun IMB dans le fichier");
+    const actuels = etat.fiche.imbs.filter(o => o.imb.trim());
+    if (actuels.length && !confirm(`Remplacer les ${actuels.length} IMB actuels par les ${data.length} du fichier ?`)) return;
+    const notes = Object.fromEntries(etat.fiche.imbs.filter(o => o.imb.trim() && o.note).map(o => [o.imb.trim(), o.note]));
+    fermerImb();
+    etat.fiche.imbs = data.map(r => ({ imb: txt(r[COL.imb]), adr: adresseLigne(r), el: nombre(r[COL.el]), elR: nombre(r[COL.elR]), elP: nombre(r[COL.elP]),
+      note: notes[txt(r[COL.imb])] || "" }));   // un commentaire déjà écrit sur le même IMB est gardé
+    while (etat.fiche.imbs.length < 4) etat.fiche.imbs.push(imbVide());
+    const code = data.map(r => txt(r[COL.regroup])).find(Boolean);
+    if (code) { etat.fiche.ref = code; $("f_ref").value = code; }
+    sauver(); rendreImbs(); rendu();
+    messageImport(`${data.length} IMB importés${code ? " · regroupement " + code : ""}`);
+  } catch (err) { messageImport("Import impossible : " + err.message, true); }
+});
 
 /* ═══ Nombre d'EL : bulle de commentaires et de captures, ouverte au survol ═══ */
 const CAPCLE = "racco-d2-captures";          // captures à part : l'état principal reste léger
