@@ -135,7 +135,8 @@ header.top .sous { font-size: 13px; opacity: .85; }
 .visionneuse { position: fixed; inset: 0; z-index: 100; background: rgba(40, 30, 20, .75); display: grid; place-items: center; padding: 24px; cursor: zoom-out; }
 .visionneuse img { max-width: 100%; max-height: 100%; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,.4); }
 /* Regroupement syndic : référence + IMB en nombre libre, défilement horizontal */
-.regroup-tete { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 2px; }
+.regroup-tete { display: flex; align-items: center; gap: 10px; margin-bottom: 2px; }
+.regroup-tete label { flex: none; }
 .regroup-tete input { width: min(220px, 55%); }
 .imb-liste { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; scroll-snap-type: x proximity; }
 .imb-item { position: relative; flex: 0 0 calc((100% - 24px - 32px) / 4); min-width: 118px; scroll-snap-align: start; }
@@ -319,7 +320,7 @@ header.top .sous { font-size: 13px; opacity: .85; }
             </div>
           </div>
           <div class="champ large regroup">
-            <div class="regroup-tete"><label for="imb0">Regroupement syndic</label><input id="f_ref" data-f="ref" placeholder="Référence" aria-label="Référence du regroupement syndic"></div>
+            <div class="regroup-tete"><label for="imb0">Regroupement syndic</label><input id="f_ref" data-f="ref" placeholder="Regroupement syndic" aria-label="Référence du regroupement syndic"></div>
             <div class="imb-liste" id="imbListe"></div>
           </div>
         </div>
@@ -629,16 +630,15 @@ let captures = [];
 try { const c = JSON.parse(localStorage.getItem(CAPCLE) || "[]"); if (Array.isArray(c)) captures = c.filter(x => typeof x === "string"); } catch (e) {}
 const bulle = $("bulle"), elZone = $("elZone"), noteBtn = $("noteBtn"), noteTexte = $("noteTexte");
 noteTexte.value = etat.fiche.elNote || "";
-let fermeture = null, epinglee = false;
+// la bulle s'ouvre au survol et ne se ferme qu'au clic ailleurs (ou Échap) :
+// on peut aller chercher une capture dans une autre fenêtre et la glisser dedans
 function majNoteBtn() { noteBtn.classList.toggle("plein", !!(noteTexte.value.trim() || captures.length)); }
-function ouvrir() { clearTimeout(fermeture); bulle.hidden = false; noteBtn.setAttribute("aria-expanded", "true"); }
-function fermer() { if (epinglee || bulle.contains(document.activeElement)) return; bulle.hidden = true; noteBtn.setAttribute("aria-expanded", "false"); }
+function ouvrir() { bulle.hidden = false; noteBtn.setAttribute("aria-expanded", "true"); }
+function fermer() { noteTexte.blur(); bulle.hidden = true; noteBtn.setAttribute("aria-expanded", "false"); }
 elZone.addEventListener("mouseenter", ouvrir);
-elZone.addEventListener("mouseleave", () => { clearTimeout(fermeture); fermeture = setTimeout(fermer, 350); });
-bulle.addEventListener("focusout", () => setTimeout(() => { if (!elZone.matches(":hover")) fermer(); }, 0));
-noteBtn.onclick = () => { epinglee = bulle.hidden ? true : !epinglee; if (epinglee) ouvrir(); else { bulle.hidden = true; noteBtn.setAttribute("aria-expanded", "false"); } };
-document.addEventListener("click", e => { if (epinglee && !elZone.contains(e.target) && !e.target.closest(".visionneuse")) { epinglee = false; fermer(); } });
-document.addEventListener("keydown", e => { if (e.key === "Escape" && !bulle.hidden) { epinglee = false; noteTexte.blur(); bulle.hidden = true; } });
+noteBtn.onclick = () => { if (bulle.hidden) ouvrir(); else fermer(); };
+document.addEventListener("pointerdown", e => { if (!bulle.hidden && !elZone.contains(e.target) && !e.target.closest(".visionneuse")) fermer(); });
+document.addEventListener("keydown", e => { if (e.key === "Escape" && !bulle.hidden && !document.querySelector(".visionneuse")) fermer(); });
 noteTexte.addEventListener("input", () => { etat.fiche.elNote = noteTexte.value; sauver(); majNoteBtn(); });
 
 function rendreCaptures() {
