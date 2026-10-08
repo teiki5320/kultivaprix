@@ -601,7 +601,11 @@ class Construction:
                                                border=1, border_color=C["ligne"]))
 
     def icone(self, ws, r, k0, k1=None):
+        """Icône « copier » : un bouton pour les macros ; sans macro (iPad) la case reste vide."""
         k1 = k0 + 1 if k1 is None else k1
+        if not self.macro:
+            self.zone(ws, r, k0, k1, "", self.F(bg_color=C["carte2"]))
+            return
         self.zone(ws, r, k0, k1, ICONE, self.F(bold=True, font_size=11, align="center", bg_color=C["accent"],
                                                font_color=C["accent_ink"]))
 
