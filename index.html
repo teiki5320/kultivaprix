@@ -160,6 +160,9 @@ header.top .sous { font-size: 13px; opacity: .85; }
 .copie.fait { background: var(--ok); color: var(--carte); }
 .code-bloc .copie { top: 8px; right: 10px; }
 .pastille .copie { position: static; flex: none; }
+.sortie .decal { justify-content: space-between; }
+.sortie .copie { position: static; flex: none; width: 20px; height: 20px; }
+.copie:disabled { opacity: .35; cursor: default; transform: none; }
 .code-bloc label { font-size: 12px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; }
 .code-bloc output { max-width: calc(100% - 40px); min-width: 0; border-radius: var(--r-sm); background: none; color: var(--texte); padding: 5px 12px; font-family: var(--mono); font-size: 17px; font-weight: 700; letter-spacing: .06em; white-space: nowrap; overflow-x: auto; user-select: all; font-variant-numeric: tabular-nums; }
 @media (max-width: 560px) { .code-bloc output { font-size: 15px; padding: 5px 4px; max-width: 100%; white-space: normal; text-align: center; } .code-bloc label { margin-right: 28px; } }
@@ -282,8 +285,8 @@ header.top .sous { font-size: 13px; opacity: .85; }
         </div>
         <div class="vue cachee" id="vueInfo">
           <div class="info-dates">
-            <div class="sortie"><div class="decal"><span class="lbl">+ 30 jours</span></div><div class="date" id="i0r">—</div></div>
-            <div class="sortie"><div class="decal"><span class="lbl">+ 65 jours</span></div><div class="date" id="i1r">—</div></div>
+            <div class="sortie"><div class="decal"><span class="lbl">+ 30 jours</span><button class="copie" data-copie="date" data-cible="i0r" type="button" aria-label="Copier la date + 30 jours" title="Copier" disabled><svg class="ic-copie" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg><svg class="ic-ok" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></button></div><div class="date" id="i0r">—</div></div>
+            <div class="sortie"><div class="decal"><span class="lbl">+ 65 jours</span><button class="copie" data-copie="date" data-cible="i1r" type="button" aria-label="Copier la date + 65 jours" title="Copier" disabled><svg class="ic-copie" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg><svg class="ic-ok" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></button></div><div class="date" id="i1r">—</div></div>
           </div>
           <div class="code-bloc">
             <label for="comlab">Code Comlab</label>
@@ -305,8 +308,8 @@ header.top .sous { font-size: 13px; opacity: .85; }
         <div class="calc">
           <div class="ecran"><label class="expr" for="cDate" id="cExpr">Date de départ</label><input type="date" id="cDate" class="res"></div>
           <div class="sorties">
-            <div class="sortie"><div class="decal"><span class="lbl">+ 30 jours</span></div><div class="date" id="o0r">—</div></div>
-            <div class="sortie"><div class="decal"><span class="lbl">+ 65 jours</span></div><div class="date" id="o1r">—</div></div>
+            <div class="sortie"><div class="decal"><span class="lbl">+ 30 jours</span><button class="copie" data-copie="date" data-cible="o0r" type="button" aria-label="Copier la date + 30 jours" title="Copier" disabled><svg class="ic-copie" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg><svg class="ic-ok" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></button></div><div class="date" id="o0r">—</div></div>
+            <div class="sortie"><div class="decal"><span class="lbl">+ 65 jours</span><button class="copie" data-copie="date" data-cible="o1r" type="button" aria-label="Copier la date + 65 jours" title="Copier" disabled><svg class="ic-copie" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg><svg class="ic-ok" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></button></div><div class="date" id="o1r">—</div></div>
           </div>
         </div>
       </div>
@@ -557,7 +560,10 @@ const groupes = c => c.replace(/(.{5})(?=.)/g, "$1 ");
 function majAutre() { Object.keys(AUTRES).forEach(n => { $("code_" + n).textContent = groupes(codeAutre(n)); }); }
 /* icône de copie : passe en coche verte un instant ; sinon sélectionne le code pour Ctrl+C */
 document.querySelectorAll("[data-copie]").forEach(b => b.onclick = () => {
-  const n = b.dataset.copie, zone = n === "comlab" ? $("comlab") : $("code_" + n), v = n === "comlab" ? codeComlab() : codeAutre(n);
+  const n = b.dataset.copie;
+  const zone = n === "date" ? $(b.dataset.cible) : n === "comlab" ? $("comlab") : $("code_" + n);
+  const v = n === "date" ? zone.dataset.val : n === "comlab" ? codeComlab() : codeAutre(n);
+  if (!v) return;
   const ok = () => { b.classList.add("fait"); b.title = "Copié"; clearTimeout(b._t); b._t = setTimeout(() => { b.classList.remove("fait"); b.title = "Copier"; }, 1500); };
   const repli = () => { const r = document.createRange(); r.selectNodeContents(zone); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); b.title = "Code sélectionné : Ctrl+C (ou Cmd+C)"; };
   try { navigator.clipboard.writeText(v).then(ok, repli); } catch (e) { repli(); }
@@ -592,13 +598,15 @@ function majCalc() {
   const d = dateChoisie();
   $("cExpr").textContent = d ? `Départ · ${d.toLocaleDateString("fr-FR", { weekday: "short", day: "numeric", month: "short", year: "numeric" })}` : "Date de départ";
   DELAIS.forEach((n, i) => {
-    let h = "—";
+    let h = "—", val = "";
     if (d) {
       const r = jour(d, n);
+      val = `${pad(r.getDate())}/${pad(r.getMonth() + 1)}/${r.getFullYear()}`;
       const note = ouvre(r) ? "" : `<span class="tag ko">${ferie(r) ? "Férié" : "Week-end"}</span>`;
       h = `${note}<span>${esc(fmtD(r))}</span>`;
     }
-    [`o${i}r`, `i${i}r`].forEach(id => { if ($(id)) $(id).innerHTML = h; });
+    [`o${i}r`, `i${i}r`].forEach(id => { if ($(id)) { $(id).innerHTML = h; $(id).dataset.val = val; } });
+    document.querySelectorAll(`[data-cible="o${i}r"], [data-cible="i${i}r"]`).forEach(b => { b.disabled = !val; });
   });
 }
 try { const v = localStorage.getItem(CCLE); if (v && /^\d{4}-\d{2}-\d{2}$/.test(v)) $("cDate").value = v; } catch (e) {}
