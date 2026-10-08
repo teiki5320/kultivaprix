@@ -62,9 +62,11 @@ header.top .sous { font-size: 13px; opacity: .85; }
 .cb:disabled + .lib { cursor: default; }
 .ligne { display: flex; align-items: center; gap: 10px; padding: 7px 4px; border-radius: 10px; min-height: 40px; }
 .ligne.d1 { font-weight: 800; font-size: 16px; }
-.ligne.d2 { padding-left: 38px; font-weight: 700; }
-.ligne.d3 { padding-left: 70px; }
-.ligne.d4 { padding-left: 102px; }
+/* une graisse et une taille par niveau : très grande, grande, moyenne, sous-tâche */
+.ligne.d2 { padding-left: 38px; font-weight: 700; font-size: 15px; }
+.ligne.d3 { padding-left: 70px; font-weight: 600; font-size: 14px; }
+.ligne.d4 { padding-left: 102px; font-weight: 400; font-size: 13px; min-height: 34px; }
+.ligne.d4 .lib { color: var(--muted); }
 .ligne.d5 { padding-left: 134px; }
 .ligne .lib { flex: 0 1 auto; min-width: 0; cursor: default; }
 .ligne.d1 .lib { cursor: pointer; }
