@@ -148,6 +148,9 @@ header.top .sous { font-size: 13px; opacity: .85; }
 .code-bloc label { font-size: 12px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; }
 .code-bloc output { min-width: 0; border-radius: var(--r-sm); background: none; color: var(--texte); padding: 5px 12px; font-family: var(--mono); font-size: 17px; font-weight: 700; letter-spacing: .06em; white-space: nowrap; overflow-x: auto; user-select: all; font-variant-numeric: tabular-nums; }
 .code-note { font-size: 12px; color: var(--muted); }
+.petit-code .decal { justify-content: space-between; }
+.petit-code .btn-mini { color: var(--accent-ink); padding: 3px 10px; }
+.petit-code output { white-space: nowrap; overflow-x: auto; user-select: all; letter-spacing: .06em; }
 .onglets-bloc { background: var(--carte-2); box-shadow: var(--inset); border-radius: var(--r-md); padding: 6px 12px 8px; display: grid; justify-items: center; gap: 6px; }
 .onglets { display: flex; gap: 6px; }
 .onglet { border: 0; border-radius: 99px; padding: 4px 14px; font-weight: 800; font-size: 12px; letter-spacing: .08em; cursor: pointer; background: transparent; color: var(--muted); }
@@ -295,8 +298,8 @@ header.top .sous { font-size: 13px; opacity: .85; }
             <div class="code-note" id="noteAutre"></div>
           </div>
           <div class="info-dates">
-            <div class="sortie"><div class="decal"><span class="lbl">+ 90 jours</span></div><div class="date" id="i2r">—</div></div>
-            <div class="sortie"><div class="decal"><span class="lbl">+ 120 jours</span></div><div class="date" id="i3r">—</div></div>
+            <div class="sortie petit-code"><div class="decal"><span class="lbl">RTY</span><button class="btn btn-accent btn-mini" data-copie="rty" type="button">Copier</button></div><output class="date" id="code_rty"></output></div>
+            <div class="sortie petit-code"><div class="decal"><span class="lbl">LVE</span><button class="btn btn-accent btn-mini" data-copie="lve" type="button">Copier</button></div><output class="date" id="code_lve"></output></div>
           </div>
         </div>
         </div>
@@ -550,9 +553,10 @@ function copier(v, zone, note) {
 }
 $("btnCopier").onclick = () => copier(codeComlab(), $("comlab"), $("codeNote"));
 
-/* ═══ Codes APE et DZI — MÉTHODE PROVISOIRE : dérivés des mêmes réponses que le code Comlab ═══
-   APE : 15 caractères, DZI : 20 caractères, en base 32 */
-const AUTRES = { ape: 15, dzi: 20 };
+/* ═══ Codes APE, DZI, RTY et LVE — MÉTHODE PROVISOIRE : dérivés des mêmes réponses que le code Comlab ═══
+   APE : 15 caractères, DZI : 20, RTY : 10, LVE : 10, en base 32 */
+const AUTRES = { ape: 15, dzi: 20, rty: 10, lve: 10 };
+const ONGLETS = ["ape", "dzi"];
 function codeAutre(nom) {
   let h = 0x811c9dc5, r = "";
   const graine = nom + codeComlab();
@@ -563,21 +567,29 @@ function codeAutre(nom) {
   return r.slice(0, AUTRES[nom]);
 }
 let onglet = "ape";
-try { const o = localStorage.getItem("racco-d2-onglet"); if (AUTRES[o]) onglet = o; } catch (e) {}
+try { const o = localStorage.getItem("racco-d2-onglet"); if (ONGLETS.includes(o)) onglet = o; } catch (e) {}
 function majAutre() {
   document.querySelectorAll(".onglet").forEach(b => { const on = b.dataset.code === onglet; b.setAttribute("aria-selected", String(on)); b.tabIndex = on ? 0 : -1; });
   $("panneauCode").setAttribute("aria-labelledby", "tab_" + onglet);
   $("codeAutre").textContent = codeAutre(onglet).replace(/(.{5})(?=.)/g, "$1 ");
+  ["rty", "lve"].forEach(n => { $("code_" + n).textContent = codeAutre(n).replace(/(.{5})(?=.)/g, "$1 "); });
 }
 document.querySelectorAll(".onglet").forEach(b => {
   b.onclick = () => { onglet = b.dataset.code; $("noteAutre").textContent = ""; try { localStorage.setItem("racco-d2-onglet", onglet); } catch (e) {} majAutre(); };
   b.onkeydown = e => { if (e.key === "ArrowRight" || e.key === "ArrowLeft") { const autre = document.querySelector(`.onglet:not([data-code="${b.dataset.code}"])`); autre.click(); autre.focus(); } };
 });
 $("btnCopierAutre").onclick = () => copier(codeAutre(onglet), $("codeAutre"), $("noteAutre"));
+/* RTY et LVE : le bouton affiche « Copié » un instant */
+document.querySelectorAll("[data-copie]").forEach(b => b.onclick = () => {
+  const n = b.dataset.copie, zone = $("code_" + n);
+  const fini = t => { b.textContent = t; clearTimeout(b._t); b._t = setTimeout(() => { b.textContent = "Copier"; }, 1500); };
+  const repli = () => { const r = document.createRange(); r.selectNodeContents(zone); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); fini("Ctrl+C"); };
+  try { navigator.clipboard.writeText(codeAutre(n)).then(() => fini("Copié"), repli); } catch (e) { repli(); }
+});
 
 /* ═══ Dates : une date de départ donne la date à +30 et à +65 jours ═══ */
 const CCLE = "racco-d2-date";
-const DELAIS = [30, 65, 90, 120]; // jours calendaires ; 90 et 120 provisoires (carte Info)
+const DELAIS = [30, 65]; // jours calendaires
 const pad = n => String(n).padStart(2, "0");
 const versIso = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 const jour = (d, n) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
