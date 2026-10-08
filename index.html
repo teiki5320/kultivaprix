@@ -104,9 +104,48 @@ header.top .sous { font-size: 13px; opacity: .85; }
 .champ input[type="date"] { -webkit-appearance: none; appearance: none; min-width: 0; display: block; text-align: left; }
 .champ input[type="date"]::-webkit-date-and-time-value { text-align: left; }
 .champ input::placeholder { color: var(--muted); opacity: .7; }
-.imb { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
-@media (max-width: 1250px) { .imb { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-.imb input { font-family: var(--mono); font-size: 13px; }
+/* DLPI : saisie JJ/MM/AAAA + calendrier natif caché derrière l'icône */
+.date-champ, .el-champ { position: relative; }
+.date-champ input:not(.date-cachee) { padding-right: 34px; font-variant-numeric: tabular-nums; }
+.date-champ input.invalide { box-shadow: var(--inset), 0 0 0 2px var(--ko); }
+.cal, .note-btn { position: absolute; top: 50%; right: 5px; transform: translateY(-50%); width: 24px; height: 24px; border: 0; border-radius: 8px; padding: 0; cursor: pointer;
+  display: grid; place-items: center; background: var(--carte); color: var(--muted); box-shadow: var(--clay-sm); }
+.cal svg, .note-btn svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.cal:hover, .note-btn:hover { color: var(--texte); }
+.date-cachee { position: absolute; right: 0; bottom: 0; width: 1px; height: 1px; opacity: 0; pointer-events: none; border: 0; padding: 0; }
+/* Nombre d'EL : bulle de commentaires et de captures */
+.el-champ input { padding-right: 34px; }
+.note-btn.plein { background: var(--accent); color: var(--accent-ink); }
+.el-zone { position: relative; }
+.bulle { position: absolute; z-index: 30; top: 100%; right: 0; margin-top: 6px; width: min(340px, 86vw); background: var(--carte); border-radius: var(--r-md);
+  box-shadow: var(--clay), 0 0 0 1px var(--ligne); padding: 10px 12px; display: grid; gap: 8px; }
+.bulle.survol { box-shadow: var(--clay), 0 0 0 2px var(--accent-dim); }
+.bulle-titre { font-size: 11.5px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+.bulle textarea { width: 100%; resize: vertical; border: 0; border-radius: 10px; background: var(--carte-2); box-shadow: var(--inset); padding: 7px 10px; font: inherit; font-size: 13.5px; outline: none; min-height: 64px; }
+.bulle textarea:focus { box-shadow: var(--inset), 0 0 0 3px var(--accent-dim); }
+.captures { display: flex; flex-wrap: wrap; gap: 6px; }
+.captures:empty { display: none; }
+.capture { position: relative; width: 72px; height: 54px; border-radius: 8px; overflow: hidden; box-shadow: var(--clay-sm); cursor: zoom-in; background: var(--carte-2); }
+.capture img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.capture button { position: absolute; top: 2px; right: 2px; width: 18px; height: 18px; border: 0; border-radius: 50%; padding: 0; cursor: pointer; font-size: 12px; line-height: 18px;
+  background: rgba(51, 25, 15, .7); color: #fff; }
+.bulle-bas { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.bulle-aide { font-size: 11.5px; color: var(--muted); }
+.bulle.depot { box-shadow: var(--clay), 0 0 0 3px var(--accent); }
+.visionneuse { position: fixed; inset: 0; z-index: 100; background: rgba(40, 30, 20, .75); display: grid; place-items: center; padding: 24px; cursor: zoom-out; }
+.visionneuse img { max-width: 100%; max-height: 100%; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,.4); }
+/* Regroupement syndic : référence + IMB en nombre libre, défilement horizontal */
+.regroup-tete { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 2px; }
+.regroup-tete input { width: min(220px, 55%); }
+.imb-liste { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; scroll-snap-type: x proximity; }
+.imb-item { position: relative; flex: 0 0 calc((100% - 24px - 32px) / 4); min-width: 118px; scroll-snap-align: start; }
+.imb-liste::-webkit-scrollbar { height: 6px; }
+.imb-liste::-webkit-scrollbar-thumb { background: var(--ligne); border-radius: 3px; }
+.imb-item input { font-family: var(--mono); font-size: 13px; }
+.imb-item .suppr { position: absolute; top: 50%; right: 4px; transform: translateY(-50%); width: 20px; height: 20px; border: 0; border-radius: 50%; padding: 0; cursor: pointer;
+  background: var(--none-tint); color: var(--muted); font-size: 13px; line-height: 20px; }
+.imb-plus { flex: 0 0 32px; height: 32px; align-self: center; border: 0; border-radius: 10px; cursor: pointer; font-size: 18px; font-weight: 800; color: var(--accent-ink); background: var(--accent); box-shadow: var(--clay-sm); }
+.imb-plus:active { transform: scale(.95); }
 
 /* ── Situation ── */
 .frise { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; margin-bottom: 16px; }
@@ -199,7 +238,6 @@ header.top .sous { font-size: 13px; opacity: .85; }
   .fiche { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px 8px; }
   .champ.adr { grid-column: span 2; }
   .champ input { min-height: 30px; padding: 5px 9px; }
-  .imb { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .frise { gap: 4px; margin-bottom: 10px; }
   .etape { padding: 6px 2px; }
   .situ-tete { margin-bottom: 8px; }
@@ -250,22 +288,39 @@ header.top .sous { font-size: 13px; opacity: .85; }
     <!-- Droite : fiche, situation, calculette -->
     <section class="col droite">
       <div class="card dossier">
-        <h2>Dossier</h2>
+        <h2>Infos du dossier</h2>
         <div class="fiche">
+          <div class="champ"><label for="f_cab">Cabinet conseil</label><input id="f_cab" data-f="cab" placeholder="Nom du cabinet"></div>
           <div class="champ"><label for="f_ant">N° POI anticipation</label><input id="f_ant" data-f="ant" placeholder="POI anticipation"></div>
           <div class="champ"><label for="f_racco">N° POI Racco D2</label><input id="f_racco" data-f="racco" placeholder="POI Racco D2"></div>
-          <div class="champ"><label for="f_el">Nombre d'EL</label><input id="f_el" data-f="el" inputmode="numeric" placeholder="0"></div>
-          <div class="champ"><label for="f_pc">Permis de construire</label><input id="f_pc" data-f="pc" placeholder="N° PC"></div>
-          <div class="champ large adr"><label for="f_adr">Adresse</label><input id="f_adr" data-f="adr" placeholder="Adresse de l'immeuble"></div>
-          <div class="champ"><label for="f_cab">Cabinet conseil</label><input id="f_cab" data-f="cab" placeholder="Nom du cabinet"></div>
-          <div class="champ"><label for="f_dlpi">DLPI</label><input id="f_dlpi" data-f="dlpi" type="date"></div>
-          <div class="champ large"><label for="f_imb1">IMB</label>
-            <div class="imb">
-              <input id="f_imb1" data-f="imb1" placeholder="IMB/…">
-              <input id="f_imb2" data-f="imb2" placeholder="IMB/…" aria-label="IMB 2">
-              <input id="f_imb3" data-f="imb3" placeholder="IMB/…" aria-label="IMB 3">
-              <input id="f_imb4" data-f="imb4" placeholder="IMB/…" aria-label="IMB 4">
+          <div class="champ"><label for="f_dlpi">DLPI</label>
+            <div class="date-champ">
+              <input id="f_dlpi" placeholder="JJ/MM/AAAA" inputmode="numeric" maxlength="10" autocomplete="off">
+              <button class="cal" id="calDlpi" type="button" aria-label="Choisir la DLPI dans le calendrier" title="Calendrier"><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg></button>
+              <input type="date" class="date-cachee" id="f_dlpi_cal" tabindex="-1" aria-hidden="true">
             </div>
+          </div>
+          <div class="champ large adr"><label for="f_adr">Adresse</label><input id="f_adr" data-f="adr" placeholder="Adresse de l'immeuble"></div>
+          <div class="champ"><label for="f_pc">N° PC</label><input id="f_pc" data-f="pc" placeholder="N° PC"></div>
+          <div class="champ el-zone" id="elZone"><label for="f_el">Nombre d'EL</label>
+            <div class="el-champ">
+              <input id="f_el" data-f="el" inputmode="numeric" placeholder="0" autocomplete="off">
+              <button class="note-btn" id="noteBtn" type="button" aria-label="Commentaires et captures du nombre d'EL" aria-expanded="false" title="Commentaires"><svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M5 5h14a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-7l-4 3v-3H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z"/></svg></button>
+            </div>
+            <div class="bulle" id="bulle" hidden>
+              <div class="bulle-titre">Commentaires · Nombre d'EL</div>
+              <textarea id="noteTexte" rows="3" placeholder="Écris un commentaire…"></textarea>
+              <div class="captures" id="captures"></div>
+              <div class="bulle-bas">
+                <label class="btn btn-mini" for="noteFichier">Ajouter une capture</label>
+                <input type="file" id="noteFichier" accept="image/*" multiple hidden>
+                <span class="bulle-aide">ou colle (⌘V) / glisse une image ici</span>
+              </div>
+            </div>
+          </div>
+          <div class="champ large regroup">
+            <div class="regroup-tete"><label for="imb0">Regroupement syndic</label><input id="f_ref" data-f="ref" placeholder="Référence" aria-label="Référence du regroupement syndic"></div>
+            <div class="imb-liste" id="imbListe"></div>
           </div>
         </div>
       </div>
@@ -509,8 +564,135 @@ document.addEventListener("click", e => {
 /* fiche */
 document.querySelectorAll("[data-f]").forEach(inp => {
   inp.value = etat.fiche[inp.dataset.f] || "";
-  inp.addEventListener("input", () => { etat.fiche[inp.dataset.f] = inp.value; sauver(); rendu(); });
+  inp.addEventListener("input", () => {
+    if (inp.id === "f_el") inp.value = inp.value.replace(/\D/g, "");   // Nombre d'EL : chiffres seulement
+    etat.fiche[inp.dataset.f] = inp.value; sauver(); rendu();
+  });
 });
+
+/* ═══ DLPI : JJ/MM/AAAA au clavier, ou calendrier ; enregistrée en AAAA-MM-JJ ═══ */
+const dlpi = $("f_dlpi"), dlpiCal = $("f_dlpi_cal");
+const isoVersFr = iso => { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || ""); return m ? `${m[3]}/${m[2]}/${m[1]}` : ""; };
+function frVersIso(fr) {
+  const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(fr); if (!m) return null;
+  const d = new Date(+m[3], +m[2] - 1, +m[1]);
+  return d.getDate() === +m[1] && d.getMonth() === +m[2] - 1 ? `${m[3]}-${m[2]}-${m[1]}` : null;
+}
+function poserDlpi(iso) { etat.fiche.dlpi = iso; dlpi.value = isoVersFr(iso); dlpi.classList.remove("invalide"); sauver(); rendu(); }
+dlpi.value = isoVersFr(etat.fiche.dlpi);
+dlpi.addEventListener("input", () => {
+  // barres ajoutées toutes seules : 08102026 → 08/10/2026
+  const ch = dlpi.value.replace(/\D/g, "").slice(0, 8);
+  dlpi.value = ch.length > 4 ? `${ch.slice(0, 2)}/${ch.slice(2, 4)}/${ch.slice(4)}` : ch.length > 2 ? `${ch.slice(0, 2)}/${ch.slice(2)}` : ch;
+  const iso = frVersIso(dlpi.value);
+  dlpi.classList.toggle("invalide", ch.length === 8 && !iso);
+  if (iso || ch.length === 0) { etat.fiche.dlpi = iso || ""; sauver(); rendu(); }
+});
+dlpi.addEventListener("blur", () => { if (!frVersIso(dlpi.value)) { dlpi.value = isoVersFr(etat.fiche.dlpi); dlpi.classList.remove("invalide"); } });
+$("calDlpi").onclick = () => {
+  dlpiCal.value = etat.fiche.dlpi || versIso(new Date());
+  try { dlpiCal.showPicker(); } catch (e) { dlpiCal.focus(); dlpiCal.click(); }
+};
+dlpiCal.addEventListener("change", () => { if (dlpiCal.value) poserDlpi(dlpiCal.value); });
+
+/* ═══ Regroupement syndic : autant d'IMB que voulu, défilement horizontal ═══ */
+if (!Array.isArray(etat.fiche.imbs)) {
+  // anciens dossiers : les 4 cases IMB fixes deviennent la liste
+  etat.fiche.imbs = [1, 2, 3, 4].map(i => etat.fiche["imb" + i] || "");
+  [1, 2, 3, 4].forEach(i => delete etat.fiche["imb" + i]);
+}
+while (etat.fiche.imbs.length < 4) etat.fiche.imbs.push("");
+function rendreImbs(focusIndex) {
+  const L = etat.fiche.imbs, liste = $("imbListe");
+  liste.innerHTML = L.map((v, i) =>
+    `<div class="imb-item"><input id="imb${i}" data-imb="${i}" value="${esc(v)}" placeholder="IMB/…" aria-label="IMB ${i + 1}" autocomplete="off">` +
+    (L.length > 4 && !v.trim() ? `<button class="suppr" type="button" data-suppr="${i}" aria-label="Supprimer la case IMB ${i + 1}" title="Supprimer">×</button>` : "") +
+    `</div>`).join("") + `<button class="imb-plus" type="button" id="imbPlus" aria-label="Ajouter un IMB" title="Ajouter un IMB">+</button>`;
+  if (focusIndex != null) { const f = $("imb" + focusIndex); f.focus(); f.scrollIntoView({ block: "nearest", inline: "nearest" }); }
+}
+$("imbListe").addEventListener("input", e => {
+  const i = e.target.dataset.imb; if (i == null) return;
+  const avant = etat.fiche.imbs[i].trim();
+  etat.fiche.imbs[i] = e.target.value; sauver();
+  if (etat.fiche.imbs.length > 4 && !avant !== !e.target.value.trim()) rendreImbs(+i);   // affiche ou retire la croix
+});
+$("imbListe").addEventListener("click", e => {
+  if (e.target.closest("#imbPlus")) { etat.fiche.imbs.push(""); sauver(); rendreImbs(etat.fiche.imbs.length - 1); return; }
+  const s = e.target.closest("[data-suppr]");
+  if (s) { etat.fiche.imbs.splice(+s.dataset.suppr, 1); sauver(); rendreImbs(); }
+});
+rendreImbs();
+
+/* ═══ Nombre d'EL : bulle de commentaires et de captures, ouverte au survol ═══ */
+const CAPCLE = "racco-d2-captures";          // captures à part : l'état principal reste léger
+let captures = [];
+try { const c = JSON.parse(localStorage.getItem(CAPCLE) || "[]"); if (Array.isArray(c)) captures = c.filter(x => typeof x === "string"); } catch (e) {}
+const bulle = $("bulle"), elZone = $("elZone"), noteBtn = $("noteBtn"), noteTexte = $("noteTexte");
+noteTexte.value = etat.fiche.elNote || "";
+let fermeture = null, epinglee = false;
+function majNoteBtn() { noteBtn.classList.toggle("plein", !!(noteTexte.value.trim() || captures.length)); }
+function ouvrir() { clearTimeout(fermeture); bulle.hidden = false; noteBtn.setAttribute("aria-expanded", "true"); }
+function fermer() { if (epinglee || bulle.contains(document.activeElement)) return; bulle.hidden = true; noteBtn.setAttribute("aria-expanded", "false"); }
+elZone.addEventListener("mouseenter", ouvrir);
+elZone.addEventListener("mouseleave", () => { clearTimeout(fermeture); fermeture = setTimeout(fermer, 350); });
+bulle.addEventListener("focusout", () => setTimeout(() => { if (!elZone.matches(":hover")) fermer(); }, 0));
+noteBtn.onclick = () => { epinglee = bulle.hidden ? true : !epinglee; if (epinglee) ouvrir(); else { bulle.hidden = true; noteBtn.setAttribute("aria-expanded", "false"); } };
+document.addEventListener("click", e => { if (epinglee && !elZone.contains(e.target) && !e.target.closest(".visionneuse")) { epinglee = false; fermer(); } });
+document.addEventListener("keydown", e => { if (e.key === "Escape" && !bulle.hidden) { epinglee = false; noteTexte.blur(); bulle.hidden = true; } });
+noteTexte.addEventListener("input", () => { etat.fiche.elNote = noteTexte.value; sauver(); majNoteBtn(); });
+
+function rendreCaptures() {
+  $("captures").innerHTML = captures.map((src, i) =>
+    `<div class="capture" data-voir="${i}"><img src="${src}" alt="Capture ${i + 1}"><button type="button" data-ret="${i}" aria-label="Retirer la capture ${i + 1}" title="Retirer">×</button></div>`).join("");
+  majNoteBtn();
+}
+function sauverCaptures() {
+  try { localStorage.setItem(CAPCLE, JSON.stringify(captures)); return true; } catch (e) { return false; }
+}
+// réduit l'image (1400 px max, JPEG) pour tenir dans la mémoire du navigateur
+function reduire(fichier) {
+  return new Promise((ok, ko) => {
+    const lect = new FileReader();
+    lect.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        const k = Math.min(1, 1400 / Math.max(img.width, img.height));
+        const cv = document.createElement("canvas"); cv.width = Math.round(img.width * k); cv.height = Math.round(img.height * k);
+        cv.getContext("2d").drawImage(img, 0, 0, cv.width, cv.height);
+        ok(cv.toDataURL("image/jpeg", 0.72));
+      };
+      img.onerror = ko; img.src = lect.result;
+    };
+    lect.onerror = ko; lect.readAsDataURL(fichier);
+  });
+}
+async function ajouterCaptures(fichiers) {
+  for (const f of fichiers) {
+    if (!f.type.startsWith("image/")) continue;
+    try { captures.push(await reduire(f)); } catch (e) { continue; }
+    if (!sauverCaptures()) { captures.pop(); sauverCaptures(); alert("Plus de place pour d'autres captures : retires-en une avant d'en ajouter."); break; }
+  }
+  rendreCaptures();
+}
+$("noteFichier").addEventListener("change", e => { ajouterCaptures([...e.target.files]); e.target.value = ""; });
+bulle.addEventListener("paste", e => {
+  const imgs = [...(e.clipboardData?.files || [])].filter(f => f.type.startsWith("image/"));
+  if (imgs.length) { e.preventDefault(); ajouterCaptures(imgs); }
+});
+bulle.addEventListener("dragover", e => { e.preventDefault(); bulle.classList.add("depot"); });
+bulle.addEventListener("dragleave", () => bulle.classList.remove("depot"));
+bulle.addEventListener("drop", e => { e.preventDefault(); bulle.classList.remove("depot"); ajouterCaptures([...e.dataTransfer.files]); });
+$("captures").addEventListener("click", e => {
+  const r = e.target.closest("[data-ret]");
+  if (r) { captures.splice(+r.dataset.ret, 1); sauverCaptures(); rendreCaptures(); return; }
+  const v = e.target.closest("[data-voir]");
+  if (v) {
+    const vis = document.createElement("div"); vis.className = "visionneuse";
+    vis.innerHTML = `<img src="${captures[+v.dataset.voir]}" alt="Capture agrandie">`;
+    vis.onclick = () => vis.remove(); document.body.appendChild(vis);
+  }
+});
+rendreCaptures();
 
 /* ═══ Bascule Situation / Info ═══ */
 const VCLE = "racco-d2-vue";
