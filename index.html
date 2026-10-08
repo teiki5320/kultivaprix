@@ -148,6 +148,12 @@ header.top .sous { font-size: 13px; opacity: .85; }
 .code-bloc label { font-size: 12px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; }
 .code-bloc output { min-width: 0; border-radius: var(--r-sm); background: none; color: var(--texte); padding: 5px 12px; font-family: var(--mono); font-size: 17px; font-weight: 700; letter-spacing: .06em; white-space: nowrap; overflow-x: auto; user-select: all; font-variant-numeric: tabular-nums; }
 .code-note { font-size: 12px; color: var(--muted); }
+.onglets-bloc { background: var(--carte-2); box-shadow: var(--inset); border-radius: var(--r-md); padding: 6px 12px 8px; display: grid; justify-items: center; gap: 6px; }
+.onglets { display: flex; gap: 6px; }
+.onglet { border: 0; border-radius: 99px; padding: 4px 14px; font-weight: 800; font-size: 12px; letter-spacing: .08em; cursor: pointer; background: transparent; color: var(--muted); }
+.onglet[aria-selected="true"] { background: var(--carte); color: var(--texte); box-shadow: var(--clay-sm); }
+.onglet:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--accent-dim); }
+.onglets-bloc output { min-width: 0; font-family: var(--mono); font-size: 17px; font-weight: 700; letter-spacing: .06em; white-space: nowrap; overflow-x: auto; user-select: all; padding: 2px 4px; }
 .code-note:empty { display: none; }
 
 /* ── Calculette ── */
@@ -276,6 +282,17 @@ header.top .sous { font-size: 13px; opacity: .85; }
               <button class="btn btn-accent btn-mini" id="btnCopier" type="button">Copier</button>
             </div>
             <div class="code-note" id="codeNote"></div>
+          </div>
+          <div class="onglets-bloc">
+            <div class="onglets" role="tablist" aria-label="Autres codes">
+              <button class="onglet" role="tab" id="tab_ape" data-code="ape" aria-controls="panneauCode" type="button">APE</button>
+              <button class="onglet" role="tab" id="tab_dzi" data-code="dzi" aria-controls="panneauCode" type="button">DZI</button>
+            </div>
+            <div class="code-ligne" role="tabpanel" id="panneauCode">
+              <output id="codeAutre" aria-live="polite"></output>
+              <button class="btn btn-accent btn-mini" id="btnCopierAutre" type="button">Copier</button>
+            </div>
+            <div class="code-note" id="noteAutre"></div>
           </div>
           <div class="info-dates">
             <div class="sortie"><div class="decal"><span class="lbl">+ 90 jours</span></div><div class="date" id="i2r">—</div></div>
@@ -474,7 +491,7 @@ function rendu() {
   $("situNote").textContent = sel === cour || !cour ? "Touche une étape de la frise ou le nom d'une grande tâche pour voir sa situation."
     : `Étape en cours : ${TACHES.indexOf(cour) + 1} · ${cour.lib}`;
 
-  majCode(); $("codeNote").textContent = "";
+  majCode(); majAutre(); $("codeNote").textContent = ""; $("noteAutre").textContent = "";
   if (focus && $(focus) && document.activeElement !== $(focus)) $(focus).focus();
 }
 
@@ -526,12 +543,37 @@ function codeComlab() {
   return corps + ctrl;
 }
 function majCode() { $("comlab").textContent = codeComlab().replace(/(.{5})(?=.)/g, "$1 "); }
-$("btnCopier").onclick = () => {
-  const v = codeComlab();
-  const ok = () => { $("codeNote").textContent = "Code copié."; };
-  const repli = () => { const r = document.createRange(); r.selectNodeContents($("comlab")); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); $("codeNote").textContent = "Code sélectionné : fais Ctrl+C (ou Cmd+C) pour le copier."; };
+function copier(v, zone, note) {
+  const ok = () => { note.textContent = "Code copié."; };
+  const repli = () => { const r = document.createRange(); r.selectNodeContents(zone); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); note.textContent = "Code sélectionné : fais Ctrl+C (ou Cmd+C) pour le copier."; };
   try { navigator.clipboard.writeText(v).then(ok, repli); } catch (e) { repli(); }
-};
+}
+$("btnCopier").onclick = () => copier(codeComlab(), $("comlab"), $("codeNote"));
+
+/* ═══ Codes APE et DZI — MÉTHODE PROVISOIRE : dérivés des mêmes réponses que le code Comlab ═══
+   APE : 15 caractères, DZI : 20 caractères, en base 32 */
+const AUTRES = { ape: 15, dzi: 20 };
+function codeAutre(nom) {
+  let h = 0x811c9dc5, r = "";
+  const graine = nom + codeComlab();
+  while (r.length < AUTRES[nom]) {
+    for (const c of graine + r.length) { h ^= c.charCodeAt(0); h = Math.imul(h, 0x01000193) >>> 0; }
+    r += B32[h & 31] + B32[(h >>> 5) & 31];
+  }
+  return r.slice(0, AUTRES[nom]);
+}
+let onglet = "ape";
+try { const o = localStorage.getItem("racco-d2-onglet"); if (AUTRES[o]) onglet = o; } catch (e) {}
+function majAutre() {
+  document.querySelectorAll(".onglet").forEach(b => { const on = b.dataset.code === onglet; b.setAttribute("aria-selected", String(on)); b.tabIndex = on ? 0 : -1; });
+  $("panneauCode").setAttribute("aria-labelledby", "tab_" + onglet);
+  $("codeAutre").textContent = codeAutre(onglet).replace(/(.{5})(?=.)/g, "$1 ");
+}
+document.querySelectorAll(".onglet").forEach(b => {
+  b.onclick = () => { onglet = b.dataset.code; $("noteAutre").textContent = ""; try { localStorage.setItem("racco-d2-onglet", onglet); } catch (e) {} majAutre(); };
+  b.onkeydown = e => { if (e.key === "ArrowRight" || e.key === "ArrowLeft") { const autre = document.querySelector(`.onglet:not([data-code="${b.dataset.code}"])`); autre.click(); autre.focus(); } };
+});
+$("btnCopierAutre").onclick = () => copier(codeAutre(onglet), $("codeAutre"), $("noteAutre"));
 
 /* ═══ Dates : une date de départ donne la date à +30 et à +65 jours ═══ */
 const CCLE = "racco-d2-date";
