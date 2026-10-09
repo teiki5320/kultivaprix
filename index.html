@@ -33,7 +33,7 @@ button, input { font-family: inherit; font-size: inherit; color: inherit; }
 .page { max-width: 1500px; margin: 0 auto; padding: 18px 16px 32px; display: flex; flex-direction: column; gap: 18px; }
 
 header.top { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
-  background: var(--side); color: var(--side-text); border-radius: var(--r-xl); padding: 14px 22px; box-shadow: var(--clay-sm); }
+  background: #2b2b2b; color: #f5f5f5; border-radius: var(--r-xl); padding: 14px 22px; box-shadow: var(--clay-sm); }   /* barre du titre anthracite : le feu et le liseré ressortent */
 header.top h1 { margin: 0; font-size: 22px; font-weight: 800; letter-spacing: .02em; }
 header.top .sous { font-size: 13px; opacity: .85; }
 .actions { display: flex; gap: 8px; flex-wrap: wrap; }
@@ -199,13 +199,13 @@ header.top .sous { font-size: 13px; opacity: .85; }
 
 /* ── Notion d'urgence : feu tricolore dans la barre du titre ── */
 header.top { transition: box-shadow .2s; }
-header.top.urg-rouge { box-shadow: var(--clay-sm), inset 0 0 0 3px #e2493a; }
-header.top.urg-orange { box-shadow: var(--clay-sm), inset 0 0 0 3px #f29a2e; }
-header.top.urg-vert { box-shadow: var(--clay-sm), inset 0 0 0 3px #36c26a; }
+header.top.urg-rouge { box-shadow: var(--clay-sm), inset 0 0 0 4px #ff4d3d, 0 0 14px rgba(255, 77, 61, .45); }
+header.top.urg-orange { box-shadow: var(--clay-sm), inset 0 0 0 4px #ff9f2e, 0 0 14px rgba(255, 159, 46, .45); }
+header.top.urg-vert { box-shadow: var(--clay-sm), inset 0 0 0 4px #3ddc76, 0 0 14px rgba(61, 220, 118, .45); }
 .urgence { display: flex; align-items: center; gap: 8px; margin-left: auto; }
 .urgence .urg-lib { font-size: 12.5px; font-weight: 800; min-width: 0; }
-.feu { display: flex; gap: 6px; padding: 5px 8px; border-radius: 999px; background: rgba(63, 90, 76, .14); box-shadow: var(--inset); }
-.feu button { width: 20px; height: 20px; border-radius: 50%; border: 0; padding: 0; cursor: pointer; opacity: .28; transition: opacity .15s, transform .15s var(--bounce); }
+.feu { display: flex; gap: 6px; padding: 5px 8px; border-radius: 999px; background: rgba(255, 255, 255, .08); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .12); }
+.feu button { width: 20px; height: 20px; border-radius: 50%; border: 0; padding: 0; cursor: pointer; opacity: .35; transition: opacity .15s, transform .15s var(--bounce); }
 .feu button:hover { opacity: .6; }
 .feu button.on { opacity: 1; transform: scale(1.12); }
 .feu .r { background: radial-gradient(circle at 35% 35%, #ffd2cb 0 18%, #e2493a 50%); }
