@@ -69,7 +69,8 @@ header.top .sous { font-size: 13px; opacity: .85; }
 .ligne.d4 .lib { color: var(--muted); }
 .ligne.d5 { padding-left: 134px; }
 .ligne .lib { flex: 0 1 auto; min-width: 0; cursor: default; }
-.ligne.d1 .lib { cursor: pointer; }
+.ligne.d1 .lib { cursor: pointer; text-decoration: underline; text-decoration-thickness: 1.5px; text-underline-offset: 4px; }
+.ligne.d1 .num { display: inline-block; }   /* le numéro n'est pas souligné */
 .ligne .led { margin-left: auto; }
 /* outils d'une tâche : date (calendrier) et lien vers le Modop OneDrive */
 .outils { display: flex; align-items: center; gap: 6px; flex: none; margin-right: auto; }   /* juste après le texte de la tâche */
@@ -148,6 +149,7 @@ header.top .sous { font-size: 13px; opacity: .85; }
 .bulle { position: absolute; z-index: 30; top: 100%; right: 0; margin-top: 6px; width: min(340px, 86vw); background: var(--carte); border-radius: var(--r-md);
   box-shadow: var(--clay), 0 0 0 1px var(--ligne); padding: 10px 12px; display: grid; gap: 8px; }
 .bulle.survol { box-shadow: var(--clay), 0 0 0 2px var(--accent-dim); }
+.bulle.epinglee { box-shadow: var(--clay), 0 0 0 2px var(--accent); }   /* épinglée par un clic : reste ouverte */
 .bulle-titre { font-size: 11.5px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
 .bulle textarea { width: 100%; resize: vertical; border: 0; border-radius: 10px; background: var(--carte-2); box-shadow: var(--inset); padding: 7px 10px; font: inherit; font-size: 13.5px; outline: none; min-height: 64px; }
 .bulle textarea:focus { box-shadow: var(--inset), 0 0 0 3px var(--accent-dim); }
@@ -232,6 +234,8 @@ header.top.urg-vert { box-shadow: var(--clay-sm), inset 0 0 0 4px #3ddc76, 0 0 1
 .docs-tuile small { display: block; font-size: 11.5px; font-weight: 700; opacity: .8; }
 .docs .lien-edit { top: -6px; right: -6px; width: 24px; height: 24px; font-size: 12px; line-height: 24px; }
 .docs:hover .lien-edit { display: block; }
+.suivi-tuile { background: #2b2b2b; border-color: #000; color: #f2f2f2; }
+.suivi-tuile:hover { background: #3a3a3a; }
 
 /* Infos utiles : rubriques en gras, sous-lignes à puce, champs à remplir */
 .iu { display: grid; gap: 10px; }
@@ -247,6 +251,12 @@ header.top.urg-vert { box-shadow: var(--clay-sm), inset 0 0 0 4px #3ddc76, 0 0 1
 .iu-ligne { flex-wrap: nowrap; }
 .iu .fixe { white-space: nowrap; }
 .iu-tete input { flex: 1; font-weight: 600; }
+.iu-sup { flex: none; width: 20px; height: 20px; border: 0; border-radius: 50%; padding: 0; background: var(--carte-2); color: var(--muted); cursor: pointer;
+  font-size: 13px; line-height: 20px; visibility: hidden; }
+.iu-tete:hover > .iu-sup, .iu-ligne:hover > .iu-sup, .iu-sup:focus-visible { visibility: visible; }
+.iu-sup:hover { background: var(--ko); color: #fff; }
+.iu-retablir { justify-self: start; border: 0; background: none; padding: 2px 0; color: var(--muted); font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
+.iu-retablir:hover { color: var(--texte); text-decoration: underline; }
 
 /* Commentaires : mémo daté en haut, commentaire de la tâche choisie en dessous */
 .card.commentaires { display: grid; gap: 10px; min-height: 460px; align-content: start; }
@@ -408,6 +418,9 @@ header.top.urg-vert { box-shadow: var(--clay-sm), inset 0 0 0 4px #3ddc76, 0 0 1
             <button class="docs-tuile" id="docsTuile" type="button"><svg viewBox="0 0 24 24" width="40" height="40" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span>Documents POI<small id="docsEtat"></small></span></button>
             <button class="lien-edit" id="docsEdit" type="button" aria-label="Changer ou retirer le lien des documents" title="Changer ou retirer le lien" hidden>✎</button>
           </div>
+          <div class="docs">
+            <button class="docs-tuile suivi-tuile" id="suiviTuile" type="button"><svg viewBox="0 0 24 24" width="40" height="40" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span>Suivi POI<small id="suiviEtat">Tableau de suivi de tous les dossiers</small></span></button>
+          </div>
         </div>
       </div>
     </section>
@@ -516,7 +529,7 @@ const TACHES = [
         { id: "t7_4_4_3", lib: "Cliquer sur « Archiver le dossier »" } ] },
       { id: "t7_4_5", lib: "OPTIMUM", mode: "tout", kids: [
         { id: "t7_4_5_1", lib: "Aller voir si les dates sont bonnes (le lendemain du récolement)" } ] } ] },
-    { id: "t7_5", lib: "Demander la MAD au PBLO si je n’ai pas fait de MAD anticipée" },
+    { id: "t7_5", lib: "Demander la MAD au PBLO (si je n’ai pas fait de MAD anticipée)" },
     { id: "t7_6", lib: "Archiver la POI dans PPR" } ] }
 ];
 
@@ -524,6 +537,12 @@ const CLE = "racco-d2-v1";
 let etat = { coches: {}, barres: {}, dates: {}, liens: {}, memo: {}, fiche: {}, fermes: {}, sel: null };
 try { const s = JSON.parse(localStorage.getItem(CLE) || "null"); if (s && typeof s === "object") ["coches", "barres", "dates", "liens", "memo", "fiche", "fermes"].forEach(k => { if (s[k] && typeof s[k] === "object") etat[k] = s[k]; }), etat.sel = typeof s.sel === "string" ? s.sel : null; } catch (e) {}
 const sauver = () => { try { localStorage.setItem(CLE, JSON.stringify(etat)); } catch (e) {} };
+// remise à zéro unique des tests (9 octobre 2026) : tâches et commentaires effacés, le reste du dossier (IMB compris) est gardé
+if (!etat.fiche.raz1) {
+  etat.coches = {}; etat.barres = {}; etat.dates = {}; etat.memo = {}; etat.sel = null;
+  try { localStorage.removeItem("racco-d2-notes-captures"); } catch (e) {}
+  etat.fiche.raz1 = true; sauver();
+}
 
 /* index parent / nœuds */
 const NOEUDS = {}, PARENT = {};
@@ -818,11 +837,12 @@ $("imbListe").addEventListener("click", e => {
   if (s) { fermerImb(); etat.fiche.imbs.splice(+s.dataset.suppr, 1); sauver(); rendreImbs(); }
 });
 
-/* bulle d'un IMB : s'ouvre au survol, se ferme au clic ailleurs ou avec Échap (comme celle du Nombre d'EL) */
+/* bulle d'un IMB : s'ouvre au survol, se ferme quand la souris quitte la case et la bulle (ou avec Échap) */
 let imbOuvert = null;
 const imbBulle = $("imbBulle");
 function ouvrirImb(i) {
   const item = document.querySelector(`[data-item="${i}"]`); if (!item) return;
+  if (imbBulle.contains(document.activeElement)) document.activeElement.blur();   // ce qui est tapé reste sur l'IMB précédent
   imbOuvert = i;
   const o = etat.fiche.imbs[i];
   $("imbBulleTitre").textContent = o.imb.trim() || `IMB ${i + 1}`;
@@ -845,9 +865,17 @@ function fermerImb() {
 $("imbListe").addEventListener("mouseover", e => {
   const item = e.target.closest("[data-item]"); if (!item) return;
   const i = +item.dataset.item;
-  // on ne change pas d'IMB pendant qu'on écrit dans la bulle
-  if (i !== imbOuvert && !imbBulle.contains(document.activeElement)) ouvrirImb(i);
+  if (i !== imbOuvert) ouvrirImb(i);
 });
+// petit délai pour passer de la case à la bulle sans qu'elle se ferme
+let imbMinuterie = null;
+const dansImb = el => el && (imbBulle.contains(el) || el.closest?.(".imb-item"));
+document.addEventListener("mouseover", e => {
+  if (imbOuvert == null) return;
+  if (dansImb(e.target)) { clearTimeout(imbMinuterie); imbMinuterie = null; }
+  else if (!imbMinuterie) imbMinuterie = setTimeout(() => { imbMinuterie = null; fermerImb(); }, 300);
+});
+document.addEventListener("mouseout", e => { if (imbOuvert != null && !e.relatedTarget && !imbMinuterie) imbMinuterie = setTimeout(() => { imbMinuterie = null; fermerImb(); }, 300); });
 imbBulle.addEventListener("input", e => {
   const c = e.target.dataset.info; if (!c || imbOuvert == null) return;
   if (c !== "adr" && c !== "note") e.target.value = e.target.value.replace(/\D/g, "");
@@ -913,13 +941,18 @@ let captures = [];
 try { const c = JSON.parse(localStorage.getItem(CAPCLE) || "[]"); if (Array.isArray(c)) captures = c.filter(x => typeof x === "string"); } catch (e) {}
 const bulle = $("bulle"), elZone = $("elZone"), noteBtn = $("noteBtn"), noteTexte = $("noteTexte");
 noteTexte.value = etat.fiche.elNote || "";
-// la bulle s'ouvre au survol et ne se ferme qu'au clic ailleurs (ou Échap) :
-// on peut aller chercher une capture dans une autre fenêtre et la glisser dedans
+// la bulle s'ouvre au survol et se ferme quand la souris quitte la case Nombre d'EL ;
+// un clic sur 💬 (ou dans la bulle) l'épingle : elle reste ouverte jusqu'au clic ailleurs (ou Échap),
+// ce qui permet d'aller chercher une capture dans une autre fenêtre et de la glisser dedans
+let epinglee = false, elMinuterie = null;
 function majNoteBtn() { noteBtn.classList.toggle("plein", !!(noteTexte.value.trim() || captures.length)); }
-function ouvrir() { bulle.hidden = false; noteBtn.setAttribute("aria-expanded", "true"); }
-function fermer() { noteTexte.blur(); bulle.hidden = true; noteBtn.setAttribute("aria-expanded", "false"); }
+function ouvrir() { clearTimeout(elMinuterie); bulle.hidden = false; noteBtn.setAttribute("aria-expanded", "true"); }
+function epingler() { ouvrir(); epinglee = true; bulle.classList.add("epinglee"); }
+function fermer() { clearTimeout(elMinuterie); noteTexte.blur(); bulle.hidden = true; epinglee = false; bulle.classList.remove("epinglee"); noteBtn.setAttribute("aria-expanded", "false"); }
 elZone.addEventListener("mouseenter", ouvrir);
-noteBtn.onclick = () => { if (bulle.hidden) ouvrir(); else fermer(); };
+elZone.addEventListener("mouseleave", () => { if (!epinglee && !bulle.hidden) elMinuterie = setTimeout(fermer, 300); });
+noteBtn.onclick = () => { if (epinglee) fermer(); else epingler(); };
+bulle.addEventListener("pointerdown", epingler);
 document.addEventListener("pointerdown", e => { if (!bulle.hidden && !elZone.contains(e.target) && !e.target.closest(".visionneuse")) fermer(); });
 document.addEventListener("keydown", e => { if (e.key === "Escape" && !bulle.hidden && !document.querySelector(".visionneuse")) fermer(); });
 noteTexte.addEventListener("input", () => { etat.fiche.elNote = noteTexte.value; sauver(); majNoteBtn(); });
@@ -1036,6 +1069,8 @@ function majDocs() {
 }
 $("docsTuile").onclick = () => { const l = etat.liens.docsPOI; if (l) window.open(l, "_blank", "noopener"); else ouvrirLienPop("docsPOI", $("docsTuile"), "Lien du dossier OneDrive · Documents POI"); };
 $("docsEdit").onclick = () => ouvrirLienPop("docsPOI", $("docsEdit"), "Lien du dossier OneDrive · Documents POI");
+// Suivi POI : le tableau de tous les dossiers n'existe pas encore
+$("suiviTuile").onclick = () => { const m = $("suiviEtat"); m.textContent = "Tableau de suivi à venir"; clearTimeout(m._t); m._t = setTimeout(() => m.textContent = "Tableau de suivi de tous les dossiers", 2500); };
 
 /* ═══ Infos utiles : texte noir fixe après « : », champ prérempli sinon ═══ */
 const IU = [
@@ -1049,12 +1084,26 @@ const IU = [
 if (!etat.fiche.iu || typeof etat.fiche.iu !== "object") etat.fiche.iu = {};
 const iuVal = (k, defaut = "") => esc(etat.fiche.iu[k] ?? defaut);
 const iuChamp = (k, cls, defaut, lib) => `<input class="${cls}" data-iu="${k}" value="${iuVal(k, defaut)}" aria-label="${esc(lib)}" autocomplete="off">`;
-$("infosUtiles").innerHTML = IU.map(r => `<div class="iu-rub"><div class="iu-tete"><span class="fixe">${esc(r.t)} :</span>${r.k ? iuChamp(r.k, "plein", "", r.t) : ""}</div>` +
-  r.l.map(x => `<div class="iu-ligne">` +
-    (x.pre ? iuChamp(x.k, "plein", x.pre + (x.pre.endsWith("/") ? "" : " "), `${r.t} ${x.pre}`) : `<span class="fixe">${esc(x.lab)}</span>${iuChamp(x.k, "plein", "", `${r.t} ${x.lab}`)}`) +
-    (x.type ? `<span class="fixe">(Type :</span>${iuChamp(x.type, "court", "", `${r.t} type`)}<span class="fixe">)</span>` : "") +
-    `</div>`).join("") + `</div>`).join("");
+// lignes retirées pour ce dossier : « r:PMZ » pour une rubrique entière, la clé du champ pour une ligne ; ce qui est écrit est gardé
+if (!etat.fiche.iuMasques || typeof etat.fiche.iuMasques !== "object") etat.fiche.iuMasques = {};
+const iuSup = (cle, lib) => `<button class="iu-sup" type="button" data-iusup="${cle}" aria-label="Retirer ${esc(lib)}" title="Retirer">×</button>`;
+function rendreIU() {
+  const M = etat.fiche.iuMasques;
+  $("infosUtiles").innerHTML = IU.filter(r => !M["r:" + r.t]).map(r => `<div class="iu-rub"><div class="iu-tete"><span class="fixe">${esc(r.t)} :</span>${r.k ? iuChamp(r.k, "plein", "", r.t) : ""}${iuSup("r:" + r.t, r.t)}</div>` +
+    r.l.filter(x => !M[x.k]).map(x => `<div class="iu-ligne">` +
+      (x.pre ? iuChamp(x.k, "plein", x.pre + (x.pre.endsWith("/") ? "" : " "), `${r.t} ${x.pre}`) : `<span class="fixe">${esc(x.lab)}</span>${iuChamp(x.k, "plein", "", `${r.t} ${x.lab}`)}`) +
+      (x.type ? `<span class="fixe">(Type :</span>${iuChamp(x.type, "court", "", `${r.t} type`)}<span class="fixe">)</span>` : "") +
+      iuSup(x.k, `${r.t} ${x.pre || x.lab}`) + `</div>`).join("") + `</div>`).join("") +
+    (Object.keys(M).length ? `<button class="iu-retablir" type="button" id="iuRetablir">↺ Rétablir les lignes</button>` : "");
+}
+rendreIU();
 $("infosUtiles").addEventListener("input", e => { const k = e.target.dataset.iu; if (!k) return; etat.fiche.iu[k] = e.target.value; sauver(); });
+$("infosUtiles").addEventListener("click", e => {
+  const b = e.target.closest("[data-iusup]");
+  if (b) { etat.fiche.iuMasques[b.dataset.iusup] = true; sauver(); rendreIU(); return; }
+  // rétablir ne fait que réafficher : les valeurs déjà écrites ne sont pas touchées
+  if (e.target.closest("#iuRetablir")) { etat.fiche.iuMasques = {}; sauver(); rendreIU(); }
+});
 
 /* ═══ Commentaires : mémo daté des tâches cochées + commentaire et captures de chaque tâche ═══
    etat.memo[id] = { coche: "AAAA-MM-JJ", note, noteDate, ordre } ; captures à part (racco-d2-notes-captures) */
