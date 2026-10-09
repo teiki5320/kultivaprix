@@ -1049,11 +1049,13 @@ document.querySelector(".feu").addEventListener("click", e => {
   sauver(); majUrgence();
 });
 
-/* ═══ Dates importantes : 11 dates, saisie comme la DLPI ═══ */
-// 1re ligne : Réception POI, DLPI, DRE, DLR ; ensuite dans l'ordre des tâches (APD, anticipation, précâblage, travaux, MAD anticipée, DOE Racco D2, paiement, MAD)
+/* ═══ Dates importantes : 13 dates, saisie comme la DLPI ═══ */
+// 1re ligne : Réception POI, DLPI, DRE, DLR ; ensuite dans l'ordre des tâches, puis les deux archivages
+// une seule date MAD : elle devient « MAD anticipée » quand elle vient de la tâche de MAD anticipée
 const DATES_IMP = [["poi", "Réception POI"], ["dre", "DRE"], ["dlr", "DLR"],
   ["apd", "Réception APD"], ["doeAnt", "Réception DOE Anticipation"], ["doePre", "Réception DOE précâblage"], ["travaux", "Envoi en travaux"],
-  ["madAnt", "MAD anticipée"], ["doeRacco", "Réception DOE Racco D2"], ["paiement", "Paiement attachement"], ["mad", "MAD"]];
+  ["doeRacco", "Réception DOE Racco D2"], ["paiement", "Paiement attachement"], ["mad", "MAD"],
+  ["archAnt", "Archivage POI anticipation"], ["archRacco", "Archivage POI Racco D2"]];
 // précisions au survol de l'astérisque ou du titre (pas pour Paiement attachement ; celle de la DLPI est dans le HTML)
 const AIDE_DI = {
   poi: "Date à laquelle la POI a été intégrée à mon portefeuille.",
@@ -1063,34 +1065,47 @@ const AIDE_DI = {
   doeAnt: "Date de réception du DOE anticipation <u>conforme</u>.",
   doePre: "Date de réception du DOE précâblage <u>conforme</u>.",
   travaux: "Date à entrer manuellement selon l'état d'avancement du dossier.",
-  madAnt: "Date à laquelle j'ai fait la demande de MAD anticipée.",
   doeRacco: "Date de réception du DOE Racco D2 <u>conforme</u>.",
   mad: "Date à laquelle j'ai fait la demande de MAD.",
 };
 if (!etat.fiche.di || typeof etat.fiche.di !== "object") etat.fiche.di = {};
+if (!etat.fiche.diSrc || typeof etat.fiche.diSrc !== "object") etat.fiche.diSrc = {};   // tâche d'où vient chaque date reliée
+if (etat.fiche.di.madAnt) {   // ancienne date « MAD anticipée » : reprise dans la date MAD
+  if (!etat.fiche.di.mad) { etat.fiche.di.mad = etat.fiche.di.madAnt; etat.fiche.diSrc.mad = "t6_9"; }
+  delete etat.fiche.di.madAnt;
+}
 // dates des tâches reportées toutes seules dans les Dates importantes (la case reste modifiable à la main)
-const LIENS_DI = { t1: "poi", t2_1_2: "apd", t4_2_6_2: "doeAnt", t5_1_2: "doePre", t6_9: "madAnt", t7: "doeRacco", t7_3: "paiement", t7_5: "mad" };
+const LIENS_DI = { t1: "poi", t2_1_2: "apd", t4_2_6_2: "doeAnt", t5_1_2: "doePre", t6_9: "mad", t7: "doeRacco", t7_3: "paiement", t7_5: "mad" };
 function reporterDate(id) {
   const k = LIENS_DI[id]; if (!k) return;
-  if (etat.dates[id]) etat.fiche.di[k] = etat.dates[id]; else delete etat.fiche.di[k];
+  // date effacée : l'autre tâche reliée à la même date (MAD / MAD anticipée) reprend la main si elle a une date
+  const src = etat.dates[id] ? id : Object.keys(LIENS_DI).find(t => t !== id && LIENS_DI[t] === k && etat.dates[t]);
+  if (src) { etat.fiche.di[k] = etat.dates[src]; etat.fiche.diSrc[k] = src; } else { delete etat.fiche.di[k]; delete etat.fiche.diSrc[k]; }
   sauver();
   const c = $("di_" + k); if (c) { c.value = isoVersFr(etat.fiche.di[k]); c.classList.remove("invalide"); }
+  majMad();
 }
-Object.keys(LIENS_DI).forEach(id => { if (etat.dates[id]) etat.fiche.di[LIENS_DI[id]] = etat.dates[id]; });
+Object.keys(LIENS_DI).forEach(id => { if (etat.dates[id]) { etat.fiche.di[LIENS_DI[id]] = etat.dates[id]; etat.fiche.diSrc[LIENS_DI[id]] = id; } });
+function majMad() {
+  const anti = etat.fiche.diSrc.mad === "t6_9", c = $("di_mad").closest(".champ");
+  c.querySelector(".di-lib").textContent = anti ? "MAD anticipée" : "MAD";
+  c.querySelector(".di-aide").textContent = `Date à laquelle j'ai fait la demande de MAD${anti ? " anticipée" : ""}.`;
+}
 $("datesImp").insertAdjacentHTML("beforeend", DATES_IMP.map(([k, lib]) => `<div class="champ">` +
-  (AIDE_DI[k] ? `<label for="di_${k}" class="avec-aide${k === "doeAnt" || k === "doePre" ? " serre" : ""}">${esc(lib)}<sup class="ast" aria-hidden="true">*</sup></label><span class="di-aide" id="aide_${k}" role="tooltip">${AIDE_DI[k]}</span>`
+  (AIDE_DI[k] ? `<label for="di_${k}" class="avec-aide${k === "doeAnt" || k === "doePre" ? " serre" : ""}"><span class="di-lib">${esc(lib)}</span><sup class="ast" aria-hidden="true">*</sup></label><span class="di-aide" id="aide_${k}" role="tooltip">${AIDE_DI[k]}</span>`
     : `<label for="di_${k}">${esc(lib)}</label>`) + `<div class="date-champ">` +
   `<input id="di_${k}" data-di="${k}"${AIDE_DI[k] ? ` aria-describedby="aide_${k}"` : ""} value="${isoVersFr(etat.fiche.di[k])}" placeholder="JJ/MM/AAAA" inputmode="numeric" maxlength="10" autocomplete="off">` +
   `<button class="cal" type="button" data-dical="${k}" aria-label="Choisir la date « ${esc(lib)} » dans le calendrier" title="Calendrier">${ICO_CAL}</button>` +
   `<input type="date" class="date-cachee" data-dipick="${k}" tabindex="-1" aria-hidden="true"></div></div>`).join(""));
 $("di_poi").closest(".champ").after($("f_dlpi").closest(".champ"));   // la DLPI en 2e, juste après Réception POI
+majMad();
 $("datesImp").addEventListener("input", e => {
   const k = e.target.dataset.di; if (!k) return;
   e.target.value = formaterDate(e.target.value);
   const iso = frVersIso(e.target.value), vide = !e.target.value;
   e.target.classList.toggle("invalide", e.target.value.length === 10 && !iso);
   if (iso) etat.fiche.di[k] = iso; else if (vide) delete etat.fiche.di[k];
-  if (iso || vide) sauver();
+  if (iso || vide) { if (k === "mad") { delete etat.fiche.diSrc.mad; majMad(); } sauver(); }   // saisie à la main : simple « MAD »
 });
 $("datesImp").addEventListener("focusout", e => {
   const k = e.target.dataset.di; if (!k) return;
@@ -1104,7 +1119,9 @@ $("datesImp").addEventListener("click", e => {
 });
 $("datesImp").addEventListener("change", e => {
   const k = e.target.dataset.dipick; if (!k || !e.target.value) return;
-  etat.fiche.di[k] = e.target.value; sauver();
+  etat.fiche.di[k] = e.target.value;
+  if (k === "mad") { delete etat.fiche.diSrc.mad; majMad(); }
+  sauver();
   const c = $("di_" + k); c.value = isoVersFr(e.target.value); c.classList.remove("invalide");
 });
 
