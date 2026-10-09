@@ -382,29 +382,31 @@ header.top.urg-vert { box-shadow: var(--clay-sm), inset 0 0 0 4px #3ddc76, 0 0 1
 
       <div class="bas-droite">
         <div class="cote">
-          <div class="docs">
-            <button class="docs-tuile" id="docsTuile" type="button"><svg viewBox="0 0 24 24" width="40" height="40" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span>Documents POI<small id="docsEtat"></small></span></button>
-            <button class="lien-edit" id="docsEdit" type="button" aria-label="Changer ou retirer le lien des documents" title="Changer ou retirer le lien" hidden>✎</button>
-          </div>
           <div class="card c-utiles">
             <h2>Infos utiles</h2>
             <div class="iu" id="infosUtiles"></div>
           </div>
         </div>
 
-        <div class="card commentaires c-comm">
-          <h2>Commentaires</h2>
-          <div class="memo" id="memo"></div>
-          <div class="note-aide" id="noteAide">Clique sur le texte d'une tâche pour voir ou écrire son commentaire.</div>
-          <div class="note-detail" id="noteDetail" hidden>
-            <div><div class="note-chemin" id="noteChemin"></div><div class="note-titre" id="noteTitre"></div><div class="note-dates" id="noteDates"></div></div>
-            <textarea id="noteTache" placeholder="Écris ton commentaire… (tu peux aussi coller ou glisser une capture ici)"></textarea>
-            <div class="captures" id="noteCaptures"></div>
-            <div class="bulle-bas">
-              <label class="btn btn-mini" for="noteTacheFichier">Ajouter une capture</label>
-              <input type="file" id="noteTacheFichier" accept="image/*" multiple hidden>
-              <span class="bulle-aide">ou colle (⌘V) / glisse une image dans le commentaire</span>
+        <div class="cote">
+          <div class="card commentaires c-comm">
+            <h2>Commentaires</h2>
+            <div class="memo" id="memo"></div>
+            <div class="note-aide" id="noteAide">Clique sur le texte d'une tâche pour voir ou écrire son commentaire.</div>
+            <div class="note-detail" id="noteDetail" hidden>
+              <div><div class="note-chemin" id="noteChemin"></div><div class="note-titre" id="noteTitre"></div><div class="note-dates" id="noteDates"></div></div>
+              <textarea id="noteTache" placeholder="Écris ton commentaire… (tu peux aussi coller ou glisser une capture ici)"></textarea>
+              <div class="captures" id="noteCaptures"></div>
+              <div class="bulle-bas">
+                <label class="btn btn-mini" for="noteTacheFichier">Ajouter une capture</label>
+                <input type="file" id="noteTacheFichier" accept="image/*" multiple hidden>
+                <span class="bulle-aide">ou colle (⌘V) / glisse une image dans le commentaire</span>
+              </div>
             </div>
+          </div>
+          <div class="docs">
+            <button class="docs-tuile" id="docsTuile" type="button"><svg viewBox="0 0 24 24" width="40" height="40" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span>Documents POI<small id="docsEtat"></small></span></button>
+            <button class="lien-edit" id="docsEdit" type="button" aria-label="Changer ou retirer le lien des documents" title="Changer ou retirer le lien" hidden>✎</button>
           </div>
         </div>
       </div>
