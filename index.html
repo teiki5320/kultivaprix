@@ -165,6 +165,10 @@ header.top .sous { font-size: 13px; opacity: .85; }
 .visionneuse { position: fixed; inset: 0; z-index: 100; background: rgba(40, 30, 20, .75); display: grid; place-items: center; padding: 24px; cursor: zoom-out; }
 .visionneuse img { max-width: 100%; max-height: 100%; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,.4); }
 /* Regroupement syndic : référence + IMB en nombre libre, défilement horizontal */
+/* Regroupement syndic : la case juste à droite du titre */
+.champ.ref-ligne { flex-direction: row; align-items: center; gap: 10px; }
+.champ.ref-ligne label { flex: none; }
+.champ.ref-ligne input { width: min(220px, 55%); }
 .regroup-tete { display: flex; align-items: center; gap: 10px; margin-bottom: 2px; }
 .regroup-tete label { flex: none; }
 .regroup-tete .import { margin-left: auto; flex: none; }
@@ -301,7 +305,7 @@ header.top.urg-vert { box-shadow: var(--clay-sm), inset 0 0 0 4px #3ddc76, 0 0 1
   .col.droite .card { padding: 12px 14px; }
   .col.droite .card h2 { margin-bottom: 8px; }
   .fiche { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px 8px; }
-  .champ.adr { grid-column: span 2; }
+  .champ.adr { grid-column: span 3; }   /* l'adresse prend la largeur des trois cases du dessus, le N° PC reste à droite */
   .champ input { min-height: 30px; padding: 5px 9px; }
   .bas-droite, .cote { gap: 12px; }
 }
@@ -360,9 +364,9 @@ header.top.urg-vert { box-shadow: var(--clay-sm), inset 0 0 0 4px #3ddc76, 0 0 1
               </div>
             </div>
           </div>
-          <div class="champ"><label for="f_ref">Regroupement syndic</label><input id="f_ref" data-f="ref" placeholder="Regroupement syndic"></div>
           <div class="champ large adr"><label for="f_adr">Adresse</label><input id="f_adr" data-f="adr" placeholder="Adresse de l'immeuble"></div>
           <div class="champ"><label for="f_pc">N° PC</label><input id="f_pc" data-f="pc" placeholder="N° PC"></div>
+          <div class="champ large ref-ligne"><label for="f_ref">Regroupement syndic</label><input id="f_ref" data-f="ref" placeholder="Regroupement syndic"></div>
           <div class="champ large regroup" id="regroupZone">
             <div class="regroup-tete"><label for="imb0">IMB</label>
               <label class="btn btn-mini import" for="imbFichier" title="Importer l'export Excel des IMB (.xls, .xlsx ou .csv)">Importer Excel</label>
