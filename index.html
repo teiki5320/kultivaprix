@@ -225,6 +225,7 @@ header.top.urg-vert { box-shadow: var(--clay-sm), inset 0 0 0 4px #3ddc76, 0 0 1
 .dates-imp .champ { justify-content: flex-end; position: relative; }   /* cases alignées même si un titre passe sur deux lignes */
 /* astérisque à côté du titre : la précision s'ouvre au survol de l'astérisque ou du titre */
 .dates-imp .avec-aide { cursor: help; align-self: flex-start; }
+.dates-imp label.serre { font-size: 10.5px; letter-spacing: -.2px; white-space: nowrap; }   /* les deux titres « Réception DOE … » tiennent sur une ligne */
 .dates-imp .ast { color: #c46a1c; font-size: 13px; font-weight: 800; margin-left: 2px; }
 .di-aide { display: none; position: absolute; z-index: 25; left: 0; bottom: calc(100% + 4px); width: max-content; max-width: 230px; padding: 7px 10px; border-radius: 10px;
   background: #2b2b2b; color: #f2f2f2; font-size: 12px; font-weight: 600; line-height: 1.35; box-shadow: var(--clay); pointer-events: none; }
@@ -400,7 +401,7 @@ header.top.urg-vert { box-shadow: var(--clay-sm), inset 0 0 0 4px #3ddc76, 0 0 1
       <div class="card c-dates">
         <h2>Dates importantes</h2>
         <div class="dates-imp" id="datesImp">
-          <div class="champ"><label for="f_dlpi" class="avec-aide">DLPI<sup class="ast" aria-hidden="true">*</sup></label><span class="di-aide" id="aide_dlpi" role="tooltip">Date indiquée dans l'AS.</span>
+          <div class="champ"><label for="f_dlpi" class="avec-aide">DLPI<sup class="ast" aria-hidden="true">*</sup></label><span class="di-aide" id="aide_dlpi" role="tooltip">Date indiquée dans l'AS (à rentrer manuellement).</span>
             <div class="date-champ">
               <input id="f_dlpi" aria-describedby="aide_dlpi" placeholder="JJ/MM/AAAA" inputmode="numeric" maxlength="10" autocomplete="off">
               <button class="cal" id="calDlpi" type="button" aria-label="Choisir la DLPI dans le calendrier" title="Calendrier"><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg></button>
@@ -526,7 +527,7 @@ const TACHES = [
     { id: "t6_7", lib: "Envoyer en travaux", mode: "tout", kids: [
       { id: "t6_7_1", lib: "Mettre ComL" } ] },
     { id: "t6_8", lib: "Valider tâche « Lancement travaux » dans SPI" },
-    { id: "t6_9", lib: "Demander la MAD anticipée si POI à l’état DMS" } ] },
+    { id: "t6_9", lib: "Demander la MAD anticipée (si POI à l’état DMS)" } ] },
   { id: "t7", lib: "Réception du DOE Racco D2", mode: "tout", kids: [
     { id: "t7_1", lib: "Vérification faites" },
     { id: "t7_2", lib: "Faire contraste", mode: "un", choix: true, kids: [
@@ -637,7 +638,7 @@ function resultat(t) {
 }
 
 /* ═══ Outils des tâches : date (comme la DLPI) et lien vers le Modop sur OneDrive ═══ */
-const AVEC_DATE = new Set(["t1", "t2_1_1", "t2_1_2", "t5_1_1", "t5_1_2", "t6_7", "t6_9", "t7", "t7_5", "t7_6"]);
+const AVEC_DATE = new Set(["t1", "t2_1_1", "t2_1_2", "t4_2_6_2", "t5_1_1", "t5_1_2", "t6_7", "t6_9", "t7", "t7_3", "t7_5", "t7_6"]);
 const AVEC_MODOP = new Set(["t1_5", "t2_1_1_1", "t2_1_2_1", "t3_2", "t3_3", "t3_3_1", "t3_4", "t3_4_1", "t4_1_1", "t4_2_2", "t4_2_4_1",
   "t4_2_5", "t4_2_7", "t4_2_8", "t4_2_9", "t5_1_1_1", "t5_1_2_1", "t6_1", "t6_2", "t6_2_1", "t6_3", "t6_4", "t6_5", "t6_6", "t6_7_1", "t6_8",
   "t6_9", "t7_1", "t7_2", "t7_3", "t7_4_1_2", "t7_4_2_1", "t7_4_3_1", "t7_4_3_2", "t7_4_5_1", "t7_5"]);
@@ -738,7 +739,7 @@ $("arbre").addEventListener("input", e => {
   const iso = frVersIso(e.target.value), vide = !e.target.value;
   e.target.classList.toggle("invalide", e.target.value.length === 10 && !iso);
   if (iso) etat.dates[id] = iso; else if (vide) delete etat.dates[id];
-  if (iso || vide) sauver();
+  if (iso || vide) { sauver(); reporterDate(id); }
 });
 $("arbre").addEventListener("focusout", e => {
   const id = e.target.dataset.date; if (!id) return;
@@ -752,7 +753,7 @@ $("arbre").addEventListener("click", e => {
 });
 $("arbre").addEventListener("change", e => {
   const id = e.target.dataset.calpick; if (!id || !e.target.value) return;
-  etat.dates[id] = e.target.value; sauver();
+  etat.dates[id] = e.target.value; sauver(); reporterDate(id);
   const champ = $("dt_" + id); if (champ) { champ.value = isoVersFr(e.target.value); champ.classList.remove("invalide"); }
 });
 
@@ -1053,7 +1054,7 @@ document.querySelector(".feu").addEventListener("click", e => {
 const DATES_IMP = [["poi", "Réception POI"], ["dre", "DRE"], ["dlr", "DLR"],
   ["apd", "Réception APD"], ["doeAnt", "Réception DOE Anticipation"], ["doePre", "Réception DOE précâblage"], ["travaux", "Envoi en travaux"],
   ["madAnt", "MAD anticipée"], ["doeRacco", "Réception DOE Racco D2"], ["paiement", "Paiement attachement"], ["mad", "MAD"]];
-// précisions au survol de l'astérisque ou du titre (pas pour Envoi en travaux ni Paiement attachement ; celle de la DLPI est dans le HTML)
+// précisions au survol de l'astérisque ou du titre (pas pour Paiement attachement ; celle de la DLPI est dans le HTML)
 const AIDE_DI = {
   poi: "Date à laquelle la POI a été intégrée à mon portefeuille.",
   dre: "Date à entrer manuellement selon l'état d'avancement du dossier.",
@@ -1061,13 +1062,23 @@ const AIDE_DI = {
   apd: "Date de réception de l'APD <u>conforme</u>.",
   doeAnt: "Date de réception du DOE anticipation <u>conforme</u>.",
   doePre: "Date de réception du DOE précâblage <u>conforme</u>.",
+  travaux: "Date à entrer manuellement selon l'état d'avancement du dossier.",
   madAnt: "Date à laquelle j'ai fait la demande de MAD anticipée.",
   doeRacco: "Date de réception du DOE Racco D2 <u>conforme</u>.",
   mad: "Date à laquelle j'ai fait la demande de MAD.",
 };
 if (!etat.fiche.di || typeof etat.fiche.di !== "object") etat.fiche.di = {};
+// dates des tâches reportées toutes seules dans les Dates importantes (la case reste modifiable à la main)
+const LIENS_DI = { t1: "poi", t2_1_2: "apd", t4_2_6_2: "doeAnt", t5_1_2: "doePre", t6_9: "madAnt", t7: "doeRacco", t7_3: "paiement", t7_5: "mad" };
+function reporterDate(id) {
+  const k = LIENS_DI[id]; if (!k) return;
+  if (etat.dates[id]) etat.fiche.di[k] = etat.dates[id]; else delete etat.fiche.di[k];
+  sauver();
+  const c = $("di_" + k); if (c) { c.value = isoVersFr(etat.fiche.di[k]); c.classList.remove("invalide"); }
+}
+Object.keys(LIENS_DI).forEach(id => { if (etat.dates[id]) etat.fiche.di[LIENS_DI[id]] = etat.dates[id]; });
 $("datesImp").insertAdjacentHTML("beforeend", DATES_IMP.map(([k, lib]) => `<div class="champ">` +
-  (AIDE_DI[k] ? `<label for="di_${k}" class="avec-aide">${esc(lib)}<sup class="ast" aria-hidden="true">*</sup></label><span class="di-aide" id="aide_${k}" role="tooltip">${AIDE_DI[k]}</span>`
+  (AIDE_DI[k] ? `<label for="di_${k}" class="avec-aide${k === "doeAnt" || k === "doePre" ? " serre" : ""}">${esc(lib)}<sup class="ast" aria-hidden="true">*</sup></label><span class="di-aide" id="aide_${k}" role="tooltip">${AIDE_DI[k]}</span>`
     : `<label for="di_${k}">${esc(lib)}</label>`) + `<div class="date-champ">` +
   `<input id="di_${k}" data-di="${k}"${AIDE_DI[k] ? ` aria-describedby="aide_${k}"` : ""} value="${isoVersFr(etat.fiche.di[k])}" placeholder="JJ/MM/AAAA" inputmode="numeric" maxlength="10" autocomplete="off">` +
   `<button class="cal" type="button" data-dical="${k}" aria-label="Choisir la date « ${esc(lib)} » dans le calendrier" title="Calendrier">${ICO_CAL}</button>` +
