@@ -584,11 +584,13 @@ function valide(n) {
   return n.mode === "un" ? n.kids.some(valide) : n.kids.every(k => valide(k) || estBarre(k));
 }
 
-// cocher la première tâche barre toute la seconde (et la débarre si on la décoche)
-const BARRE_SI = { t4_1: "t4_2" };   // anticipation non nécessaire → anticipation nécessaire
+// anticipation non nécessaire / nécessaire : cocher dans l'une (elle-même ou une de ses tâches) barre et décoche toute l'autre ;
+// tout décocher dans l'une débarre l'autre
+const BARRE_SI = { t4_1: "t4_2", t4_2: "t4_1" };
+const engagee = id => [NOEUDS[id], ...desc(NOEUDS[id])].some(x => etat.coches[x.id]);
 function basculer(n, on) {
   if (verrouillee(n)) { rendu(); return; }
-  const avant = Object.fromEntries(Object.keys(BARRE_SI).map(id => [id, valide(NOEUDS[id])]));
+  const avant = Object.fromEntries(Object.keys(BARRE_SI).map(id => [id, engagee(id)]));
   if (on) {
     etat.coches[n.id] = true;
     cascade(n).forEach(d => etat.coches[d.id] = true);
@@ -608,8 +610,12 @@ function basculer(n, on) {
     if (p && p.choix) p.kids.forEach(k => delete etat.barres[k.id]);
   }
   Object.entries(BARRE_SI).forEach(([si, cible]) => {
-    const maintenant = valide(NOEUDS[si]); if (maintenant === avant[si]) return;
-    [NOEUDS[cible], ...desc(NOEUDS[cible])].forEach(x => { if (maintenant) etat.barres[x.id] = true; else delete etat.barres[x.id]; });
+    const maintenant = engagee(si); if (maintenant === avant[si]) return;
+    const branche = id => [NOEUDS[id], ...desc(NOEUDS[id])];
+    if (maintenant) {
+      branche(si).forEach(x => delete etat.barres[x.id]);
+      branche(cible).forEach(x => { etat.barres[x.id] = true; delete etat.coches[x.id]; });
+    } else if (!engagee(cible)) branche(cible).forEach(x => delete etat.barres[x.id]);
   });
   sauver(); rendu();
 }
