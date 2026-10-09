@@ -263,6 +263,7 @@ header.top.urg-vert { box-shadow: var(--clay-sm), inset 0 0 0 4px #3ddc76, 0 0 1
 .iu-ajout { padding-left: 18px; }
 .iu .bout { flex: 1 1 0; width: 0; padding: 4px 6px; }
 .iu .tr { flex: 0 1 60px; width: 60px; }
+.iu-cab { cursor: text; }
 
 /* Commentaires : mémo daté en haut, commentaire de la tâche choisie en dessous */
 .card.commentaires { display: grid; gap: 10px; min-height: 460px; align-content: start; }
@@ -1099,6 +1100,7 @@ const pbAjoute = id => ({ t: "PB", k: id, ajout: "pb:" + id, l: [{ pre: "PT", k:
 const clesAjout = (sorte, id) => sorte === "pb" ? [id, id + "_pt", id + "_pf", id + "_ch", id + "_type"] : [id + "_de", id + "_a", id + "_tr"];
 const iuSup = (cle, lib) => `<button class="iu-sup" type="button" data-iusup="${cle}" aria-label="Retirer ${esc(lib)}" title="Retirer">×</button>`;
 const iuSupAjout = (cle, lib) => `<button class="iu-sup" type="button" data-iuajout="${cle}" aria-label="Supprimer ${esc(lib)}" title="Supprimer">×</button>`;
+const cabEdition = new Set();   // câbles ajoutés dont on modifie le départ ou l'arrivée
 function rendreIU() {
   const M = etat.fiche.iuMasques;
   // le PB d'origine puis les PB ajoutés ; dès qu'il y en a plusieurs : PB1, PB2, PB3…
@@ -1113,15 +1115,31 @@ function rendreIU() {
       iuChamp(x.k, "plein", x.pre ? x.pre + (x.pre.endsWith("/") ? "" : " ") : "", `${n} ${x.lab || x.pre}`) +
       (x.type ? `<span class="fixe">(Type :</span>${iuChamp(x.type, "court", "", `${n} type`)}<span class="fixe">)</span>` : "") +
       iuSup(x.k, `${n} ${x.lab || x.pre}`) + `</div>`).join("") +
-    (r.t === "Câbles" ? etat.fiche.iuCables.map(id => `<div class="iu-ligne">` +
+    (r.t === "Câbles" ? etat.fiche.iuCables.map(id => { const de = (etat.fiche.iu[id + "_de"] || "").trim(), a = (etat.fiche.iu[id + "_a"] || "").trim();
+      const fige = de && a && !cabEdition.has(id);
+      return `<div class="iu-ligne">` +
+      // départ et arrivée remplis : écrits comme les autres câbles ; un clic dessus les rend modifiables
+      (fige ? `<span class="fixe iu-cab" data-iucab="${id}" title="Cliquer pour modifier">${esc(de)} – ${esc(a)} :</span>` :
       iuChamp(id + "_de", "bout", "", "Câble · départ", "départ") + `<span class="fixe">–</span>` + iuChamp(id + "_a", "bout", "", "Câble · arrivée", "arrivée") +
-      `<span class="fixe">:</span>` + iuChamp(id + "_tr", "tr", "TR ", "Câble · TR") + iuSupAjout("cab:" + id, "ce câble") + `</div>`).join("") +
+      `<span class="fixe">:</span>`) + iuChamp(id + "_tr", fige ? "plein" : "tr", "TR ", "Câble · TR") + iuSupAjout("cab:" + id, "ce câble") + `</div>`; }).join("") +
       `<button class="iu-retablir iu-ajout" type="button" data-iuplus="cab">+ Ajouter un câble</button>` : "") +
     `</div>`; }).join("") +
     (Object.keys(M).length ? `<button class="iu-retablir" type="button" id="iuRetablir">↺ Rétablir les lignes</button>` : "");
 }
 rendreIU();
 $("infosUtiles").addEventListener("input", e => { const k = e.target.dataset.iu; if (!k) return; etat.fiche.iu[k] = e.target.value; sauver(); });
+// en quittant le départ ou l'arrivée d'un câble ajouté (sauf pour passer de l'un à l'autre), la ligne repasse en écriture simple
+$("infosUtiles").addEventListener("focusout", e => {
+  if (!e.target.classList.contains("bout")) return;
+  const id = e.target.dataset.iu.replace(/_(de|a)$/, ""), vers = e.relatedTarget;
+  if (vers && vers.classList.contains("bout") && vers.dataset.iu.startsWith(id + "_")) return;
+  cabEdition.delete(id);
+  if (!(etat.fiche.iu[id + "_de"] || "").trim() || !(etat.fiche.iu[id + "_a"] || "").trim()) return;
+  const k = vers && $("infosUtiles").contains(vers) ? vers.dataset.iu : null;
+  rendreIU();
+  const c = k && document.querySelector(`[data-iu="${k}"]`);
+  if (c) { c.focus(); c.setSelectionRange(c.value.length, c.value.length); }   // curseur à la fin, après « TR »
+});
 $("infosUtiles").addEventListener("click", e => {
   const b = e.target.closest("[data-iusup]");
   if (b) { etat.fiche.iuMasques[b.dataset.iusup] = true; sauver(); rendreIU(); return; }
@@ -1132,6 +1150,8 @@ $("infosUtiles").addEventListener("click", e => {
     document.querySelector(`[data-iu="${sorte === "pb" ? id : id + "_de"}"]`)?.focus();
     return;
   }
+  const cab = e.target.closest("[data-iucab]");
+  if (cab) { const id = cab.dataset.iucab; cabEdition.add(id); rendreIU(); document.querySelector(`[data-iu="${id}_de"]`)?.focus(); return; }
   // un PB ou un câble ajouté se supprime pour de bon (confirmation s'il contient quelque chose)
   const aj = e.target.closest("[data-iuajout]");
   if (aj) {
