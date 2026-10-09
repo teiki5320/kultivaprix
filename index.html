@@ -167,7 +167,6 @@ header.top .sous { font-size: 13px; opacity: .85; }
 /* Regroupement syndic : référence + IMB en nombre libre, défilement horizontal */
 .regroup-tete { display: flex; align-items: center; gap: 10px; margin-bottom: 2px; }
 .regroup-tete label { flex: none; }
-.regroup-tete input { width: min(220px, 55%); }
 .regroup-tete .import { margin-left: auto; flex: none; }
 .regroup { position: relative; }
 .import-msg { font-size: 12px; font-weight: 700; color: var(--ok); margin: 2px 0 4px; }
@@ -345,15 +344,6 @@ header.top.urg-vert { box-shadow: var(--clay-sm), inset 0 0 0 4px #3ddc76, 0 0 1
           <div class="champ"><label for="f_cab">Cabinet conseil</label><input id="f_cab" data-f="cab" placeholder="Nom du cabinet"></div>
           <div class="champ"><label for="f_ant">N° POI anticipation</label><input id="f_ant" data-f="ant" placeholder="POI anticipation"></div>
           <div class="champ"><label for="f_racco">N° POI Racco D2</label><input id="f_racco" data-f="racco" placeholder="POI Racco D2"></div>
-          <div class="champ"><label for="f_dlpi">DLPI</label>
-            <div class="date-champ">
-              <input id="f_dlpi" placeholder="JJ/MM/AAAA" inputmode="numeric" maxlength="10" autocomplete="off">
-              <button class="cal" id="calDlpi" type="button" aria-label="Choisir la DLPI dans le calendrier" title="Calendrier"><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg></button>
-              <input type="date" class="date-cachee" id="f_dlpi_cal" tabindex="-1" aria-hidden="true">
-            </div>
-          </div>
-          <div class="champ large adr"><label for="f_adr">Adresse</label><input id="f_adr" data-f="adr" placeholder="Adresse de l'immeuble"></div>
-          <div class="champ"><label for="f_pc">N° PC</label><input id="f_pc" data-f="pc" placeholder="N° PC"></div>
           <div class="champ el-zone" id="elZone"><label for="f_el">Nombre d'EL</label>
             <div class="el-champ">
               <input id="f_el" data-f="el" inputmode="numeric" placeholder="0" autocomplete="off">
@@ -370,8 +360,11 @@ header.top.urg-vert { box-shadow: var(--clay-sm), inset 0 0 0 4px #3ddc76, 0 0 1
               </div>
             </div>
           </div>
+          <div class="champ"><label for="f_ref">Regroupement syndic</label><input id="f_ref" data-f="ref" placeholder="Regroupement syndic"></div>
+          <div class="champ large adr"><label for="f_adr">Adresse</label><input id="f_adr" data-f="adr" placeholder="Adresse de l'immeuble"></div>
+          <div class="champ"><label for="f_pc">N° PC</label><input id="f_pc" data-f="pc" placeholder="N° PC"></div>
           <div class="champ large regroup" id="regroupZone">
-            <div class="regroup-tete"><label for="imb0">Regroupement syndic</label><input id="f_ref" data-f="ref" placeholder="Regroupement syndic" aria-label="Référence du regroupement syndic">
+            <div class="regroup-tete"><label for="imb0">IMB</label>
               <label class="btn btn-mini import" for="imbFichier" title="Importer l'export Excel des IMB (.xls, .xlsx ou .csv)">Importer Excel</label>
               <input type="file" id="imbFichier" accept=".xls,.xlsx,.csv" hidden></div>
             <div class="import-msg" id="importMsg" hidden></div>
@@ -394,7 +387,15 @@ header.top.urg-vert { box-shadow: var(--clay-sm), inset 0 0 0 4px #3ddc76, 0 0 1
 
       <div class="card c-dates">
         <h2>Dates importantes</h2>
-        <div class="dates-imp" id="datesImp"></div>
+        <div class="dates-imp" id="datesImp">
+          <div class="champ"><label for="f_dlpi">DLPI</label>
+            <div class="date-champ">
+              <input id="f_dlpi" placeholder="JJ/MM/AAAA" inputmode="numeric" maxlength="10" autocomplete="off">
+              <button class="cal" id="calDlpi" type="button" aria-label="Choisir la DLPI dans le calendrier" title="Calendrier"><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg></button>
+              <input type="date" class="date-cachee" id="f_dlpi_cal" tabindex="-1" aria-hidden="true">
+            </div>
+          </div>
+        </div>
       </div>
 
       <div class="bas-droite">
@@ -1040,10 +1041,10 @@ const DATES_IMP = [["poi", "Réception POI"], ["apd", "Réception APD"], ["doePr
   ["travaux", "Envoi en travaux"], ["doeRacco", "Réception DOE Racco D2"], ["madAnt", "MAD anticipée"], ["mad", "MAD"], ["paiement", "Paiement attachement"],
   ["dre", "DRE"], ["dlr", "DLR"]];
 if (!etat.fiche.di || typeof etat.fiche.di !== "object") etat.fiche.di = {};
-$("datesImp").innerHTML = DATES_IMP.map(([k, lib]) => `<div class="champ"><label for="di_${k}">${esc(lib)}</label><div class="date-champ">` +
+$("datesImp").insertAdjacentHTML("beforeend", DATES_IMP.map(([k, lib]) => `<div class="champ"><label for="di_${k}">${esc(lib)}</label><div class="date-champ">` +
   `<input id="di_${k}" data-di="${k}" value="${isoVersFr(etat.fiche.di[k])}" placeholder="JJ/MM/AAAA" inputmode="numeric" maxlength="10" autocomplete="off">` +
   `<button class="cal" type="button" data-dical="${k}" aria-label="Choisir la date « ${esc(lib)} » dans le calendrier" title="Calendrier">${ICO_CAL}</button>` +
-  `<input type="date" class="date-cachee" data-dipick="${k}" tabindex="-1" aria-hidden="true"></div></div>`).join("");
+  `<input type="date" class="date-cachee" data-dipick="${k}" tabindex="-1" aria-hidden="true"></div></div>`).join(""));   // après la DLPI
 $("datesImp").addEventListener("input", e => {
   const k = e.target.dataset.di; if (!k) return;
   e.target.value = formaterDate(e.target.value);
