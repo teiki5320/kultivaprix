@@ -1076,20 +1076,20 @@ $("suiviTuile").onclick = () => { const m = $("suiviEtat"); m.textContent = "Tab
 const IU = [
   { t: "PMZ", k: "pmz", l: [{ pre: "PT", k: "pmz_pt" }, { pre: "PF", k: "pmz_pf" }, { pre: "AR/", k: "pmz_ar" }, { lab: "FI reg :", k: "pmz_fireg" }] },
   { t: "PA", k: "pa", l: [{ pre: "PT", k: "pa_pt" }, { pre: "PF", k: "pa_pf" }, { pre: "CH/", k: "pa_ch", type: "pa_type" }, { lab: "PA reg :", k: "pa_reg" }] },
-  { t: "PR/BPI", l: [{ pre: "PT", k: "bpi_pt" }, { pre: "CH/", k: "bpi_ch", type: "bpi_type" }] },
-  { t: "PB", l: [{ pre: "PT", k: "pb_pt" }, { pre: "PF", k: "pb_pf" }, { pre: "CH/", k: "pb_ch", type: "pb_type" }] },
-  { t: "PAR", l: [{ pre: "CH/", k: "par_ch", type: "par_type" }, { lab: "Appui :", k: "par_appui" }] },
+  { t: "PR/BPI", k: "bpi", l: [{ pre: "PT", k: "bpi_pt" }, { pre: "CH/", k: "bpi_ch", type: "bpi_type" }] },
+  { t: "PB", k: "pb", l: [{ pre: "PT", k: "pb_pt" }, { pre: "PF", k: "pb_pf" }, { pre: "CH/", k: "pb_ch", type: "pb_type" }] },
+  { t: "PAR", k: "par", l: [{ pre: "CH/", k: "par_ch", type: "par_type" }, { lab: "Appui :", k: "par_appui" }] },
   { t: "Câbles", l: [{ lab: "PMZ – PA :", pre: "TR", k: "cab_pmz_pa" }, { lab: "PA – PR/BPI :", pre: "TR", k: "cab_pa_bpi" }, { lab: "PR/BPI – PB :", pre: "TR", k: "cab_bpi_pb" }, { lab: "PA – PB :", pre: "TR", k: "cab_pa_pb" }] },
 ];
 if (!etat.fiche.iu || typeof etat.fiche.iu !== "object") etat.fiche.iu = {};
 const iuVal = (k, defaut = "") => esc(etat.fiche.iu[k] ?? defaut);
-const iuChamp = (k, cls, defaut, lib) => `<input class="${cls}" data-iu="${k}" value="${iuVal(k, defaut)}" aria-label="${esc(lib)}" autocomplete="off">`;
+const iuChamp = (k, cls, defaut, lib, aide = "") => `<input class="${cls}" data-iu="${k}" value="${iuVal(k, defaut)}"${aide ? ` placeholder="${esc(aide)}"` : ""} aria-label="${esc(lib)}" autocomplete="off">`;
 // lignes retirées pour ce dossier : « r:PMZ » pour une rubrique entière, la clé du champ pour une ligne ; ce qui est écrit est gardé
 if (!etat.fiche.iuMasques || typeof etat.fiche.iuMasques !== "object") etat.fiche.iuMasques = {};
 const iuSup = (cle, lib) => `<button class="iu-sup" type="button" data-iusup="${cle}" aria-label="Retirer ${esc(lib)}" title="Retirer">×</button>`;
 function rendreIU() {
   const M = etat.fiche.iuMasques;
-  $("infosUtiles").innerHTML = IU.filter(r => !M["r:" + r.t]).map(r => `<div class="iu-rub"><div class="iu-tete"><span class="fixe">${esc(r.t)} :</span>${r.k ? iuChamp(r.k, "plein", "", r.t) : ""}${iuSup("r:" + r.t, r.t)}</div>` +
+  $("infosUtiles").innerHTML = IU.filter(r => !M["r:" + r.t]).map(r => `<div class="iu-rub"><div class="iu-tete"><span class="fixe">${esc(r.t)} :</span>${r.k ? iuChamp(r.k, "plein", "", `${r.t} · ID Référentiel PT`, "ID Référentiel PT") : ""}${iuSup("r:" + r.t, r.t)}</div>` +
     r.l.filter(x => !M[x.k]).map(x => `<div class="iu-ligne">` +
       (x.lab ? `<span class="fixe">${esc(x.lab)}</span>` : "") +
       iuChamp(x.k, "plein", x.pre ? x.pre + (x.pre.endsWith("/") ? "" : " ") : "", `${r.t} ${x.lab || x.pre}`) +
