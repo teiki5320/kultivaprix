@@ -286,15 +286,9 @@ header.top.urg-vert { box-shadow: var(--clay-sm), inset 0 0 0 4px #3ddc76, 0 0 1
 /* tâche choisie : sa date et son nom au-dessus de la case */
 .note-tete { display: flex; align-items: baseline; gap: 10px; font-size: 15px; font-weight: 800; }
 .note-tete .md { font-family: var(--mono); font-size: 12.5px; font-weight: 700; color: var(--muted); flex: none; }
-/* très grande tâche : ses tâches faites, dans l'ordre de la carte Tâches */
-.note-sous { display: grid; gap: 4px; }
-.note-sous:empty { display: none; }
-.ns-ligne { display: grid; grid-template-columns: 78px minmax(0, 1fr); column-gap: 8px; padding: 6px 8px; border-radius: 9px; cursor: pointer; font-size: 13px; background: var(--carte-2); }
-.ns-ligne:hover { box-shadow: 0 0 0 2px var(--accent-dim); }
-.ns-ligne .md { font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--muted); }
-.ns-ligne .mn { font-weight: 700; }
-.ns-ligne.n3 .mn { padding-left: 14px; font-weight: 600; }
-.ns-ligne.n4 .mn { padding-left: 28px; font-weight: 400; }
+/* très grande tâche : la case des tâches cochées passe sous la capture et ne montre que ses tâches faites, décalées par niveau */
+.memo-ligne.n3 .mn { padding-left: 14px; font-weight: 600; }
+.memo-ligne.n4 .mn { padding-left: 28px; font-weight: 400; }
 .note-detail textarea { width: 100%; resize: vertical; border: 0; border-radius: 12px; background: var(--carte-2); box-shadow: var(--inset); padding: 9px 12px; font: inherit; font-size: 14px; outline: none; min-height: 140px; }
 .note-detail textarea:focus { box-shadow: var(--inset), 0 0 0 3px var(--accent-dim); }
 .note-detail.depot { outline: 3px dashed var(--accent); outline-offset: 4px; border-radius: 12px; }
@@ -428,7 +422,6 @@ header.top.urg-vert { box-shadow: var(--clay-sm), inset 0 0 0 4px #3ddc76, 0 0 1
                 <input type="file" id="noteTacheFichier" accept="image/*" multiple hidden>
                 <span class="bulle-aide">ou colle (⌘V) / glisse une image dans le commentaire</span>
               </div>
-              <div class="note-sous" id="noteSous"></div>
             </div>
           </div>
           <div class="docs">
@@ -1193,14 +1186,19 @@ function noterCoches(avant) {
   Object.keys(NOEUDS).forEach(k => { if (!avant.has(k) && valide(NOEUDS[k]) && etat.coches[k]) { const m = entree(k); m.coche = j; m.ordreCoche = rang++; } });
   sauver(); rendreMemo();
 }
+function dateCoche(n) { const m = etat.memo[n.id]; return valide(n) && m && m.coche ? isoVersFr(m.coche) : "—"; }
 function rendreMemo() {
-  const L = Object.entries(etat.memo).filter(([k]) => NOEUDS[k]).sort((a, b) => (a[1].ordreCoche || a[1].ordre) - (b[1].ordreCoche || b[1].ordre));
+  // très grande tâche choisie : ses tâches faites dans l'ordre de la carte Tâches, sous son commentaire ; sinon toutes les tâches cochées, en haut
+  const g = noteChoisie && TACHES.includes(NOEUDS[noteChoisie]) ? NOEUDS[noteChoisie] : null;
+  const L = g ? desc(g).filter(k => dateCoche(k) !== "—").map(k => [k.id, etat.memo[k.id]])
+    : Object.entries(etat.memo).filter(([k]) => NOEUDS[k]).sort((a, b) => (a[1].ordreCoche || a[1].ordre) - (b[1].ordreCoche || b[1].ordre));
+  if (g) document.querySelector("#noteDetail .bulle-bas").after($("memo")); else $("noteAide").before($("memo"));
   $("memo").innerHTML = L.length ? L.map(([k, m]) => {
     const n = NOEUDS[k], d = m.coche || m.noteDate;
     const etatTxt = estBarre(n) ? `<span class="mt barree">barrée</span>` : m.coche && !valide(n) ? `<span class="mt decochee">décochée</span>` : "";
     const aNote = m.note.trim() || (notesCaptures[k] || []).length;
-    return `<div class="memo-ligne${k === noteChoisie ? " sel" : ""}" data-memo="${k}"><span class="md">${d ? isoVersFr(d) : "—"}</span><span class="mn" title="${esc(cheminTache(n) ? cheminTache(n) + " › " + n.lib : n.lib)}">${esc(n.lib)}</span>${etatTxt}${aNote ? '<span class="mc" title="Commentaire">●</span>' : ""}<button class="msup" type="button" data-memosup="${k}" title="Retirer du mémo" aria-label="Retirer du mémo">×</button></div>`;
-  }).join("") : `<div class="memo-vide">Les tâches cochées s'inscrivent ici, avec la date.</div>`;
+    return `<div class="memo-ligne${k === noteChoisie ? " sel" : ""}${g ? " n" + (anc(n).length + 1) : ""}" data-memo="${k}"><span class="md">${d ? isoVersFr(d) : "—"}</span><span class="mn" title="${esc(cheminTache(n) ? cheminTache(n) + " › " + n.lib : n.lib)}">${esc(n.lib)}</span>${etatTxt}${aNote ? '<span class="mc" title="Commentaire">●</span>' : ""}<button class="msup" type="button" data-memosup="${k}" title="Retirer du mémo" aria-label="Retirer du mémo">×</button></div>`;
+  }).join("") : `<div class="memo-vide">${g ? "Aucune tâche faite dans cette étape pour l'instant." : "Les tâches cochées s'inscrivent ici, avec la date."}</div>`;
 }
 function afficherNote(id) {
   noteChoisie = id;
@@ -1221,16 +1219,11 @@ $("noteTache").addEventListener("input", () => {
   const m = entree(noteChoisie); m.note = $("noteTache").value; m.noteDate = aujourdhui();
   sauver(); rendreMemo();
 });
-// la tâche choisie : date où elle a été cochée et son nom
-const dateCoche = n => { const m = etat.memo[n.id]; return valide(n) && m && m.coche ? isoVersFr(m.coche) : "—"; };
-// pour une très grande tâche seulement : toutes ses tâches faites (moyennes, petites, sous-tâches), dans l'ordre de la carte Tâches
+// la tâche choisie : date où elle a été cochée et son nom, au-dessus de la case
 function rendreNoteSous() {
   const n = noteChoisie && NOEUDS[noteChoisie];
   $("noteTete").innerHTML = n ? `<span class="md">${dateCoche(n)}</span><span>${esc(n.lib)}</span>` : "";
-  $("noteSous").innerHTML = n && TACHES.includes(n) ? desc(n).filter(k => dateCoche(k) !== "—").map(k =>
-    `<div class="ns-ligne n${anc(k).length + 1}" data-nsous="${k.id}"><span class="md">${dateCoche(k)}</span><span class="mn">${esc(k.lib)}</span></div>`).join("") : "";
 }
-$("noteSous").addEventListener("click", e => { const l = e.target.closest("[data-nsous]"); if (l) afficherNote(l.dataset.nsous); });
 function rendreNoteCaptures() {
   const L = notesCaptures[noteChoisie] || [];
   $("noteCaptures").innerHTML = L.map((src, i) => `<div class="capture" data-nvoir="${i}"><img src="${src}" alt="Capture ${i + 1}"><button type="button" data-nret="${i}" aria-label="Retirer la capture ${i + 1}" title="Retirer">×</button></div>`).join("");
