@@ -132,6 +132,10 @@ header.top .sous { font-size: 13px; opacity: .85; }
 .champ input:focus { box-shadow: var(--inset), 0 0 0 3px var(--accent-dim); }
 .champ input[type="date"] { -webkit-appearance: none; appearance: none; min-width: 0; display: block; text-align: left; }
 .champ input[type="date"]::-webkit-date-and-time-value { text-align: left; }
+/* N° de POI annulée ou archivée : case grisée et mention à côté du titre */
+.champ input.poi-close { background: #cfcfcf; color: #6b6b6b; text-decoration: line-through; }
+.poi-etat { color: #8a8a8a; font-weight: 800; }
+.fiche > .champ:not(.large) { justify-content: flex-end; }   /* cases alignées même si un titre passe sur deux lignes */
 .champ input::placeholder { color: var(--muted); opacity: .7; }
 /* DLPI : saisie JJ/MM/AAAA + calendrier natif caché derrière l'icône */
 .date-champ, .el-champ { position: relative; }
@@ -355,8 +359,8 @@ header.top.urg-vert { box-shadow: var(--clay-sm), inset 0 0 0 4px #3ddc76, 0 0 1
         <h2>Infos du dossier</h2>
         <div class="fiche">
           <div class="champ"><label for="f_cab">Cabinet conseil</label><input id="f_cab" data-f="cab" placeholder="Nom du cabinet"></div>
-          <div class="champ"><label for="f_ant">N° POI anticipation</label><input id="f_ant" data-f="ant" placeholder="POI anticipation"></div>
-          <div class="champ"><label for="f_racco">N° POI Racco D2</label><input id="f_racco" data-f="racco" placeholder="POI Racco D2"></div>
+          <div class="champ"><label for="f_ant">N° POI anticipation<span class="poi-etat" id="etatAnt"></span></label><input id="f_ant" data-f="ant" placeholder="POI anticipation"></div>
+          <div class="champ"><label for="f_racco">N° POI Racco D2<span class="poi-etat" id="etatRacco"></span></label><input id="f_racco" data-f="racco" placeholder="POI Racco D2"></div>
           <div class="champ el-zone" id="elZone"><label for="f_el">Nombre d'EL</label>
             <div class="el-champ">
               <input id="f_el" data-f="el" inputmode="numeric" placeholder="0" autocomplete="off">
@@ -709,7 +713,7 @@ function rendu() {
   $("compteur").textContent = `${nbOk} / ${TACHES.length}`;
   $("compteur").className = "tag " + (nbOk === TACHES.length ? "ok" : nbOk ? "run" : "none");
 
-  rendreMemo();
+  rendreMemo(); majPoiEtat();
   if (focus && $(focus) && document.activeElement !== $(focus)) $(focus).focus();
 }
 
@@ -1100,9 +1104,16 @@ function reporterDate(id) {
   if (src) { etat.fiche.di[k] = etat.dates[src]; etat.fiche.diSrc[k] = src; } else { delete etat.fiche.di[k]; delete etat.fiche.diSrc[k]; }
   sauver();
   const c = $("di_" + k); if (c) { c.value = isoVersFr(etat.fiche.di[k]); c.classList.remove("invalide"); }
-  majTitres();
+  majTitres(); majPoiEtat();
 }
 Object.keys(LIENS_DI).forEach(id => { if (etat.dates[id]) { etat.fiche.di[LIENS_DI[id]] = etat.dates[id]; etat.fiche.diSrc[LIENS_DI[id]] = id; } });
+// POI annulée ou archivée (date d'archivage/annulation remplie, ou tâche correspondante cochée) : son numéro passe en grisé
+function majPoiEtat() {
+  const di = etat.fiche.di || {}, src = etat.fiche.diSrc || {}, fait = id => NOEUDS[id] && valide(NOEUDS[id]);
+  const ant = fait("t4_1_1") || src.archAnt === "t4_1_1" ? "annulée" : di.archAnt || fait("t4_2_11") ? "archivée" : "";
+  const racco = di.archRacco || fait("t7_6") ? "archivée" : "";
+  [["f_ant", "etatAnt", ant], ["f_racco", "etatRacco", racco]].forEach(([c, e, t]) => { $(c).classList.toggle("poi-close", !!t); $(e).textContent = t ? " · " + t : ""; });
+}
 function majTitres() {
   Object.entries(TITRE_SRC).forEach(([k, t]) => {
     const lib = t[etat.fiche.diSrc[k]] || DATES_IMP.find(d => d[0] === k)[1];
@@ -1124,7 +1135,7 @@ $("datesImp").addEventListener("input", e => {
   const iso = frVersIso(e.target.value), vide = !e.target.value;
   e.target.classList.toggle("invalide", e.target.value.length === 10 && !iso);
   if (iso) etat.fiche.di[k] = iso; else if (vide) delete etat.fiche.di[k];
-  if (iso || vide) { if (TITRE_SRC[k]) { delete etat.fiche.diSrc[k]; majTitres(); } sauver(); }   // saisie à la main : titre normal
+  if (iso || vide) { if (TITRE_SRC[k]) { delete etat.fiche.diSrc[k]; majTitres(); } sauver(); majPoiEtat(); }   // saisie à la main : titre normal
 });
 $("datesImp").addEventListener("focusout", e => {
   const k = e.target.dataset.di; if (!k) return;
@@ -1140,7 +1151,7 @@ $("datesImp").addEventListener("change", e => {
   const k = e.target.dataset.dipick; if (!k || !e.target.value) return;
   etat.fiche.di[k] = e.target.value;
   if (TITRE_SRC[k]) { delete etat.fiche.diSrc[k]; majTitres(); }
-  sauver();
+  sauver(); majPoiEtat();
   const c = $("di_" + k); c.value = isoVersFr(e.target.value); c.classList.remove("invalide");
 });
 
