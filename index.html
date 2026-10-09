@@ -222,6 +222,7 @@ header.top.urg-vert { box-shadow: var(--clay-sm), inset 0 0 0 4px #3ddc76, 0 0 1
 
 /* ── Dates importantes : 11 dates comme la DLPI ── */
 .dates-imp { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px 10px; }
+.dates-imp .champ { justify-content: flex-end; }   /* cases alignées même si un titre passe sur deux lignes */
 
 /* ── Bas de la colonne droite : Documents POI + Infos utiles (étroit) | Commentaires (large) ── */
 .bas-droite { display: grid; grid-template-columns: minmax(270px, 1fr) minmax(0, 1.45fr); gap: 18px; align-items: start; }
@@ -1041,14 +1042,16 @@ document.querySelector(".feu").addEventListener("click", e => {
 });
 
 /* ═══ Dates importantes : 11 dates, saisie comme la DLPI ═══ */
-const DATES_IMP = [["poi", "Réception POI"], ["apd", "Réception APD"], ["doePre", "Réception DOE précâblage"], ["doeAnt", "Réception DOE Anticipation"],
-  ["travaux", "Envoi en travaux"], ["doeRacco", "Réception DOE Racco D2"], ["madAnt", "MAD anticipée"], ["mad", "MAD"], ["paiement", "Paiement attachement"],
-  ["dre", "DRE"], ["dlr", "DLR"]];
+// 1re ligne : Réception POI, DLPI, DRE, DLR ; ensuite dans l'ordre des tâches (APD, anticipation, précâblage, travaux, MAD anticipée, DOE Racco D2, paiement, MAD)
+const DATES_IMP = [["poi", "Réception POI"], ["dre", "DRE"], ["dlr", "DLR"],
+  ["apd", "Réception APD"], ["doeAnt", "Réception DOE Anticipation"], ["doePre", "Réception DOE précâblage"], ["travaux", "Envoi en travaux"],
+  ["madAnt", "MAD anticipée"], ["doeRacco", "Réception DOE Racco D2"], ["paiement", "Paiement attachement"], ["mad", "MAD"]];
 if (!etat.fiche.di || typeof etat.fiche.di !== "object") etat.fiche.di = {};
 $("datesImp").insertAdjacentHTML("beforeend", DATES_IMP.map(([k, lib]) => `<div class="champ"><label for="di_${k}">${esc(lib)}</label><div class="date-champ">` +
   `<input id="di_${k}" data-di="${k}" value="${isoVersFr(etat.fiche.di[k])}" placeholder="JJ/MM/AAAA" inputmode="numeric" maxlength="10" autocomplete="off">` +
   `<button class="cal" type="button" data-dical="${k}" aria-label="Choisir la date « ${esc(lib)} » dans le calendrier" title="Calendrier">${ICO_CAL}</button>` +
-  `<input type="date" class="date-cachee" data-dipick="${k}" tabindex="-1" aria-hidden="true"></div></div>`).join(""));   // après la DLPI
+  `<input type="date" class="date-cachee" data-dipick="${k}" tabindex="-1" aria-hidden="true"></div></div>`).join(""));
+$("di_poi").closest(".champ").after($("f_dlpi").closest(".champ"));   // la DLPI en 2e, juste après Réception POI
 $("datesImp").addEventListener("input", e => {
   const k = e.target.dataset.di; if (!k) return;
   e.target.value = formaterDate(e.target.value);
