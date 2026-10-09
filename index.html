@@ -554,11 +554,11 @@ const CLE = "racco-d2-v1";
 let etat = { coches: {}, barres: {}, dates: {}, liens: {}, memo: {}, fiche: {}, fermes: {}, sel: null };
 try { const s = JSON.parse(localStorage.getItem(CLE) || "null"); if (s && typeof s === "object") ["coches", "barres", "dates", "liens", "memo", "fiche", "fermes"].forEach(k => { if (s[k] && typeof s[k] === "object") etat[k] = s[k]; }), etat.sel = typeof s.sel === "string" ? s.sel : null; } catch (e) {}
 const sauver = () => { try { localStorage.setItem(CLE, JSON.stringify(etat)); } catch (e) {} };
-// remise à zéro unique des tests (9 octobre 2026) : tâches et commentaires effacés, le reste du dossier (IMB compris) est gardé
-if (!etat.fiche.raz1) {
+// remise à zéro des tests (2e fois, 9 octobre 2026) : tâches et commentaires effacés, le reste du dossier (IMB compris) est gardé
+if (!etat.fiche.raz2) {
   etat.coches = {}; etat.barres = {}; etat.dates = {}; etat.memo = {}; etat.sel = null;
   try { localStorage.removeItem("racco-d2-notes-captures"); } catch (e) {}
-  etat.fiche.raz1 = true; sauver();
+  delete etat.fiche.raz1; etat.fiche.raz2 = true; sauver();
 }
 
 /* index parent / nœuds */
