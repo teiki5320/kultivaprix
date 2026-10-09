@@ -238,8 +238,8 @@ header.top.urg-vert { box-shadow: var(--clay-sm), inset 0 0 0 4px #3ddc76, 0 0 1
 .suivi-tuile:hover { background: #3a3a3a; }
 
 /* Infos utiles : rubriques en gras, sous-lignes à puce, champs à remplir */
-.iu { display: grid; gap: 18px; }   /* un peu d'air entre les rubriques */
-.iu-rub { display: grid; gap: 4px; }
+.iu { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; }   /* un peu d'air entre les rubriques */
+.iu-rub { display: grid; grid-template-columns: minmax(0, 1fr); gap: 4px; }   /* les champs rétrécissent au lieu de déborder */
 .iu-tete { display: flex; align-items: center; gap: 6px; font-weight: 800; font-size: 14px; }
 .iu-tete::before { content: ""; width: 7px; height: 7px; border-radius: 50%; border: 1.5px solid var(--texte); flex: none; }
 .iu-ligne { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; padding-left: 18px; font-size: 13px; position: relative; }
@@ -257,6 +257,12 @@ header.top.urg-vert { box-shadow: var(--clay-sm), inset 0 0 0 4px #3ddc76, 0 0 1
 .iu-sup:hover { background: var(--ko); color: #fff; }
 .iu-retablir { justify-self: start; border: 0; background: none; padding: 2px 0; color: var(--muted); font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
 .iu-retablir:hover { color: var(--texte); text-decoration: underline; }
+.iu-plus { flex: none; width: 22px; height: 22px; border: 0; border-radius: 50%; padding: 0; background: #f5a04b; color: #4a2508; cursor: pointer; font-size: 15px; font-weight: 800; line-height: 22px; }
+.iu-plus:hover { background: #f7ae63; }
+.iu-plus + .iu-sup { margin-left: 0; }
+.iu-ajout { padding-left: 18px; }
+.iu .bout { flex: 1 1 0; width: 0; padding: 4px 6px; }
+.iu .tr { flex: 0 1 60px; width: 60px; }
 
 /* Commentaires : mémo daté en haut, commentaire de la tâche choisie en dessous */
 .card.commentaires { display: grid; gap: 10px; min-height: 460px; align-content: start; }
@@ -1086,15 +1092,32 @@ const iuVal = (k, defaut = "") => esc(etat.fiche.iu[k] ?? defaut);
 const iuChamp = (k, cls, defaut, lib, aide = "") => `<input class="${cls}" data-iu="${k}" value="${iuVal(k, defaut)}"${aide ? ` placeholder="${esc(aide)}"` : ""} aria-label="${esc(lib)}" autocomplete="off">`;
 // lignes retirées pour ce dossier : « r:PMZ » pour une rubrique entière, la clé du champ pour une ligne ; ce qui est écrit est gardé
 if (!etat.fiche.iuMasques || typeof etat.fiche.iuMasques !== "object") etat.fiche.iuMasques = {};
+// PB et câbles ajoutés à la main : une liste d'identifiants par dossier, leurs valeurs vont dans etat.fiche.iu
+if (!Array.isArray(etat.fiche.iuPB)) etat.fiche.iuPB = [];
+if (!Array.isArray(etat.fiche.iuCables)) etat.fiche.iuCables = [];
+const pbAjoute = id => ({ t: "PB", k: id, ajout: "pb:" + id, l: [{ pre: "PT", k: id + "_pt" }, { pre: "PF", k: id + "_pf" }, { pre: "CH/", k: id + "_ch", type: id + "_type" }] });
+const clesAjout = (sorte, id) => sorte === "pb" ? [id, id + "_pt", id + "_pf", id + "_ch", id + "_type"] : [id + "_de", id + "_a", id + "_tr"];
 const iuSup = (cle, lib) => `<button class="iu-sup" type="button" data-iusup="${cle}" aria-label="Retirer ${esc(lib)}" title="Retirer">×</button>`;
+const iuSupAjout = (cle, lib) => `<button class="iu-sup" type="button" data-iuajout="${cle}" aria-label="Supprimer ${esc(lib)}" title="Supprimer">×</button>`;
 function rendreIU() {
   const M = etat.fiche.iuMasques;
-  $("infosUtiles").innerHTML = IU.filter(r => !M["r:" + r.t]).map(r => `<div class="iu-rub"><div class="iu-tete"><span class="fixe">${esc(r.t)} :</span>${r.k ? iuChamp(r.k, "plein", "", `${r.t} · ${r.aide || "ID Référentiel PT"}`, r.aide || "ID Référentiel PT") : ""}${iuSup("r:" + r.t, r.t)}</div>` +
+  // le PB d'origine puis les PB ajoutés ; dès qu'il y en a plusieurs : PB1, PB2, PB3…
+  const rubs = IU.flatMap(r => r.t === "PB" ? [r, ...etat.fiche.iuPB.map(pbAjoute)] : [r]).filter(r => !(r.ajout ? false : M["r:" + r.t]));
+  const pbs = rubs.filter(r => r.t === "PB");
+  const nom = r => r.t === "PB" && pbs.length > 1 ? "PB" + (pbs.indexOf(r) + 1) : r.t;
+  $("infosUtiles").innerHTML = rubs.map(r => { const n = nom(r); return `<div class="iu-rub"><div class="iu-tete"><span class="fixe">${esc(n)} :</span>${r.k ? iuChamp(r.k, "plein", "", `${n} · ${r.aide || "ID Référentiel PT"}`, r.aide || "ID Référentiel PT") : ""}` +
+    (r.t === "PB" && r === pbs[pbs.length - 1] ? `<button class="iu-plus" type="button" data-iuplus="pb" aria-label="Ajouter un PB" title="Ajouter un PB">+</button>` : "") +
+    (r.ajout ? iuSupAjout(r.ajout, n) : iuSup("r:" + r.t, n)) + `</div>` +
     r.l.filter(x => !M[x.k]).map(x => `<div class="iu-ligne">` +
       (x.lab ? `<span class="fixe">${esc(x.lab)}</span>` : "") +
-      iuChamp(x.k, "plein", x.pre ? x.pre + (x.pre.endsWith("/") ? "" : " ") : "", `${r.t} ${x.lab || x.pre}`) +
-      (x.type ? `<span class="fixe">(Type :</span>${iuChamp(x.type, "court", "", `${r.t} type`)}<span class="fixe">)</span>` : "") +
-      iuSup(x.k, `${r.t} ${x.lab || x.pre}`) + `</div>`).join("") + `</div>`).join("") +
+      iuChamp(x.k, "plein", x.pre ? x.pre + (x.pre.endsWith("/") ? "" : " ") : "", `${n} ${x.lab || x.pre}`) +
+      (x.type ? `<span class="fixe">(Type :</span>${iuChamp(x.type, "court", "", `${n} type`)}<span class="fixe">)</span>` : "") +
+      iuSup(x.k, `${n} ${x.lab || x.pre}`) + `</div>`).join("") +
+    (r.t === "Câbles" ? etat.fiche.iuCables.map(id => `<div class="iu-ligne">` +
+      iuChamp(id + "_de", "bout", "", "Câble · départ", "départ") + `<span class="fixe">–</span>` + iuChamp(id + "_a", "bout", "", "Câble · arrivée", "arrivée") +
+      `<span class="fixe">:</span>` + iuChamp(id + "_tr", "tr", "TR ", "Câble · TR") + iuSupAjout("cab:" + id, "ce câble") + `</div>`).join("") +
+      `<button class="iu-retablir iu-ajout" type="button" data-iuplus="cab">+ Ajouter un câble</button>` : "") +
+    `</div>`; }).join("") +
     (Object.keys(M).length ? `<button class="iu-retablir" type="button" id="iuRetablir">↺ Rétablir les lignes</button>` : "");
 }
 rendreIU();
@@ -1102,6 +1125,23 @@ $("infosUtiles").addEventListener("input", e => { const k = e.target.dataset.iu;
 $("infosUtiles").addEventListener("click", e => {
   const b = e.target.closest("[data-iusup]");
   if (b) { etat.fiche.iuMasques[b.dataset.iusup] = true; sauver(); rendreIU(); return; }
+  const plus = e.target.closest("[data-iuplus]");
+  if (plus) {
+    const sorte = plus.dataset.iuplus, id = sorte + "x" + Date.now().toString(36);
+    (sorte === "pb" ? etat.fiche.iuPB : etat.fiche.iuCables).push(id); sauver(); rendreIU();
+    document.querySelector(`[data-iu="${sorte === "pb" ? id : id + "_de"}"]`)?.focus();
+    return;
+  }
+  // un PB ou un câble ajouté se supprime pour de bon (confirmation s'il contient quelque chose)
+  const aj = e.target.closest("[data-iuajout]");
+  if (aj) {
+    const [sorte, id] = aj.dataset.iuajout.split(":"), cles = clesAjout(sorte, id);
+    const rempli = cles.some(k => { const v = (etat.fiche.iu[k] || "").trim(); return v && !["PT", "PF", "CH/", "TR"].includes(v); });
+    if (rempli && !confirm(sorte === "pb" ? "Supprimer ce PB et ce qui y est écrit ?" : "Supprimer ce câble et ce qui y est écrit ?")) return;
+    cles.forEach(k => { delete etat.fiche.iu[k]; delete etat.fiche.iuMasques[k]; });
+    if (sorte === "pb") etat.fiche.iuPB = etat.fiche.iuPB.filter(x => x !== id); else etat.fiche.iuCables = etat.fiche.iuCables.filter(x => x !== id);
+    sauver(); rendreIU(); return;
+  }
   // rétablir ne fait que réafficher : les valeurs déjà écrites ne sont pas touchées
   if (e.target.closest("#iuRetablir")) { etat.fiche.iuMasques = {}; sauver(); rendreIU(); }
 });
