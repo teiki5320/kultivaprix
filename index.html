@@ -1078,7 +1078,7 @@ const IU = [
   { t: "PA", k: "pa", l: [{ pre: "PT", k: "pa_pt" }, { pre: "PF", k: "pa_pf" }, { pre: "CH/", k: "pa_ch", type: "pa_type" }, { lab: "PA reg :", k: "pa_reg" }] },
   { t: "PR/BPI", k: "bpi", l: [{ pre: "PT", k: "bpi_pt" }, { pre: "CH/", k: "bpi_ch", type: "bpi_type" }] },
   { t: "PB", k: "pb", l: [{ pre: "PT", k: "pb_pt" }, { pre: "PF", k: "pb_pf" }, { pre: "CH/", k: "pb_ch", type: "pb_type" }] },
-  { t: "PAR", k: "par", l: [{ pre: "CH/", k: "par_ch", type: "par_type" }, { lab: "Appui :", k: "par_appui" }] },
+  { t: "PAR", l: [{ pre: "CH/", k: "par_ch", type: "par_type" }, { lab: "Appui :", k: "par_appui" }] },
   { t: "Câbles", k: "cab", aide: "ID Référentiel", l: [{ lab: "PMZ – PA :", pre: "TR", k: "cab_pmz_pa" }, { lab: "PA – PR/BPI :", pre: "TR", k: "cab_pa_bpi" }, { lab: "PR/BPI – PB :", pre: "TR", k: "cab_bpi_pb" }, { lab: "PA – PB :", pre: "TR", k: "cab_pa_pb" }] },
 ];
 if (!etat.fiche.iu || typeof etat.fiche.iu !== "object") etat.fiche.iu = {};
