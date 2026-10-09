@@ -190,6 +190,13 @@ header.top .sous { font-size: 13px; opacity: .85; }
 
 .btn-mini { padding: 5px 10px; font-size: 12px; text-transform: none; letter-spacing: 0; color: var(--texte); }
 
+/* ── Une teinte par carte : orange, blanc, noir, gris (les champs prennent la teinte de leur carte) ── */
+.c-taches { --carte: #ffffff; --carte-2: #f0efed; }
+.c-dossier { --carte: #fde2c8; --carte-2: #fff4ea; --muted: #8a5a33; }
+.c-dates { --carte: #dcdcdc; --carte-2: #f3f3f3; --muted: #5a5a5a; }
+.c-utiles { --carte: #262626; --carte-2: #3b3b3b; --texte: #f2f2f2; --muted: #b8b8b8; color: var(--texte); }
+.c-comm { --carte: #fff7f0; --carte-2: #f1ebe5; }
+
 /* ── Notion d'urgence : feu tricolore dans la barre du titre ── */
 header.top { transition: box-shadow .2s; }
 header.top.urg-rouge { box-shadow: var(--clay-sm), inset 0 0 0 3px #e2493a; }
@@ -307,7 +314,7 @@ header.top.urg-vert { box-shadow: var(--clay-sm), inset 0 0 0 3px #36c26a; }
   <div class="split">
     <!-- Gauche : questionnaire -->
     <section class="col">
-      <div class="card">
+      <div class="card c-taches">
         <h2>Tâches <span class="tag none" id="compteur">0 / 7</span></h2>
         <div id="arbre"></div>
       </div>
@@ -315,7 +322,7 @@ header.top.urg-vert { box-shadow: var(--clay-sm), inset 0 0 0 3px #36c26a; }
 
     <!-- Droite : fiche, situation, calculette -->
     <section class="col droite">
-      <div class="card dossier">
+      <div class="card dossier c-dossier">
         <h2>Infos du dossier</h2>
         <div class="fiche">
           <div class="champ"><label for="f_cab">Cabinet conseil</label><input id="f_cab" data-f="cab" placeholder="Nom du cabinet"></div>
@@ -368,7 +375,7 @@ header.top.urg-vert { box-shadow: var(--clay-sm), inset 0 0 0 3px #36c26a; }
         </div>
       </div>
 
-      <div class="card">
+      <div class="card c-dates">
         <h2>Dates importantes</h2>
         <div class="dates-imp" id="datesImp"></div>
       </div>
@@ -379,13 +386,13 @@ header.top.urg-vert { box-shadow: var(--clay-sm), inset 0 0 0 3px #36c26a; }
             <button class="docs-tuile" id="docsTuile" type="button"><svg viewBox="0 0 24 24" width="40" height="40" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span>Documents POI<small id="docsEtat"></small></span></button>
             <button class="lien-edit" id="docsEdit" type="button" aria-label="Changer ou retirer le lien des documents" title="Changer ou retirer le lien" hidden>✎</button>
           </div>
-          <div class="card">
+          <div class="card c-utiles">
             <h2>Infos utiles</h2>
             <div class="iu" id="infosUtiles"></div>
           </div>
         </div>
 
-        <div class="card commentaires">
+        <div class="card commentaires c-comm">
           <h2>Commentaires</h2>
           <div class="memo" id="memo"></div>
           <div class="note-aide" id="noteAide">Clique sur le texte d'une tâche pour voir ou écrire son commentaire.</div>
