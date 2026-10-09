@@ -283,18 +283,18 @@ header.top.urg-vert { box-shadow: var(--clay-sm), inset 0 0 0 4px #3ddc76, 0 0 1
 .note-detail { display: grid; gap: 8px; }
 .note-detail[hidden] { display: none; }
 .note-aide { font-size: 12.5px; color: var(--muted); }
-/* tâches du niveau en dessous de la tâche choisie : date, nom, commentaire */
+/* tâche choisie : sa date et son nom au-dessus de la case */
+.note-tete { display: flex; align-items: baseline; gap: 10px; font-size: 15px; font-weight: 800; }
+.note-tete .md { font-family: var(--mono); font-size: 12.5px; font-weight: 700; color: var(--muted); flex: none; }
+/* très grande tâche : ses tâches faites, dans l'ordre de la carte Tâches */
 .note-sous { display: grid; gap: 4px; }
 .note-sous:empty { display: none; }
 .ns-ligne { display: grid; grid-template-columns: 78px minmax(0, 1fr); column-gap: 8px; padding: 6px 8px; border-radius: 9px; cursor: pointer; font-size: 13px; background: var(--carte-2); }
 .ns-ligne:hover { box-shadow: 0 0 0 2px var(--accent-dim); }
 .ns-ligne .md { font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--muted); }
 .ns-ligne .mn { font-weight: 700; }
-.ns-ligne .mn .fl { color: var(--muted); font-weight: 400; }
-.ns-ligne.afaire .mn { font-weight: 400; color: var(--muted); }
-.ns-ligne .mt { margin-left: 6px; font-size: 10.5px; font-weight: 800; padding: 1px 7px; border-radius: 99px; }
-.ns-note { grid-column: 2; font-size: 12.5px; color: var(--texte); white-space: pre-wrap; margin-top: 2px; }
-.ns-cap { grid-column: 2; font-size: 11.5px; color: var(--muted); }
+.ns-ligne.n3 .mn { padding-left: 14px; font-weight: 600; }
+.ns-ligne.n4 .mn { padding-left: 28px; font-weight: 400; }
 .note-detail textarea { width: 100%; resize: vertical; border: 0; border-radius: 12px; background: var(--carte-2); box-shadow: var(--inset); padding: 9px 12px; font: inherit; font-size: 14px; outline: none; min-height: 140px; }
 .note-detail textarea:focus { box-shadow: var(--inset), 0 0 0 3px var(--accent-dim); }
 .note-detail.depot { outline: 3px dashed var(--accent); outline-offset: 4px; border-radius: 12px; }
@@ -420,6 +420,7 @@ header.top.urg-vert { box-shadow: var(--clay-sm), inset 0 0 0 4px #3ddc76, 0 0 1
             <div class="memo" id="memo"></div>
             <div class="note-aide" id="noteAide">Clique sur le texte d'une tâche pour voir ou écrire son commentaire.</div>
             <div class="note-detail" id="noteDetail" hidden>
+              <div class="note-tete" id="noteTete"></div>
               <textarea id="noteTache" placeholder="Écris ton commentaire… (tu peux aussi coller ou glisser une capture ici)"></textarea>
               <div class="captures" id="noteCaptures"></div>
               <div class="bulle-bas">
@@ -1205,9 +1206,8 @@ function afficherNote(id) {
   noteChoisie = id;
   const n = NOEUDS[id], m = etat.memo[id];
   $("noteAide").hidden = true; $("noteDetail").hidden = false;
-  $("noteTache").placeholder = `Commentaire sur « ${n.lib} »… (tu peux aussi coller ou glisser une capture ici)`;
   $("noteTache").value = m ? m.note : "";
-  rendreNoteCaptures(); rendu();
+  rendreNoteCaptures(); rendu();   // rendu() met aussi à jour la date, le nom et la liste
   document.querySelector(".commentaires").scrollIntoView({ block: "nearest", behavior: "smooth" });
 }
 $("memo").addEventListener("click", e => {
@@ -1221,16 +1221,14 @@ $("noteTache").addEventListener("input", () => {
   const m = entree(noteChoisie); m.note = $("noteTache").value; m.noteDate = aujourdhui();
   sauver(); rendreMemo();
 });
-// toutes les tâches du niveau en dessous de la tâche choisie, avec la date où elles ont été cochées et leur commentaire
+// la tâche choisie : date où elle a été cochée et son nom
+const dateCoche = n => { const m = etat.memo[n.id]; return valide(n) && m && m.coche ? isoVersFr(m.coche) : "—"; };
+// pour une très grande tâche seulement : toutes ses tâches faites (moyennes, petites, sous-tâches), dans l'ordre de la carte Tâches
 function rendreNoteSous() {
   const n = noteChoisie && NOEUDS[noteChoisie];
-  $("noteSous").innerHTML = n && n.kids ? n.kids.map(k => {
-    const m = etat.memo[k.id], fait = valide(k), barre = estBarre(k), nc = (notesCaptures[k.id] || []).length;
-    const note = m && m.note.trim();
-    return `<div class="ns-ligne${fait || barre ? "" : " afaire"}" data-nsous="${k.id}"><span class="md">${fait && m && m.coche ? isoVersFr(m.coche) : "—"}</span>` +
-      `<span class="mn">${esc(k.lib)}${k.kids ? ' <span class="fl">›</span>' : ""}${barre ? '<span class="mt barree">barrée</span>' : ""}</span>` +
-      (note ? `<span class="ns-note">${esc(note)}</span>` : "") + (nc ? `<span class="ns-cap">${nc} capture${nc > 1 ? "s" : ""}</span>` : "") + `</div>`;
-  }).join("") : "";
+  $("noteTete").innerHTML = n ? `<span class="md">${dateCoche(n)}</span><span>${esc(n.lib)}</span>` : "";
+  $("noteSous").innerHTML = n && TACHES.includes(n) ? desc(n).filter(k => dateCoche(k) !== "—").map(k =>
+    `<div class="ns-ligne n${anc(k).length + 1}" data-nsous="${k.id}"><span class="md">${dateCoche(k)}</span><span class="mn">${esc(k.lib)}</span></div>`).join("") : "";
 }
 $("noteSous").addEventListener("click", e => { const l = e.target.closest("[data-nsous]"); if (l) afficherNote(l.dataset.nsous); });
 function rendreNoteCaptures() {
