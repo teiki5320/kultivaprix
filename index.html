@@ -603,7 +603,9 @@ const NOEUDS = {}, PARENT = {};
 (function idx(list, p) { list.forEach(n => { NOEUDS[n.id] = n; PARENT[n.id] = p; if (n.kids) idx(n.kids, n); }); })(TACHES, null);
 const desc = n => (n.kids || []).flatMap(k => [k, ...desc(k)]);
 /* descendants à cocher en cascade : on ne descend pas dans les branches au choix */
-const cascade = n => n.mode === "un" ? [] : (n.kids || []).flatMap(k => [k, ...cascade(k)]);
+// tâches dont la coche ne descend pas dans les sous-tâches (« Faire resa au PA » ne coche pas « Faire Desat PMZ »)
+const SANS_CASCADE = new Set(["t3_3"]);
+const cascade = n => n.mode === "un" || SANS_CASCADE.has(n.id) ? [] : (n.kids || []).flatMap(k => [k, ...cascade(k)]);
 const anc = n => { const a = []; let p = PARENT[n.id]; while (p) { a.push(p); p = PARENT[p.id]; } return a; };
 
 /* état enregistré avant l'ajout des sous-tâches : une étape cochée coche ses sous-tâches */
