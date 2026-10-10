@@ -616,8 +616,8 @@ function valide(n) { return !!etat.coches[n.id]; }
 // … et seulement si toutes les dates des tâches non barrées (la très grande tâche comprise) sont renseignées
 const datesOk = t => [t, ...desc(t)].filter(d => AVEC_DATE.has(d.id) && !estBarre(d)).every(d => etat.dates[d.id]);
 const fini = t => valide(t) && datesOk(t);   // bloc et voyant au vert
-// tâche cochée automatiquement quand une autre est cochée ET datée : « APD conforme » daté → « Vérifier la conformité de l'APD »
-const AUTO_SI = { t2_1: "t2_1_2" };
+// tâche cochée automatiquement quand une autre est cochée ET datée : « APD / DOE conforme » daté → « Vérifier la conformité … »
+const AUTO_SI = { t2_1: "t2_1_2", t5_1: "t5_1_2" };
 function autoEtapes() {
   Object.entries(AUTO_SI).forEach(([t, src]) => {
     const ok = etat.coches[src] && etat.dates[src];
