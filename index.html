@@ -302,27 +302,19 @@ header.top.urg-vert { box-shadow: var(--clay-sm), inset 0 0 0 4px #3ddc76, 0 0 1
 .iu .tr { flex: 0 1 60px; width: 60px; }
 .iu-cab { cursor: text; }
 
-/* Commentaires : mémo daté en haut, commentaire de la tâche choisie en dessous */
+/* Commentaires : le commentaire, les captures et les fichiers de la tâche dont on a cliqué le texte */
 .card.commentaires { display: grid; gap: 10px; min-height: 460px; align-content: start; }
-.memo { display: grid; gap: 4px; max-height: 230px; overflow-y: auto; overflow-x: hidden; padding: 6px; border-radius: var(--r-md); background: var(--carte-2); box-shadow: var(--inset); }
 .memo-vide { font-size: 12.5px; color: var(--muted); padding: 6px; }
-.memo-ligne { display: flex; align-items: center; gap: 8px; padding: 5px 8px; border-radius: 9px; cursor: pointer; font-size: 13px; }
-.memo-ligne:hover { background: var(--carte); }
-.memo-ligne.sel { background: var(--carte); box-shadow: 0 0 0 2px var(--accent-dim); }
-.memo-ligne .md { font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--muted); flex: none; }
-.memo-ligne .mn { flex: 1; min-width: 0; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.memo-ligne .mt { font-size: 10.5px; font-weight: 800; padding: 1px 7px; border-radius: 99px; flex: none; }
-.mt.decochee { background: var(--none-tint); color: var(--none); }
-.mt.barree { background: var(--none-tint); color: var(--none); text-decoration: line-through; }
-.memo-ligne .mc { flex: none; color: var(--accent); font-size: 12px; }
-.memo-ligne .msup { flex: none; border: 0; background: none; color: var(--muted); cursor: pointer; font-size: 14px; padding: 0 2px; opacity: 0; }
-.memo-ligne:hover .msup { opacity: 1; }
+.note-fichiers { display: flex; flex-wrap: wrap; gap: 6px; }
+.note-fichiers:empty { display: none; }
+.fichier { display: flex; align-items: center; gap: 6px; max-width: 100%; padding: 4px 6px 4px 10px; border-radius: 9px; background: var(--carte-2); box-shadow: var(--inset); font-size: 12.5px; }
+.fichier a { color: inherit; font-weight: 700; text-decoration: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
+.fichier a:hover { text-decoration: underline; }
+.fichier button { border: 0; background: none; color: var(--muted); cursor: pointer; font-size: 14px; padding: 0 2px; }
 .note-detail { display: grid; gap: 8px; }
 .note-detail[hidden] { display: none; }
 .note-aide { font-size: 12.5px; color: var(--muted); }
 .note-titre { font-size: 15px; font-weight: 800; }
-.note-chemin { font-size: 11.5px; font-weight: 700; color: var(--muted); }
-.note-dates { font-size: 12px; color: var(--muted); font-weight: 700; }
 .note-detail textarea { width: 100%; resize: vertical; border: 0; border-radius: 12px; background: var(--carte-2); box-shadow: var(--inset); padding: 9px 12px; font: inherit; font-size: 14px; outline: none; min-height: 140px; }
 .note-detail textarea:focus { box-shadow: var(--inset), 0 0 0 3px var(--accent-dim); }
 .note-detail.depot { outline: 3px dashed var(--accent); outline-offset: 4px; border-radius: 12px; }
@@ -449,16 +441,16 @@ header.top.urg-vert { box-shadow: var(--clay-sm), inset 0 0 0 4px #3ddc76, 0 0 1
         <div class="cote">
           <div class="card commentaires c-comm">
             <h2>Commentaires</h2>
-            <div class="memo" id="memo"></div>
-            <div class="note-aide" id="noteAide">Clique sur le texte d'une tâche pour voir ou écrire son commentaire.</div>
+            <div class="note-aide" id="noteAide">Clique sur le texte d'une tâche pour y écrire un commentaire et ajouter des captures ou des fichiers.</div>
             <div class="note-detail" id="noteDetail" hidden>
-              <div><div class="note-chemin" id="noteChemin"></div><div class="note-titre" id="noteTitre"></div><div class="note-dates" id="noteDates"></div></div>
-              <textarea id="noteTache" placeholder="Écris ton commentaire… (tu peux aussi coller ou glisser une capture ici)"></textarea>
+              <div class="note-titre" id="noteTitre"></div>
+              <textarea id="noteTache" placeholder="Écris ton commentaire… (tu peux aussi coller ou glisser une capture ou un fichier ici)"></textarea>
               <div class="captures" id="noteCaptures"></div>
+              <div class="note-fichiers" id="noteFichiers"></div>
               <div class="bulle-bas">
-                <label class="btn btn-mini" for="noteTacheFichier">Ajouter une capture</label>
-                <input type="file" id="noteTacheFichier" accept="image/*" multiple hidden>
-                <span class="bulle-aide">ou colle (⌘V) / glisse une image dans le commentaire</span>
+                <label class="btn btn-mini" for="noteTacheFichier">Ajouter une capture ou un fichier</label>
+                <input type="file" id="noteTacheFichier" multiple hidden>
+                <span class="bulle-aide">ou colle (⌘V) / glisse-les dans le commentaire</span>
               </div>
             </div>
           </div>
@@ -595,7 +587,7 @@ const sauver = () => { try { localStorage.setItem(CLE, JSON.stringify(etat)); } 
 // Infos utiles, commentaires, captures, liens OneDrive, urgence) ; seule la mise en page (tâches repliées) est gardée
 if (!etat.fiche.raz4) {
   etat = { coches: {}, barres: {}, dates: {}, liens: {}, memo: {}, fiche: { raz4: true }, fermes: etat.fermes, listes: {}, sel: null };
-  ["racco-d2-captures", "racco-d2-notes-captures"].forEach(k => { try { localStorage.removeItem(k); } catch (e) {} });
+  ["racco-d2-captures", "racco-d2-notes-captures", "racco-d2-notes-fichiers"].forEach(k => { try { localStorage.removeItem(k); } catch (e) {} });
   sauver();
 }
 
@@ -795,7 +787,7 @@ function rendu() {
   $("compteur").textContent = `${nbOk} / ${TACHES.length}`;
   $("compteur").className = "tag " + (nbOk === TACHES.length ? "ok" : nbOk ? "run" : "none");
 
-  rendreMemo(); majPoiEtat();
+  majPoiEtat();
   if (focus && $(focus) && document.activeElement !== $(focus)) {
     const c = $(focus); c.focus();
     if (c.setSelectionRange && c.type === "text") c.setSelectionRange(c.value.length, c.value.length);   // curseur à la fin
@@ -808,19 +800,16 @@ document.addEventListener("change", e => {
   const id = e.target.dataset.cb; if (!id) return;
   const t = Date.now();
   if (dernierClic.id === id && t - dernierClic.t < 450) {
-    etat.coches = dernierClic.coches; etat.barres = dernierClic.barres; etat.memo = dernierClic.memo;
+    etat.coches = dernierClic.coches; etat.barres = dernierClic.barres;
     // la tâche et toutes ses sous-tâches sont barrées, ou débarrées, ensemble
     const barrer = !etat.barres[id];
     [NOEUDS[id], ...desc(NOEUDS[id])].forEach(x => { if (barrer) etat.barres[x.id] = true; else delete etat.barres[x.id]; });
-    const avantB = new Set(Object.keys(NOEUDS).filter(k => valide(NOEUDS[k])));
-    autoEtapes(); noterCoches(avantB);
+    autoEtapes();
     dernierClic = { id: null, t: 0 };
     sauver(); rendu(); return;
   }
-  dernierClic = { id, t, coches: { ...etat.coches }, barres: { ...etat.barres }, memo: JSON.parse(JSON.stringify(etat.memo)) };
-  const avant = new Set(Object.keys(NOEUDS).filter(k => valide(NOEUDS[k])));
+  dernierClic = { id, t, coches: { ...etat.coches }, barres: { ...etat.barres } };
   basculer(NOEUDS[id], e.target.checked);
-  if (e.target.checked) noterCoches(avant);
 });
 document.addEventListener("click", e => {
   const c = e.target.closest("[data-chev]");
@@ -843,7 +832,7 @@ document.querySelectorAll("[data-f]").forEach(inp => {
 function majApresDate() {
   // une date mise sur un « non conforme » déjà barré par le « conforme » le débarre
   Object.values(CONFORME_BARRE).forEach(nc => { if (etat.dates[nc] && etat.barres[nc]) [NOEUDS[nc], ...desc(NOEUDS[nc])].forEach(x => delete etat.barres[x.id]); });
-  const avant = new Set(Object.keys(NOEUDS).filter(k => valide(NOEUDS[k]))); autoEtapes(); noterCoches(avant); rendu(); }
+  autoEtapes(); sauver(); rendu(); }
 const formaterDate = v => { const ch = v.replace(/\D/g, "").slice(0, 8); return ch.length > 4 ? `${ch.slice(0, 2)}/${ch.slice(2, 4)}/${ch.slice(4)}` : ch.length > 2 ? `${ch.slice(0, 2)}/${ch.slice(2)}` : ch; };
 $("arbre").addEventListener("input", e => {
   const id = e.target.dataset.date; if (!id) return;
@@ -1428,86 +1417,79 @@ $("infosUtiles").addEventListener("click", e => {
   if (e.target.closest("#iuRetablir")) { etat.fiche.iuMasques = {}; sauver(); rendreIU(); }
 });
 
-/* ═══ Commentaires : mémo daté des tâches cochées + commentaire et captures de chaque tâche ═══
-   etat.memo[id] = { coche: "AAAA-MM-JJ", note, noteDate, ordre } ; captures à part (racco-d2-notes-captures) */
-const NCAPCLE = "racco-d2-notes-captures";
-let notesCaptures = {};
+/* ═══ Commentaires : un clic sur le texte d'une tâche ouvre son commentaire, ses captures et ses fichiers ═══
+   etat.memo[id] = { note } ; captures (images réduites) et fichiers à part, chacun sous sa clé */
+const NCAPCLE = "racco-d2-notes-captures", NFICCLE = "racco-d2-notes-fichiers";
+let notesCaptures = {}, notesFichiers = {};
 try { const c = JSON.parse(localStorage.getItem(NCAPCLE) || "{}"); if (c && typeof c === "object") notesCaptures = c; } catch (e) {}
+try { const c = JSON.parse(localStorage.getItem(NFICCLE) || "{}"); if (c && typeof c === "object") notesFichiers = c; } catch (e) {}
 const sauverNotesCaptures = () => { try { localStorage.setItem(NCAPCLE, JSON.stringify(notesCaptures)); return true; } catch (e) { return false; } };
+const sauverNotesFichiers = () => { try { localStorage.setItem(NFICCLE, JSON.stringify(notesFichiers)); return true; } catch (e) { return false; } };
 let noteChoisie = null;
-const aujourdhui = () => versIso(new Date());
-const cheminTache = n => anc(n).reverse().map(a => a.lib).join(" › ");
-function entree(id) { return etat.memo[id] || (etat.memo[id] = { coche: "", note: "", noteDate: "", ordre: Date.now() + Math.random() }); }
-// tâches qui viennent de passer à « faites » : la tâche cochée et ses sous-tâches
-function noterCoches(avant) {
-  const j = aujourdhui();
-  let rang = Date.now() * 1000;   // dans l'ordre de la liste des tâches
-  Object.keys(NOEUDS).forEach(k => { if (!avant.has(k) && valide(NOEUDS[k]) && etat.coches[k]) { const m = entree(k); m.coche = j; m.ordreCoche = rang++; } });
-  sauver(); rendreMemo();
-}
-function rendreMemo() {
-  const L = Object.entries(etat.memo).filter(([k]) => NOEUDS[k]).sort((a, b) => (a[1].ordreCoche || a[1].ordre) - (b[1].ordreCoche || b[1].ordre));
-  $("memo").innerHTML = L.length ? L.map(([k, m]) => {
-    const n = NOEUDS[k], d = m.coche || m.noteDate;
-    const etatTxt = estBarre(n) ? `<span class="mt barree">barrée</span>` : m.coche && !valide(n) ? `<span class="mt decochee">décochée</span>` : "";
-    const aNote = m.note.trim() || (notesCaptures[k] || []).length;
-    return `<div class="memo-ligne${k === noteChoisie ? " sel" : ""}" data-memo="${k}"><span class="md">${d ? isoVersFr(d) : "—"}</span><span class="mn" title="${esc(cheminTache(n) ? cheminTache(n) + " › " + n.lib : n.lib)}">${esc(n.lib)}</span>${etatTxt}${aNote ? '<span class="mc" title="Commentaire">●</span>' : ""}<button class="msup" type="button" data-memosup="${k}" title="Retirer du mémo" aria-label="Retirer du mémo">×</button></div>`;
-  }).join("") : `<div class="memo-vide">Les tâches cochées s'inscrivent ici, avec la date.</div>`;
-}
 function afficherNote(id) {
   noteChoisie = id;
-  const n = NOEUDS[id], m = etat.memo[id];
   $("noteAide").hidden = true; $("noteDetail").hidden = false;
-  $("noteChemin").textContent = cheminTache(n);
-  $("noteTitre").textContent = n.lib;
-  const morceaux = [];
-  if (m && m.coche) morceaux.push(`Cochée le ${isoVersFr(m.coche)}`);
-  if (m && m.noteDate) morceaux.push(`Commentaire du ${isoVersFr(m.noteDate)}`);
-  if (estBarre(n)) morceaux.push("Tâche barrée");
-  $("noteDates").textContent = morceaux.join(" · ");
-  $("noteTache").value = m ? m.note : "";
-  rendreNoteCaptures(); rendu();
+  $("noteTitre").textContent = NOEUDS[id].lib;
+  $("noteTache").value = etat.memo[id]?.note || "";
+  rendreNoteCaptures(); rendreNoteFichiers(); rendu();
   document.querySelector(".commentaires").scrollIntoView({ block: "nearest", behavior: "smooth" });
 }
-$("memo").addEventListener("click", e => {
-  const sup = e.target.closest("[data-memosup]");
-  if (sup) { const k = sup.dataset.memosup; delete etat.memo[k]; delete notesCaptures[k]; sauverNotesCaptures(); sauver();
-    if (noteChoisie === k) { noteChoisie = null; $("noteDetail").hidden = true; $("noteAide").hidden = false; } rendu(); return; }
-  const l = e.target.closest("[data-memo]"); if (l) afficherNote(l.dataset.memo);
-});
 $("noteTache").addEventListener("input", () => {
   if (!noteChoisie) return;
-  const m = entree(noteChoisie); m.note = $("noteTache").value; m.noteDate = aujourdhui();
-  sauver(); rendreMemo();
-  const d = $("noteDates").textContent;
-  if (!/Commentaire du/.test(d)) afficherNoteDates();
+  const t = $("noteTache").value;
+  if (t) etat.memo[noteChoisie] = { note: t }; else delete etat.memo[noteChoisie];
+  sauver();
 });
-function afficherNoteDates() { const m = etat.memo[noteChoisie]; if (!m) return; const p = []; if (m.coche) p.push(`Cochée le ${isoVersFr(m.coche)}`); if (m.noteDate) p.push(`Commentaire du ${isoVersFr(m.noteDate)}`); if (estBarre(NOEUDS[noteChoisie])) p.push("Tâche barrée"); $("noteDates").textContent = p.join(" · "); }
 function rendreNoteCaptures() {
   const L = notesCaptures[noteChoisie] || [];
   $("noteCaptures").innerHTML = L.map((src, i) => `<div class="capture" data-nvoir="${i}"><img src="${src}" alt="Capture ${i + 1}"><button type="button" data-nret="${i}" aria-label="Retirer la capture ${i + 1}" title="Retirer">×</button></div>`).join("");
 }
-async function ajouterNoteCaptures(fichiers) {
-  if (!noteChoisie) return;
-  const id = noteChoisie, L = notesCaptures[id] || (notesCaptures[id] = []);
-  for (const f of fichiers) {
-    if (!f.type.startsWith("image/")) continue;
-    try { L.push(await reduire(f)); } catch (e) { continue; }
-    if (!sauverNotesCaptures()) { L.pop(); sauverNotesCaptures(); alert("Plus de place pour d'autres captures : retires-en une avant d'en ajouter."); break; }
-  }
-  const m = entree(id); m.noteDate = aujourdhui(); sauver();
-  rendreNoteCaptures(); rendreMemo(); afficherNoteDates();
+function rendreNoteFichiers() {
+  const L = notesFichiers[noteChoisie] || [];
+  $("noteFichiers").innerHTML = L.map((f, i) => `<span class="fichier"><a data-fouvrir="${i}" title="Ouvrir ${esc(f.nom)}">📄 ${esc(f.nom)}</a><button type="button" data-fret="${i}" aria-label="Retirer ${esc(f.nom)}" title="Retirer">×</button></span>`).join("");
 }
-$("noteTacheFichier").addEventListener("change", e => { ajouterNoteCaptures([...e.target.files]); e.target.value = ""; });
-$("noteDetail").addEventListener("paste", e => { const imgs = [...(e.clipboardData?.files || [])].filter(f => f.type.startsWith("image/")); if (imgs.length) { e.preventDefault(); ajouterNoteCaptures(imgs); } });
+const lireFichier = f => new Promise((ok, ko) => { const r = new FileReader(); r.onload = () => ok(r.result); r.onerror = ko; r.readAsDataURL(f); });
+// images → captures réduites ; autres fichiers (PDF, Word, Excel…) gardés tels quels, 3 Mo au plus chacun
+async function ajouterNoteFichiers(fichiers) {
+  if (!noteChoisie) return;
+  const id = noteChoisie;
+  for (const f of fichiers) {
+    if (f.type.startsWith("image/")) {
+      const L = notesCaptures[id] || (notesCaptures[id] = []);
+      try { L.push(await reduire(f)); } catch (e) { continue; }
+      if (!sauverNotesCaptures()) { L.pop(); sauverNotesCaptures(); alert("Plus de place pour d'autres captures : retires-en une avant d'en ajouter."); break; }
+    } else {
+      if (f.size > 3 * 1024 * 1024) { alert(`« ${f.name} » est trop lourd (3 Mo au plus) : mets plutôt un lien OneDrive dans le commentaire.`); continue; }
+      const L = notesFichiers[id] || (notesFichiers[id] = []);
+      try { L.push({ nom: f.name, type: f.type, data: await lireFichier(f) }); } catch (e) { continue; }
+      if (!sauverNotesFichiers()) { L.pop(); sauverNotesFichiers(); alert("Plus de place pour d'autres fichiers : retires-en un avant d'en ajouter."); break; }
+    }
+  }
+  rendreNoteCaptures(); rendreNoteFichiers();
+}
+$("noteTacheFichier").addEventListener("change", e => { ajouterNoteFichiers([...e.target.files]); e.target.value = ""; });
+$("noteDetail").addEventListener("paste", e => { const fs = [...(e.clipboardData?.files || [])]; if (fs.length) { e.preventDefault(); ajouterNoteFichiers(fs); } });
 $("noteDetail").addEventListener("dragover", e => { e.preventDefault(); $("noteDetail").classList.add("depot"); });
 $("noteDetail").addEventListener("dragleave", () => $("noteDetail").classList.remove("depot"));
-$("noteDetail").addEventListener("drop", e => { e.preventDefault(); $("noteDetail").classList.remove("depot"); ajouterNoteCaptures([...e.dataTransfer.files]); });
+$("noteDetail").addEventListener("drop", e => { e.preventDefault(); $("noteDetail").classList.remove("depot"); ajouterNoteFichiers([...e.dataTransfer.files]); });
 $("noteCaptures").addEventListener("click", e => {
   const r = e.target.closest("[data-nret]");
-  if (r) { notesCaptures[noteChoisie].splice(+r.dataset.nret, 1); sauverNotesCaptures(); rendreNoteCaptures(); rendreMemo(); return; }
+  if (r) { notesCaptures[noteChoisie].splice(+r.dataset.nret, 1); sauverNotesCaptures(); rendreNoteCaptures(); return; }
   const v = e.target.closest("[data-nvoir]");
   if (v) { const vis = document.createElement("div"); vis.className = "visionneuse"; vis.innerHTML = `<img src="${notesCaptures[noteChoisie][+v.dataset.nvoir]}" alt="Capture agrandie">`; vis.onclick = () => vis.remove(); document.body.appendChild(vis); }
+});
+$("noteFichiers").addEventListener("click", e => {
+  const r = e.target.closest("[data-fret]");
+  if (r) { notesFichiers[noteChoisie].splice(+r.dataset.fret, 1); sauverNotesFichiers(); rendreNoteFichiers(); return; }
+  const o = e.target.closest("[data-fouvrir]"); if (!o) return;
+  // ouverture : PDF et texte dans un nouvel onglet, les autres sont téléchargés
+  const f = notesFichiers[noteChoisie][+o.dataset.fouvrir];
+  fetch(f.data).then(r => r.blob()).then(b => {
+    const url = URL.createObjectURL(b);
+    if (/pdf|text/.test(f.type)) window.open(url, "_blank", "noopener");
+    else { const a = document.createElement("a"); a.href = url; a.download = f.nom; a.click(); }
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+  });
 });
 
 /* ═══ Grand écran : la page grossit pour remplir l'écran, sans que la colonne droite dépasse la hauteur ═══ */
