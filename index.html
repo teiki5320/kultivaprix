@@ -1113,6 +1113,9 @@ function majPoiEtat() {
   const ant = fait("t4_1_1") || src.archAnt === "t4_1_1" ? "annulée" : di.archAnt || fait("t4_2_11") ? "archivée" : "";
   const racco = di.archRacco || fait("t7_6") ? "archivée" : "";
   [["f_ant", "etatAnt", ant], ["f_racco", "etatRacco", racco]].forEach(([c, e, t]) => { $(c).classList.toggle("poi-close", !!t); $(e).textContent = t ? " · " + t : ""; });
+  // anticipation non nécessaire : ses deux dates importantes passent aussi en grisé
+  const sansAnt = engagee("t4_1");
+  ["di_travauxAnt", "di_doeAnt"].forEach(c => $(c)?.classList.toggle("poi-close", sansAnt));
 }
 function majTitres() {
   Object.entries(TITRE_SRC).forEach(([k, t]) => {
