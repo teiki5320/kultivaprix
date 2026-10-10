@@ -655,6 +655,9 @@ function basculer(n, on) {
       branche(cible).forEach(x => { etat.barres[x.id] = true; delete etat.coches[x.id]; });
     } else if (!engagee(cible)) branche(cible).forEach(x => delete etat.barres[x.id]);
   });
+  // le choix (contraste, conforme / non conforme) passe après : la règle d'anticipation ne doit pas effacer ses barres
+  const pc = PARENT[n.id];
+  if (on && pc && pc.choix) pc.kids.forEach(k => [k, ...desc(k)].forEach(x => { if (k === n) delete etat.barres[x.id]; else etat.barres[x.id] = true; }));
   autoEtapes();
   sauver(); rendu();
 }
