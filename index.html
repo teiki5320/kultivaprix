@@ -57,6 +57,7 @@ header.top .sous { font-size: 13px; opacity: .85; }
 .gt { border-radius: var(--r-md); background: var(--carte-2); box-shadow: var(--inset); padding: 4px 8px 6px; }
 .gt + .gt { margin-top: 10px; }
 .gt.actif { box-shadow: var(--inset), 0 0 0 2px var(--accent); }
+.gt.fini { background: #d9efdc; box-shadow: var(--inset), 0 0 0 2px #6fb985; }   /* très grande tâche cochée : tout le bloc au vert */
 .gt.verrou .ligne.d1 { opacity: .5; }
 .cb:disabled { cursor: not-allowed; }
 .cb:disabled + .lib { cursor: default; }
@@ -608,8 +609,17 @@ Object.keys(etat.coches).forEach(id => { if (!NOEUDS[id]) delete etat.coches[id]
 
 /* tâche barrée (double-clic sur sa case) : reste visible, barrée et grisée */
 const estBarre = n => !!etat.barres[n.id];
-// une tâche n'est faite que si elle est cochée à la main : rien ne se coche tout seul, ni en dessous ni au-dessus
+// une tâche n'est faite que si elle est cochée, à la main… ou pour une très grande tâche, quand tout le reste est fait
 function valide(n) { return !!etat.coches[n.id]; }
+// très grande tâche : cochée automatiquement (« auto ») dès que toutes ses tâches et sous-tâches non barrées sont cochées,
+// décochée si l'une d'elles ne l'est plus ; une coche faite à la main n'est jamais retirée
+function autoEtapes() {
+  TACHES.forEach(t => {
+    const ds = desc(t).filter(d => !estBarre(d)), complet = ds.length > 0 && ds.every(d => etat.coches[d.id]);
+    if (complet && !etat.coches[t.id]) etat.coches[t.id] = "auto";
+    else if (!complet && etat.coches[t.id] === "auto") delete etat.coches[t.id];
+  });
+}
 
 // anticipation non nécessaire / nécessaire : cocher dans l'une (elle-même ou une de ses tâches) barre et décoche toute l'autre ;
 // tout décocher dans l'une débarre l'autre
@@ -645,6 +655,7 @@ function basculer(n, on) {
       branche(cible).forEach(x => { etat.barres[x.id] = true; delete etat.coches[x.id]; });
     } else if (!engagee(cible)) branche(cible).forEach(x => delete etat.barres[x.id]);
   });
+  autoEtapes();
   sauver(); rendu();
 }
 
@@ -739,7 +750,7 @@ function rendu() {
   const focus = document.activeElement && document.activeElement.id;
   const sel = etapeCourante();
   $("arbre").innerHTML = TACHES.map((t, i) =>
-    `<div class="gt${etat.fermes[t.id] || verrouillee(t) ? " ferme" : ""}${verrouillee(t) ? " verrou" : ""}${t === sel ? " actif" : ""}">${ligneHTML(t, 1, i + 1)}</div>`).join("");
+    `<div class="gt${etat.fermes[t.id] || verrouillee(t) ? " ferme" : ""}${verrouillee(t) ? " verrou" : ""}${t === sel ? " actif" : ""}${valide(t) ? " fini" : ""}">${ligneHTML(t, 1, i + 1)}</div>`).join("");
 
   const nbOk = TACHES.filter(acquise).length;
   $("compteur").textContent = `${nbOk} / ${TACHES.length}`;
@@ -759,6 +770,8 @@ document.addEventListener("change", e => {
     // la tâche et toutes ses sous-tâches sont barrées, ou débarrées, ensemble
     const barrer = !etat.barres[id];
     [NOEUDS[id], ...desc(NOEUDS[id])].forEach(x => { if (barrer) etat.barres[x.id] = true; else delete etat.barres[x.id]; });
+    const avantB = new Set(Object.keys(NOEUDS).filter(k => valide(NOEUDS[k])));
+    autoEtapes(); noterCoches(avantB);
     dernierClic = { id: null, t: 0 };
     sauver(); rendu(); return;
   }
