@@ -89,6 +89,23 @@ header.top .sous { font-size: 13px; opacity: .85; }
 .lien-edit { position: absolute; top: -8px; right: -8px; width: 18px; height: 18px; border: 0; border-radius: 50%; padding: 0; cursor: pointer; font-size: 10px; line-height: 18px;
   background: var(--carte); color: var(--texte); box-shadow: var(--clay-sm); display: none; }
 .modop:hover .lien-edit { display: block; }
+/* liste de documents à cocher : icône + bulle comme celle du Nombre d'EL */
+.liste { position: relative; display: flex; align-items: center; }
+.liste-btn { height: 28px; min-width: 28px; border: 1.5px solid #5d8a5d; border-radius: 9px; padding: 0 6px; cursor: pointer; display: flex; align-items: center; gap: 4px;
+  background: #d7ead7; color: #24452a; box-shadow: var(--clay-sm); font: inherit; font-size: 11px; font-weight: 800; }
+.liste-btn:hover { background: #e3f1e3; }
+.liste-btn svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.liste-bulle { left: 0; right: auto; width: min(320px, 80vw); font-weight: 400; font-size: 13px; }
+.liste-docs { display: grid; gap: 2px; max-height: 260px; overflow-y: auto; }
+.doc-ligne { display: flex; align-items: center; gap: 8px; padding: 4px 6px; border-radius: 8px; cursor: pointer; }
+.doc-ligne:hover { background: var(--carte-2); }
+.bulle .doc-ligne input { width: 16px; height: 16px; min-height: 0; padding: 0; border: 0; box-shadow: none; background: none; appearance: auto; -webkit-appearance: checkbox;
+  accent-color: var(--ok); flex: none; cursor: pointer; }
+.doc-ligne span { flex: 1; min-width: 0; }
+.doc-ligne input:checked + span { color: var(--muted); }
+.doc-ligne button { border: 0; background: none; color: var(--muted); cursor: pointer; font-size: 14px; padding: 0 2px; visibility: hidden; }
+.doc-ligne:hover button { visibility: visible; }
+.liste-bulle .doc-ajout { width: 100%; border: 0; border-radius: 10px; background: var(--carte-2); box-shadow: var(--inset); padding: 6px 9px; font: inherit; font-size: 13px; outline: none; }
 .lien-pop { position: fixed; z-index: 60; width: min(360px, 90vw); background: var(--carte); border-radius: var(--r-md); box-shadow: var(--clay), 0 0 0 1px var(--ligne); padding: 10px 12px; display: grid; gap: 8px; }
 .lien-pop input { width: 100%; border: 0; border-radius: 10px; background: var(--carte-2); box-shadow: var(--inset); padding: 7px 10px; font: inherit; font-size: 13px; outline: none; }
 .lien-pop input:focus { box-shadow: var(--inset), 0 0 0 3px var(--accent-dim); }
@@ -570,13 +587,13 @@ const TACHES = [
 ];
 
 const CLE = "racco-d2-v1";
-let etat = { coches: {}, barres: {}, dates: {}, liens: {}, memo: {}, fiche: {}, fermes: {}, sel: null };
-try { const s = JSON.parse(localStorage.getItem(CLE) || "null"); if (s && typeof s === "object") ["coches", "barres", "dates", "liens", "memo", "fiche", "fermes"].forEach(k => { if (s[k] && typeof s[k] === "object") etat[k] = s[k]; }), etat.sel = typeof s.sel === "string" ? s.sel : null; } catch (e) {}
+let etat = { coches: {}, barres: {}, dates: {}, liens: {}, memo: {}, fiche: {}, fermes: {}, listes: {}, sel: null };
+try { const s = JSON.parse(localStorage.getItem(CLE) || "null"); if (s && typeof s === "object") ["coches", "barres", "dates", "liens", "memo", "fiche", "fermes", "listes"].forEach(k => { if (s[k] && typeof s[k] === "object") etat[k] = s[k]; }), etat.sel = typeof s.sel === "string" ? s.sel : null; } catch (e) {}
 const sauver = () => { try { localStorage.setItem(CLE, JSON.stringify(etat)); } catch (e) {} };
 // remise à zéro complète des tests (10 octobre 2026) : tout ce qui a été saisi est effacé (tâches, dates, infos du dossier, IMB,
 // Infos utiles, commentaires, captures, liens OneDrive, urgence) ; seule la mise en page (tâches repliées) est gardée
 if (!etat.fiche.raz4) {
-  etat = { coches: {}, barres: {}, dates: {}, liens: {}, memo: {}, fiche: { raz4: true }, fermes: etat.fermes, sel: null };
+  etat = { coches: {}, barres: {}, dates: {}, liens: {}, memo: {}, fiche: { raz4: true }, fermes: etat.fermes, listes: {}, sel: null };
   ["racco-d2-captures", "racco-d2-notes-captures"].forEach(k => { try { localStorage.removeItem(k); } catch (e) {} });
   sauver();
 }
@@ -670,6 +687,9 @@ function resultat(t) {
 }
 
 /* ═══ Outils des tâches : date (comme la DLPI) et lien vers le Modop sur OneDrive ═══ */
+// « Vérifier la conformité » (étapes 2, 5 et 7) : une liste de documents à cocher, propre à chaque tâche
+const AVEC_LISTE = new Set(["t2_1", "t5_1", "t7_1"]);
+const ICO_LISTE = `<svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M3.5 6l1.2 1.2L7 5M3.5 12l1.2 1.2L7 11M3.5 18l1.2 1.2L7 17"/></svg>`;
 const AVEC_DATE = new Set(["t1", "t2_1_1", "t2_1_2", "t4_1_1", "t4_2_4", "t4_2_6_2", "t4_2_11", "t5_1_1", "t5_1_2", "t6_7", "t6_9", "t7", "t7_3", "t7_5", "t7_6"]);
 const AVEC_MODOP = new Set(["t1_5", "t2_1_1_1", "t2_1_2_1", "t3_2", "t3_3", "t3_3_1", "t3_4", "t3_4_1", "t4_1_1", "t4_2_2", "t4_2_4_1",
   "t4_2_5", "t4_2_7", "t4_2_8", "t4_2_9", "t5_1_1_1", "t5_1_2_1", "t6_1", "t6_2", "t6_2_1", "t6_3", "t6_4", "t6_5", "t6_6", "t6_7_1", "t6_8",
@@ -685,6 +705,11 @@ function outilsHTML(n) {
     const l = etat.liens[n.id];
     h += `<span class="modop"><button class="modop-btn ${l ? "plein" : "vide"}" type="button" data-lien="${n.id}" aria-label="${l ? "Ouvrir le Modop" : "Ajouter le lien du Modop"}" title="${l ? "Ouvrir le Modop" : "Ajouter le lien OneDrive du Modop"}">${ICO_DOC}</button>` +
       (l ? `<button class="lien-edit" type="button" data-lienedit="${n.id}" aria-label="Changer ou retirer le lien" title="Changer ou retirer le lien">✎</button>` : "") + `</span>`;
+  }
+  if (AVEC_LISTE.has(n.id)) {
+    const L = etat.listes[n.id] || [], faits = L.filter(d => d.c).length;
+    h += `<span class="liste" data-liste="${n.id}"><button class="liste-btn" type="button" data-listebtn="${n.id}" aria-label="Liste de documents" title="Liste de documents">${ICO_LISTE}` +
+      (L.length ? `<span class="liste-compte">${faits}/${L.length}</span>` : "") + `</button>${listeOuverte === n.id ? listeBulleHTML(n.id) : ""}</span>`;
   }
   return h ? `<span class="outils">${h}</span>` : "";
 }
@@ -789,6 +814,60 @@ $("arbre").addEventListener("change", e => {
   etat.dates[id] = e.target.value; sauver(); reporterDate(id);
   const champ = $("dt_" + id); if (champ) { champ.value = isoVersFr(e.target.value); champ.classList.remove("invalide"); }
 });
+
+/* ═══ Liste de documents des tâches « Vérifier la conformité » : s'ouvre au survol, reste ouverte après un clic ═══ */
+let listeOuverte = null, listeEpinglee = false, listeMinuterie = null;
+function listeBulleHTML(id) {
+  const L = etat.listes[id] || [];
+  return `<div class="bulle liste-bulle${listeEpinglee ? " epinglee" : ""}" data-listebulle="${id}"><div class="bulle-titre">Liste de documents</div>` +
+    (L.length ? `<div class="liste-docs">${L.map((d, i) => `<label class="doc-ligne"><input type="checkbox" data-doc="${i}"${d.c ? " checked" : ""}><span>${esc(d.t)}</span>` +
+      `<button type="button" data-docsup="${i}" aria-label="Retirer ${esc(d.t)}" title="Retirer">×</button></label>`).join("")}</div>`
+      : `<div class="memo-vide">Aucun document pour l'instant.</div>`) +
+    `<input class="doc-ajout" data-docajout placeholder="Ajouter un document puis Entrée" autocomplete="off"></div>`;
+}
+function majListe(focusAjout) {   // redessine seulement la bulle et le compteur, sans toucher au reste des tâches
+  const z = listeOuverte && document.querySelector(`[data-liste="${listeOuverte}"]`); if (!z) return;
+  const L = etat.listes[listeOuverte] || [], b = z.querySelector(".liste-btn");
+  b.querySelector(".liste-compte")?.remove();
+  if (L.length) b.insertAdjacentHTML("beforeend", `<span class="liste-compte">${L.filter(d => d.c).length}/${L.length}</span>`);
+  z.querySelector(".liste-bulle")?.remove(); z.insertAdjacentHTML("beforeend", listeBulleHTML(listeOuverte));
+  if (focusAjout) z.querySelector("[data-docajout]").focus();
+}
+function ouvrirListe(id) {
+  clearTimeout(listeMinuterie);
+  if (listeOuverte === id) return;
+  fermerListe(); listeOuverte = id; majListe();
+}
+function fermerListe() {
+  clearTimeout(listeMinuterie);
+  const z = listeOuverte && document.querySelector(`[data-liste="${listeOuverte}"]`);
+  z?.querySelector(".liste-bulle")?.remove();
+  listeOuverte = null; listeEpinglee = false;
+}
+function epinglerListe(id) { ouvrirListe(id); listeEpinglee = true; document.querySelector(`[data-listebulle="${id}"]`)?.classList.add("epinglee"); }
+$("arbre").addEventListener("mouseover", e => { const z = e.target.closest("[data-liste]"); if (z) ouvrirListe(z.dataset.liste); });
+$("arbre").addEventListener("mouseout", e => {
+  const z = e.target.closest("[data-liste]"); if (!z || z.contains(e.relatedTarget) || listeEpinglee) return;
+  listeMinuterie = setTimeout(fermerListe, 300);
+});
+$("arbre").addEventListener("pointerdown", e => { const z = e.target.closest("[data-liste]"); if (z && !e.target.closest("[data-listebtn]")) epinglerListe(z.dataset.liste); });
+$("arbre").addEventListener("click", e => {
+  const b = e.target.closest("[data-listebtn]");
+  if (b) { const id = b.dataset.listebtn; if (listeOuverte === id && listeEpinglee) fermerListe(); else epinglerListe(id); return; }
+  const sup = e.target.closest("[data-docsup]");
+  if (sup && listeOuverte) { e.preventDefault(); etat.listes[listeOuverte].splice(+sup.dataset.docsup, 1); sauver(); majListe(); }
+});
+$("arbre").addEventListener("change", e => {
+  const c = e.target.closest("[data-doc]"); if (!c || !listeOuverte) return;
+  etat.listes[listeOuverte][+c.dataset.doc].c = c.checked; sauver(); majListe();
+});
+$("arbre").addEventListener("keydown", e => {
+  const a = e.target.closest("[data-docajout]"); if (!a || e.key !== "Enter" || !listeOuverte) return;
+  const t = a.value.trim(); if (!t) return;
+  (etat.listes[listeOuverte] = etat.listes[listeOuverte] || []).push({ t, c: false }); sauver(); majListe(true);
+});
+document.addEventListener("pointerdown", e => { if (listeOuverte && !e.target.closest?.("[data-liste]")) fermerListe(); });
+document.addEventListener("keydown", e => { if (e.key === "Escape" && listeOuverte) fermerListe(); });
 
 /* ═══ Liens Modop (OneDrive), un par tâche : clic = ouvrir ; sans lien = coller le lien ; ✎ = changer ou retirer ═══ */
 let lienPop = null;
