@@ -493,7 +493,7 @@ const TACHES = [
     { id: "t1_4", lib: "Regarder place au PA" },
     { id: "t1_5", lib: "Mettre un ComL + modifier DRE/DLR + passer la POI à l’état 5" } ] },
   { id: "t2", lib: "Réception APD", mode: "tout", kids: [
-    { id: "t2_1", lib: "Vérifier la conformité de l’APD", mode: "un", choix: true, kids: [
+    { id: "t2_1", lib: "Vérifier la conformité de l’APD", mode: "tout", kids: [
       { id: "t2_1_1", lib: "APD non conforme", mode: "tout", kids: [
         { id: "t2_1_1_1", lib: "Mettre ComL + modifier DRE/DLR" },
         { id: "t2_1_1_2", lib: "Faire un mail GED à ZZZ Amaris OSA : Bonjour, APD non conforme (indiquer les docs manquants)" } ] },
@@ -525,7 +525,7 @@ const TACHES = [
       { id: "t4_2_4", lib: "Envoyer en travaux", mode: "tout", kids: [
         { id: "t4_2_4_1", lib: "Mettre ComL" } ] },
       { id: "t4_2_5", lib: "Valider tâche dans SPI ????" },
-      { id: "t4_2_6", lib: "Réception du DOE d’anticipation", mode: "un", choix: true, kids: [
+      { id: "t4_2_6", lib: "Réception du DOE d’anticipation", mode: "tout", kids: [
         { id: "t4_2_6_1", lib: "DOE non conforme" },
         { id: "t4_2_6_2", lib: "DOE Conforme" } ] },
       { id: "t4_2_7", lib: "Faire contraste", mode: "un", choix: true, kids: [
@@ -540,7 +540,7 @@ const TACHES = [
         { id: "t4_2_10_3", lib: "Étape MAJ SI" } ] },
       { id: "t4_2_11", lib: "Archiver la POI d’anticipation dans PPR" } ] } ] },
   { id: "t5", lib: "Réception DOE précâblage", mode: "tout", kids: [
-    { id: "t5_1", lib: "Vérifier la conformité du DOE", mode: "un", choix: true, kids: [
+    { id: "t5_1", lib: "Vérifier la conformité du DOE", mode: "tout", kids: [
       { id: "t5_1_1", lib: "DOE non conforme", mode: "tout", kids: [
         { id: "t5_1_1_1", lib: "Mettre ComL + modifier DRE/DLR" },
         { id: "t5_1_1_2", lib: "Faire un mail GED à ZZZ Amaris OSA : Bonjour, DOE non conforme (indiquer les docs manquants)" } ] },
@@ -627,6 +627,8 @@ function autoEtapes() {
 // anticipation non nécessaire / nécessaire : cocher dans l'une (elle-même ou une de ses tâches) barre et décoche toute l'autre ;
 // tout décocher dans l'une débarre l'autre
 const BARRE_SI = { t4_1: "t4_2", t4_2: "t4_1" };
+// conforme → non conforme barré ; cocher « non conforme » ne barre pas « conforme »
+const CONFORME_BARRE = { t2_1_2: "t2_1_1", t5_1_2: "t5_1_1", t4_2_6_2: "t4_2_6_1" };
 const engagee = id => [NOEUDS[id], ...desc(NOEUDS[id])].some(x => etat.coches[x.id]);
 function basculer(n, on) {
   if (verrouillee(n)) { rendu(); return; }
@@ -638,7 +640,7 @@ function basculer(n, on) {
       const p = PARENT[x.id];
       if (p && p.mode === "un") p.kids.filter(k => k !== x).forEach(k => { delete etat.coches[k.id]; desc(k).forEach(d => delete etat.coches[d.id]); });
     });
-    // contraste, APD et DOE conforme / non conforme : l'option choisie barre les autres (avec leurs sous-tâches)
+    // contraste : l'option choisie barre les autres (avec leurs sous-tâches)
     const p = PARENT[n.id];
     if (p && p.choix) { p.kids.forEach(k => [k, ...desc(k)].forEach(x => { if (k === n) delete etat.barres[x.id]; else etat.barres[x.id] = true; })); }
     // aérien : cocher « Oui » ou « Non » coche vraiment « Regarder s'il y a de l'aérien » (date dans Commentaires)
@@ -661,6 +663,9 @@ function basculer(n, on) {
   // le choix (contraste, conforme / non conforme) passe après : la règle d'anticipation ne doit pas effacer ses barres
   const pc = PARENT[n.id];
   if (on && pc && pc.choix) pc.kids.forEach(k => [k, ...desc(k)].forEach(x => { if (k === n) delete etat.barres[x.id]; else etat.barres[x.id] = true; }));
+  // APD / DOE conforme : barre « non conforme » et ses sous-tâches (dans ce sens seulement) ; décocher les débarre
+  const nc = CONFORME_BARRE[n.id];
+  if (nc) [NOEUDS[nc], ...desc(NOEUDS[nc])].forEach(x => { if (on) etat.barres[x.id] = true; else delete etat.barres[x.id]; });
   autoEtapes();
   sauver(); rendu();
 }
