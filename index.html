@@ -1131,9 +1131,8 @@ function majPoiEtat() {
   const cRacco = $("f_racco").closest(".champ"), cAdr = $("f_adr").closest(".champ"), cEl = $("elZone"), cAe = $("champAerien");
   if (aerien && cRacco.nextElementSibling !== cAe) { cRacco.after(cAe); cAdr.after(cEl); }
   if (!aerien && cRacco.nextElementSibling !== cEl) { cRacco.after(cEl); cAdr.after(cAe); }
-  // avec « Non », les trois dates aérien disparaissent des Dates importantes
-  const sansAerien = fait("t1_3_2");
-  ["di_poiAerien", "di_sepale", "di_archAerien"].forEach(c => { const ch = $(c)?.closest(".champ"); if (ch) ch.hidden = sansAerien; });
+  // les trois dates aérien n'apparaissent dans les Dates importantes que si « Oui » est coché
+  ["di_poiAerien", "di_sepale", "di_archAerien"].forEach(c => { const ch = $(c)?.closest(".champ"); if (ch) ch.hidden = !aerien; });
   placerAides();
   $("f_aerien").classList.toggle("poi-close", !!di.archAerien); $("etatAerien").textContent = di.archAerien ? " · archivée" : "";
   [["f_ant", "etatAnt", ant], ["f_racco", "etatRacco", racco]].forEach(([c, e, t]) => { $(c).classList.toggle("poi-close", !!t); $(e).textContent = t ? " · " + t : ""; });
