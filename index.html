@@ -663,9 +663,10 @@ function basculer(n, on) {
   // le choix (contraste, conforme / non conforme) passe après : la règle d'anticipation ne doit pas effacer ses barres
   const pc = PARENT[n.id];
   if (on && pc && pc.choix) pc.kids.forEach(k => [k, ...desc(k)].forEach(x => { if (k === n) delete etat.barres[x.id]; else etat.barres[x.id] = true; }));
-  // APD / DOE conforme : barre « non conforme » et ses sous-tâches (dans ce sens seulement) ; décocher les débarre
+  // APD / DOE conforme : barre « non conforme » et ses sous-tâches (dans ce sens seulement) ; décocher les débarre.
+  // Un « non conforme » daté a bien eu lieu : il n'est jamais barré
   const nc = CONFORME_BARRE[n.id];
-  if (nc) [NOEUDS[nc], ...desc(NOEUDS[nc])].forEach(x => { if (on) etat.barres[x.id] = true; else delete etat.barres[x.id]; });
+  if (nc && !etat.dates[nc]) [NOEUDS[nc], ...desc(NOEUDS[nc])].forEach(x => { if (on) etat.barres[x.id] = true; else delete etat.barres[x.id]; });
   autoEtapes();
   sauver(); rendu();
 }
@@ -812,7 +813,10 @@ document.querySelectorAll("[data-f]").forEach(inp => {
 
 /* ═══ Dates des tâches : même saisie que la DLPI ═══ */
 // une date saisie peut compléter (ou défaire) une très grande tâche
-function majApresDate() { const avant = new Set(Object.keys(NOEUDS).filter(k => valide(NOEUDS[k]))); autoEtapes(); noterCoches(avant); rendu(); }
+function majApresDate() {
+  // une date mise sur un « non conforme » déjà barré par le « conforme » le débarre
+  Object.values(CONFORME_BARRE).forEach(nc => { if (etat.dates[nc] && etat.barres[nc]) [NOEUDS[nc], ...desc(NOEUDS[nc])].forEach(x => delete etat.barres[x.id]); });
+  const avant = new Set(Object.keys(NOEUDS).filter(k => valide(NOEUDS[k]))); autoEtapes(); noterCoches(avant); rendu(); }
 const formaterDate = v => { const ch = v.replace(/\D/g, "").slice(0, 8); return ch.length > 4 ? `${ch.slice(0, 2)}/${ch.slice(2, 4)}/${ch.slice(4)}` : ch.length > 2 ? `${ch.slice(0, 2)}/${ch.slice(2)}` : ch; };
 $("arbre").addEventListener("input", e => {
   const id = e.target.dataset.date; if (!id) return;
