@@ -315,6 +315,11 @@ header.top.urg-vert { box-shadow: var(--clay-sm), inset 0 0 0 4px #3ddc76, 0 0 1
 .note-detail[hidden] { display: none; }
 .note-aide { font-size: 12.5px; color: var(--muted); }
 .note-titre { font-size: 15px; font-weight: 800; }
+.note-fait { font-size: 12px; font-weight: 700; color: var(--ok); }
+.note-fait:empty { display: none; }
+/* tâche commentée : petite bulle bleue après son texte (bleu pour ne pas la confondre avec le Modop orange) */
+.note-ind { display: inline-grid; place-items: center; width: 20px; height: 18px; margin-left: 6px; vertical-align: -3px; border-radius: 6px; background: #3b6fd6; color: #fff; cursor: pointer; }
+.note-ind svg { fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linejoin: round; }
 .note-detail textarea { width: 100%; resize: vertical; border: 0; border-radius: 12px; background: var(--carte-2); box-shadow: var(--inset); padding: 9px 12px; font: inherit; font-size: 14px; outline: none; min-height: 140px; }
 .note-detail textarea:focus { box-shadow: var(--inset), 0 0 0 3px var(--accent-dim); }
 .note-detail.depot { outline: 3px dashed var(--accent); outline-offset: 4px; border-radius: 12px; }
@@ -443,7 +448,7 @@ header.top.urg-vert { box-shadow: var(--clay-sm), inset 0 0 0 4px #3ddc76, 0 0 1
             <h2>Commentaires</h2>
             <div class="note-aide" id="noteAide">Clique sur le texte d'une tâche pour y écrire un commentaire et ajouter des captures ou des fichiers.</div>
             <div class="note-detail" id="noteDetail" hidden>
-              <div class="note-titre" id="noteTitre"></div>
+              <div><div class="note-titre" id="noteTitre"></div><div class="note-fait" id="noteFait"></div></div>
               <textarea id="noteTache" placeholder="Écris ton commentaire… (tu peux aussi coller ou glisser une capture ou un fichier ici)"></textarea>
               <div class="captures" id="noteCaptures"></div>
               <div class="note-fichiers" id="noteFichiers"></div>
@@ -580,13 +585,13 @@ const TACHES = [
 ];
 
 const CLE = "racco-d2-v1";
-let etat = { coches: {}, barres: {}, dates: {}, liens: {}, memo: {}, fiche: {}, fermes: {}, listes: {}, sel: null };
-try { const s = JSON.parse(localStorage.getItem(CLE) || "null"); if (s && typeof s === "object") ["coches", "barres", "dates", "liens", "memo", "fiche", "fermes", "listes"].forEach(k => { if (s[k] && typeof s[k] === "object") etat[k] = s[k]; }), etat.sel = typeof s.sel === "string" ? s.sel : null; } catch (e) {}
+let etat = { coches: {}, barres: {}, dates: {}, liens: {}, memo: {}, fiche: {}, fermes: {}, listes: {}, faitLe: {}, sel: null };
+try { const s = JSON.parse(localStorage.getItem(CLE) || "null"); if (s && typeof s === "object") ["coches", "barres", "dates", "liens", "memo", "fiche", "fermes", "listes", "faitLe"].forEach(k => { if (s[k] && typeof s[k] === "object") etat[k] = s[k]; }), etat.sel = typeof s.sel === "string" ? s.sel : null; } catch (e) {}
 const sauver = () => { try { localStorage.setItem(CLE, JSON.stringify(etat)); } catch (e) {} };
 // remise à zéro complète des tests (10 octobre 2026) : tout ce qui a été saisi est effacé (tâches, dates, infos du dossier, IMB,
 // Infos utiles, commentaires, captures, liens OneDrive, urgence) ; seule la mise en page (tâches repliées) est gardée
 if (!etat.fiche.raz4) {
-  etat = { coches: {}, barres: {}, dates: {}, liens: {}, memo: {}, fiche: { raz4: true }, fermes: etat.fermes, listes: {}, sel: null };
+  etat = { coches: {}, barres: {}, dates: {}, liens: {}, memo: {}, fiche: { raz4: true }, fermes: etat.fermes, listes: {}, faitLe: {}, sel: null };
   ["racco-d2-captures", "racco-d2-notes-captures", "racco-d2-notes-fichiers"].forEach(k => { try { localStorage.removeItem(k); } catch (e) {} });
   sauver();
 }
@@ -610,6 +615,11 @@ const datesOk = t => [t, ...desc(t)].filter(d => AVEC_DATE.has(d.id) && !estBarr
 const fini = t => valide(t) && datesOk(t);   // bloc et voyant au vert
 // tâche cochée automatiquement quand une autre est cochée ET datée : « APD / DOE conforme » daté → « Vérifier la conformité … »
 const AUTO_SI = { t2_1: "t2_1_2", t5_1: "t5_1_2" };
+function majFaitLe() {
+  const j = versIso(new Date());
+  Object.keys(etat.coches).forEach(id => { if (!etat.faitLe[id]) etat.faitLe[id] = j; });
+  Object.keys(etat.faitLe).forEach(id => { if (!etat.coches[id]) delete etat.faitLe[id]; });
+}
 // tâches cochées automatiquement quand toutes leurs sous-tâches non barrées le sont : IPON, GEORESO, SPI, LINE, OPTIMUM,
 // puis « Mettre à jour le SI » quand ces cinq-là le sont (étape 7) ; l'ordre compte : les sous-groupes d'abord
 const AUTO_TOUTES = ["t7_4_1", "t7_4_2", "t7_4_3", "t7_4_4", "t7_4_5", "t7_4"];
@@ -629,6 +639,7 @@ function autoEtapes() {
     if (complet && !etat.coches[t.id]) etat.coches[t.id] = "auto";
     else if (!complet && etat.coches[t.id] === "auto") delete etat.coches[t.id];
   });
+  majFaitLe();   // date à laquelle chaque tâche a été cochée (à la main ou automatiquement) ; retirée si elle est décochée
 }
 
 // anticipation non nécessaire / nécessaire : cocher dans l'une (elle-même ou une de ses tâches) barre et décoche toute l'autre ;
@@ -759,7 +770,7 @@ function ligneHTML(n, d, num) {
   if (d === 1) h += n.kids ? `<button class="chev" type="button" data-chev="${n.id}" aria-label="Réduire ou déplier" aria-expanded="${!etat.fermes[n.id]}">▼</button>` : `<span class="chev vide" aria-hidden="true"></span>`;
   h += `<input type="checkbox" class="cb${auto ? " auto" : ""}" id="cb_${n.id}" data-cb="${n.id}"${v ? " checked" : ""}${verrouillee(n) ? " disabled" : ""} aria-label="${esc(n.lib)}">`;
   // le texte ne coche pas : seule la case coche ; un clic sur le texte affiche le commentaire de la tâche
-  h += `<span class="lib" data-note="${n.id}">${d === 1 ? `<span class="num">${num}</span>` : ""}${esc(n.lib)}</span>`;
+  h += `<span class="lib" data-note="${n.id}">${d === 1 ? `<span class="num">${num}</span>` : ""}${esc(n.lib)}${aCommentaire(n.id) ? IND_NOTE(n.id) : ""}</span>`;
   h += outilsHTML(n);
   if (d === 1) { const r = resultat(n), ok = r.tag === "ok" && datesOk(n); h += `<span class="led ${ok ? "on" : "off"}" role="img" aria-label="${esc(r.txt)}" title="${esc(r.txt)}"></span>`; }
   h += `</div>`;
@@ -787,7 +798,7 @@ function rendu() {
   $("compteur").textContent = `${nbOk} / ${TACHES.length}`;
   $("compteur").className = "tag " + (nbOk === TACHES.length ? "ok" : nbOk ? "run" : "none");
 
-  majPoiEtat();
+  majPoiEtat(); majNoteFait();
   if (focus && $(focus) && document.activeElement !== $(focus)) {
     const c = $(focus); c.focus();
     if (c.setSelectionRange && c.type === "text") c.setSelectionRange(c.value.length, c.value.length);   // curseur à la fin
@@ -1426,6 +1437,17 @@ try { const c = JSON.parse(localStorage.getItem(NFICCLE) || "{}"); if (c && type
 const sauverNotesCaptures = () => { try { localStorage.setItem(NCAPCLE, JSON.stringify(notesCaptures)); return true; } catch (e) { return false; } };
 const sauverNotesFichiers = () => { try { localStorage.setItem(NFICCLE, JSON.stringify(notesFichiers)); return true; } catch (e) { return false; } };
 let noteChoisie = null;
+// une tâche a un commentaire si elle a du texte, une capture ou un fichier
+const aCommentaire = id => !!(etat.memo[id]?.note?.trim() || (notesCaptures[id] || []).length || (notesFichiers[id] || []).length);
+const IND_NOTE = id => `<span class="note-ind" data-note="${id}" title="Commentaire" aria-label="Commentaire"><svg viewBox="0 0 24 24" width="12" height="12" aria-hidden="true"><path d="M5 5h14a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-7l-4 3v-3H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z"/></svg></span>`;
+// met à jour la bulle de la tâche sans redessiner toute la liste (on écrit peut-être dans le commentaire)
+function majIndNote(id) {
+  const lib = document.querySelector(`.lib[data-note="${id}"]`); if (!lib) return;
+  const ind = lib.querySelector(".note-ind");
+  if (aCommentaire(id) && !ind) lib.insertAdjacentHTML("beforeend", IND_NOTE(id));
+  if (!aCommentaire(id) && ind) ind.remove();
+}
+function majNoteFait() { const j = noteChoisie && etat.faitLe[noteChoisie]; $("noteFait").textContent = j ? `Cochée le ${isoVersFr(j)}` : ""; }
 function afficherNote(id) {
   noteChoisie = id;
   $("noteAide").hidden = true; $("noteDetail").hidden = false;
@@ -1438,7 +1460,7 @@ $("noteTache").addEventListener("input", () => {
   if (!noteChoisie) return;
   const t = $("noteTache").value;
   if (t) etat.memo[noteChoisie] = { note: t }; else delete etat.memo[noteChoisie];
-  sauver();
+  sauver(); majIndNote(noteChoisie);
 });
 function rendreNoteCaptures() {
   const L = notesCaptures[noteChoisie] || [];
@@ -1465,7 +1487,7 @@ async function ajouterNoteFichiers(fichiers) {
       if (!sauverNotesFichiers()) { L.pop(); sauverNotesFichiers(); alert("Plus de place pour d'autres fichiers : retires-en un avant d'en ajouter."); break; }
     }
   }
-  rendreNoteCaptures(); rendreNoteFichiers();
+  rendreNoteCaptures(); rendreNoteFichiers(); majIndNote(id);
 }
 $("noteTacheFichier").addEventListener("change", e => { ajouterNoteFichiers([...e.target.files]); e.target.value = ""; });
 $("noteDetail").addEventListener("paste", e => { const fs = [...(e.clipboardData?.files || [])]; if (fs.length) { e.preventDefault(); ajouterNoteFichiers(fs); } });
@@ -1474,13 +1496,13 @@ $("noteDetail").addEventListener("dragleave", () => $("noteDetail").classList.re
 $("noteDetail").addEventListener("drop", e => { e.preventDefault(); $("noteDetail").classList.remove("depot"); ajouterNoteFichiers([...e.dataTransfer.files]); });
 $("noteCaptures").addEventListener("click", e => {
   const r = e.target.closest("[data-nret]");
-  if (r) { notesCaptures[noteChoisie].splice(+r.dataset.nret, 1); sauverNotesCaptures(); rendreNoteCaptures(); return; }
+  if (r) { notesCaptures[noteChoisie].splice(+r.dataset.nret, 1); sauverNotesCaptures(); rendreNoteCaptures(); majIndNote(noteChoisie); return; }
   const v = e.target.closest("[data-nvoir]");
   if (v) { const vis = document.createElement("div"); vis.className = "visionneuse"; vis.innerHTML = `<img src="${notesCaptures[noteChoisie][+v.dataset.nvoir]}" alt="Capture agrandie">`; vis.onclick = () => vis.remove(); document.body.appendChild(vis); }
 });
 $("noteFichiers").addEventListener("click", e => {
   const r = e.target.closest("[data-fret]");
-  if (r) { notesFichiers[noteChoisie].splice(+r.dataset.fret, 1); sauverNotesFichiers(); rendreNoteFichiers(); return; }
+  if (r) { notesFichiers[noteChoisie].splice(+r.dataset.fret, 1); sauverNotesFichiers(); rendreNoteFichiers(); majIndNote(noteChoisie); return; }
   const o = e.target.closest("[data-fouvrir]"); if (!o) return;
   // ouverture : PDF et texte dans un nouvel onglet, les autres sont téléchargés
   const f = notesFichiers[noteChoisie][+o.dataset.fouvrir];
