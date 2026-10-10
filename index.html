@@ -618,7 +618,14 @@ const datesOk = t => [t, ...desc(t)].filter(d => AVEC_DATE.has(d.id) && !estBarr
 const fini = t => valide(t) && datesOk(t);   // bloc et voyant au vert
 // tâche cochée automatiquement quand une autre est cochée ET datée : « APD / DOE conforme » daté → « Vérifier la conformité … »
 const AUTO_SI = { t2_1: "t2_1_2", t5_1: "t5_1_2" };
+// tâches cochées automatiquement quand toutes leurs sous-tâches non barrées le sont : IPON, GEORESO, SPI, LINE, OPTIMUM (étape 7)
+const AUTO_TOUTES = ["t7_4_1", "t7_4_2", "t7_4_3", "t7_4_4", "t7_4_5"];
 function autoEtapes() {
+  AUTO_TOUTES.forEach(t => {
+    const ds = NOEUDS[t].kids.filter(k => !estBarre(k)), ok = ds.length > 0 && ds.every(k => etat.coches[k.id]);
+    if (ok && !etat.coches[t]) etat.coches[t] = "auto";
+    else if (!ok && etat.coches[t] === "auto") delete etat.coches[t];
+  });
   Object.entries(AUTO_SI).forEach(([t, src]) => {
     const ok = etat.coches[src] && etat.dates[src];
     if (ok && !etat.coches[t]) etat.coches[t] = "auto";
