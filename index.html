@@ -613,9 +613,12 @@ const estBarre = n => !!etat.barres[n.id];
 function valide(n) { return !!etat.coches[n.id]; }
 // très grande tâche : cochée automatiquement (« auto ») dès que toutes ses tâches et sous-tâches non barrées sont cochées,
 // décochée si l'une d'elles ne l'est plus ; une coche faite à la main n'est jamais retirée
+// … et seulement si toutes les dates des tâches non barrées (la très grande tâche comprise) sont renseignées
+const datesOk = t => [t, ...desc(t)].filter(d => AVEC_DATE.has(d.id) && !estBarre(d)).every(d => etat.dates[d.id]);
+const fini = t => valide(t) && datesOk(t);   // bloc et voyant au vert
 function autoEtapes() {
   TACHES.forEach(t => {
-    const ds = desc(t).filter(d => !estBarre(d)), complet = ds.length > 0 && ds.every(d => etat.coches[d.id]);
+    const ds = desc(t).filter(d => !estBarre(d)), complet = ds.length > 0 && ds.every(d => etat.coches[d.id]) && datesOk(t);
     if (complet && !etat.coches[t.id]) etat.coches[t.id] = "auto";
     else if (!complet && etat.coches[t.id] === "auto") delete etat.coches[t.id];
   });
@@ -733,7 +736,7 @@ function ligneHTML(n, d, num) {
   // le texte ne coche pas : seule la case coche ; un clic sur le texte affiche le commentaire de la tâche
   h += `<span class="lib" data-note="${n.id}">${d === 1 ? `<span class="num">${num}</span>` : ""}${esc(n.lib)}</span>`;
   h += outilsHTML(n);
-  if (d === 1) { const r = resultat(n), ok = r.tag === "ok"; h += `<span class="led ${ok ? "on" : "off"}" role="img" aria-label="${esc(r.txt)}" title="${esc(r.txt)}"></span>`; }
+  if (d === 1) { const r = resultat(n), ok = r.tag === "ok" && datesOk(n); h += `<span class="led ${ok ? "on" : "off"}" role="img" aria-label="${esc(r.txt)}" title="${esc(r.txt)}"></span>`; }
   h += `</div>`;
   if (n.kids) {
     const inner = n.kids.map((k, i) => (n.mode === "un" && !n.choix && i > 0 ? `<div class="ou">ou</div>` : "") + ligneHTML(k, d + 1)).join("");
@@ -753,14 +756,17 @@ function rendu() {
   const focus = document.activeElement && document.activeElement.id;
   const sel = etapeCourante();
   $("arbre").innerHTML = TACHES.map((t, i) =>
-    `<div class="gt${etat.fermes[t.id] || verrouillee(t) ? " ferme" : ""}${verrouillee(t) ? " verrou" : ""}${t === sel ? " actif" : ""}${valide(t) ? " fini" : ""}">${ligneHTML(t, 1, i + 1)}</div>`).join("");
+    `<div class="gt${etat.fermes[t.id] || verrouillee(t) ? " ferme" : ""}${verrouillee(t) ? " verrou" : ""}${t === sel ? " actif" : ""}${fini(t) ? " fini" : ""}">${ligneHTML(t, 1, i + 1)}</div>`).join("");
 
   const nbOk = TACHES.filter(acquise).length;
   $("compteur").textContent = `${nbOk} / ${TACHES.length}`;
   $("compteur").className = "tag " + (nbOk === TACHES.length ? "ok" : nbOk ? "run" : "none");
 
   rendreMemo(); majPoiEtat();
-  if (focus && $(focus) && document.activeElement !== $(focus)) $(focus).focus();
+  if (focus && $(focus) && document.activeElement !== $(focus)) {
+    const c = $(focus); c.focus();
+    if (c.setSelectionRange && c.type === "text") c.setSelectionRange(c.value.length, c.value.length);   // curseur à la fin
+  }
 }
 
 /* clic : coche ou décoche ; double-clic : barre ou débarre la tâche (les deux clics sont annulés) */
@@ -800,6 +806,8 @@ document.querySelectorAll("[data-f]").forEach(inp => {
 });
 
 /* ═══ Dates des tâches : même saisie que la DLPI ═══ */
+// une date saisie peut compléter (ou défaire) une très grande tâche
+function majApresDate() { const avant = new Set(Object.keys(NOEUDS).filter(k => valide(NOEUDS[k]))); autoEtapes(); noterCoches(avant); rendu(); }
 const formaterDate = v => { const ch = v.replace(/\D/g, "").slice(0, 8); return ch.length > 4 ? `${ch.slice(0, 2)}/${ch.slice(2, 4)}/${ch.slice(4)}` : ch.length > 2 ? `${ch.slice(0, 2)}/${ch.slice(2)}` : ch; };
 $("arbre").addEventListener("input", e => {
   const id = e.target.dataset.date; if (!id) return;
@@ -807,7 +815,7 @@ $("arbre").addEventListener("input", e => {
   const iso = frVersIso(e.target.value), vide = !e.target.value;
   e.target.classList.toggle("invalide", e.target.value.length === 10 && !iso);
   if (iso) etat.dates[id] = iso; else if (vide) delete etat.dates[id];
-  if (iso || vide) { sauver(); reporterDate(id); }
+  if (iso || vide) { sauver(); reporterDate(id); majApresDate(); }
 });
 $("arbre").addEventListener("focusout", e => {
   const id = e.target.dataset.date; if (!id) return;
@@ -821,7 +829,7 @@ $("arbre").addEventListener("click", e => {
 });
 $("arbre").addEventListener("change", e => {
   const id = e.target.dataset.calpick; if (!id || !e.target.value) return;
-  etat.dates[id] = e.target.value; sauver(); reporterDate(id);
+  etat.dates[id] = e.target.value; sauver(); reporterDate(id); majApresDate();
   const champ = $("dt_" + id); if (champ) { champ.value = isoVersFr(e.target.value); champ.classList.remove("invalide"); }
 });
 
