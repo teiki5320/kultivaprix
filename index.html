@@ -602,14 +602,9 @@ if (!etat.fiche.raz4) {
 const NOEUDS = {}, PARENT = {};
 (function idx(list, p) { list.forEach(n => { NOEUDS[n.id] = n; PARENT[n.id] = p; if (n.kids) idx(n.kids, n); }); })(TACHES, null);
 const desc = n => (n.kids || []).flatMap(k => [k, ...desc(k)]);
-/* descendants à cocher en cascade : on ne descend pas dans les branches au choix */
-// tâches dont la coche ne descend pas dans les sous-tâches : « Faire resa au PA » (Desat PMZ), demandes BANBOU (import PIT)
-const SANS_CASCADE = new Set(["t3_3", "t3_4", "t6_2"]);
-const cascade = n => n.mode === "un" || SANS_CASCADE.has(n.id) ? [] : (n.kids || []).flatMap(k => [k, ...cascade(k)]);
 const anc = n => { const a = []; let p = PARENT[n.id]; while (p) { a.push(p); p = PARENT[p.id]; } return a; };
 
-/* état enregistré avant l'ajout des sous-tâches : une étape cochée coche ses sous-tâches */
-Object.keys(etat.coches).forEach(id => { const n = NOEUDS[id]; if (!n) delete etat.coches[id]; else cascade(n).forEach(d => etat.coches[d.id] = true); });
+Object.keys(etat.coches).forEach(id => { if (!NOEUDS[id]) delete etat.coches[id]; });   // tâches qui n'existent plus
 
 /* tâche barrée (double-clic sur sa case) : reste visible mais ne bloque pas la tâche du dessus */
 const estBarre = n => !!etat.barres[n.id];
@@ -627,8 +622,7 @@ function basculer(n, on) {
   if (verrouillee(n)) { rendu(); return; }
   const avant = Object.fromEntries(Object.keys(BARRE_SI).map(id => [id, engagee(id)]));
   if (on) {
-    etat.coches[n.id] = true;
-    cascade(n).forEach(d => etat.coches[d.id] = true);
+    etat.coches[n.id] = true;   // seule la tâche cochée : ses sous-tâches se cochent à la main
     // branches au choix : cocher dans une branche efface les autres
     [n, ...anc(n)].forEach(x => {
       const p = PARENT[x.id];
@@ -641,10 +635,11 @@ function basculer(n, on) {
     if (p && p.id === "t1_3") etat.coches[p.id] = true;
   } else {
     delete etat.coches[n.id];
-    desc(n).forEach(d => delete etat.coches[d.id]);
-    anc(n).forEach(a => delete etat.coches[a.id]);
+    // une tâche dont toutes les sous-tâches sont faites resterait cochée : on décoche alors aussi ses sous-tâches
+    if (valide(n)) desc(n).forEach(d => delete etat.coches[d.id]);
     const p = PARENT[n.id];
     if (p && p.choix) p.kids.forEach(k => delete etat.barres[k.id]);
+    if (p && p.id === "t1_3") delete etat.coches[p.id];   // décocher « Oui » ou « Non » décoche aussi l'aérien
   }
   Object.entries(BARRE_SI).forEach(([si, cible]) => {
     const maintenant = engagee(si); if (maintenant === avant[si]) return;
