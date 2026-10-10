@@ -524,7 +524,7 @@ const TACHES = [
       { id: "t4_2_4", lib: "Envoyer en travaux", mode: "tout", kids: [
         { id: "t4_2_4_1", lib: "Mettre ComL" } ] },
       { id: "t4_2_5", lib: "Valider tâche dans SPI ????" },
-      { id: "t4_2_6", lib: "Réception du DOE d’anticipation", mode: "tout", kids: [
+      { id: "t4_2_6", lib: "Réception du DOE d’anticipation", mode: "un", choix: true, kids: [
         { id: "t4_2_6_1", lib: "DOE non conforme" },
         { id: "t4_2_6_2", lib: "DOE Conforme" } ] },
       { id: "t4_2_7", lib: "Faire contraste", mode: "un", choix: true, kids: [
@@ -539,7 +539,7 @@ const TACHES = [
         { id: "t4_2_10_3", lib: "Étape MAJ SI" } ] },
       { id: "t4_2_11", lib: "Archiver la POI d’anticipation dans PPR" } ] } ] },
   { id: "t5", lib: "Réception DOE précâblage", mode: "tout", kids: [
-    { id: "t5_1", lib: "Vérifier la conformité du DOE", mode: "tout", kids: [
+    { id: "t5_1", lib: "Vérifier la conformité du DOE", mode: "un", choix: true, kids: [
       { id: "t5_1_1", lib: "DOE non conforme", mode: "tout", kids: [
         { id: "t5_1_1_1", lib: "Mettre ComL + modifier DRE/DLR" },
         { id: "t5_1_1_2", lib: "Faire un mail GED à ZZZ Amaris OSA : Bonjour, DOE non conforme (indiquer les docs manquants)" } ] },
@@ -625,7 +625,7 @@ function basculer(n, on) {
       const p = PARENT[x.id];
       if (p && p.mode === "un") p.kids.filter(k => k !== x).forEach(k => { delete etat.coches[k.id]; desc(k).forEach(d => delete etat.coches[d.id]); });
     });
-    // contraste, APD conforme / non conforme : l'option choisie barre les autres (avec leurs sous-tâches)
+    // contraste, APD et DOE conforme / non conforme : l'option choisie barre les autres (avec leurs sous-tâches)
     const p = PARENT[n.id];
     if (p && p.choix) { p.kids.forEach(k => [k, ...desc(k)].forEach(x => { if (k === n) delete etat.barres[x.id]; else etat.barres[x.id] = true; })); }
     // aérien : cocher « Oui » ou « Non » coche vraiment « Regarder s'il y a de l'aérien » (date dans Commentaires)
