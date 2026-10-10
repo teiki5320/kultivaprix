@@ -618,6 +618,8 @@ function basculer(n, on) {
     // contraste : l'option choisie barre les autres
     const p = PARENT[n.id];
     if (p && p.choix) { p.kids.forEach(k => { if (k === n) delete etat.barres[k.id]; else etat.barres[k.id] = true; }); }
+    // aérien : cocher « Oui » ou « Non » coche vraiment « Regarder s'il y a de l'aérien » (date dans Commentaires)
+    if (p && p.id === "t1_3") etat.coches[p.id] = true;
   } else {
     delete etat.coches[n.id];
     desc(n).forEach(d => delete etat.coches[d.id]);
