@@ -606,13 +606,10 @@ const anc = n => { const a = []; let p = PARENT[n.id]; while (p) { a.push(p); p 
 
 Object.keys(etat.coches).forEach(id => { if (!NOEUDS[id]) delete etat.coches[id]; });   // tâches qui n'existent plus
 
-/* tâche barrée (double-clic sur sa case) : reste visible mais ne bloque pas la tâche du dessus */
+/* tâche barrée (double-clic sur sa case) : reste visible, barrée et grisée */
 const estBarre = n => !!etat.barres[n.id];
-function valide(n) {
-  if (etat.coches[n.id]) return true;
-  if (!n.kids) return false;
-  return n.mode === "un" ? n.kids.some(valide) : n.kids.every(k => valide(k) || estBarre(k));
-}
+// une tâche n'est faite que si elle est cochée à la main : rien ne se coche tout seul, ni en dessous ni au-dessus
+function valide(n) { return !!etat.coches[n.id]; }
 
 // anticipation non nécessaire / nécessaire : cocher dans l'une (elle-même ou une de ses tâches) barre et décoche toute l'autre ;
 // tout décocher dans l'une débarre l'autre
@@ -635,8 +632,6 @@ function basculer(n, on) {
     if (p && p.id === "t1_3") etat.coches[p.id] = true;
   } else {
     delete etat.coches[n.id];
-    // une tâche dont toutes les sous-tâches sont faites resterait cochée : on décoche alors aussi ses sous-tâches
-    if (valide(n)) desc(n).forEach(d => delete etat.coches[d.id]);
     const p = PARENT[n.id];
     if (p && p.choix) p.kids.forEach(k => delete etat.barres[k.id]);
     if (p && p.id === "t1_3") delete etat.coches[p.id];   // décocher « Oui » ou « Non » décoche aussi l'aérien
