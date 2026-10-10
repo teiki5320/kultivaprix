@@ -134,6 +134,7 @@ header.top .sous { font-size: 13px; opacity: .85; }
 .champ input[type="date"]::-webkit-date-and-time-value { text-align: left; }
 /* N° de POI annulée ou archivée : case grisée (numéro non barré) et mention à côté du titre */
 .champ input.poi-close { background: #cfcfcf; color: #6b6b6b; }
+.champ[hidden] { display: none; }
 .poi-etat { color: #d62d20; font-weight: 800; }   /* « annulée » / « archivée » en rouge */
 .fiche > .champ:not(.large) { justify-content: flex-end; }   /* cases alignées même si un titre passe sur deux lignes */
 .champ input::placeholder { color: var(--muted); opacity: .7; }
@@ -320,7 +321,8 @@ header.top.urg-vert { box-shadow: var(--clay-sm), inset 0 0 0 4px #3ddc76, 0 0 1
   .col.droite .card { padding: 12px 14px; }
   .col.droite .card h2 { margin-bottom: 8px; }
   .fiche { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px 8px; }
-  .champ.adr { grid-column: span 3; }   /* l'adresse prend la largeur des trois cases du dessus, le N° PC reste à droite */
+  .champ.adr { grid-column: span 3; }
+  .fiche.avec-aerien .champ.adr { grid-column: span 2; }   /* N° POI aérien affiché : l'adresse lui laisse une case */   /* l'adresse prend la largeur des trois cases du dessus, le N° PC reste à droite */
   .champ input { min-height: 30px; padding: 5px 9px; }
   .bas-droite, .cote { gap: 12px; }
 }
@@ -380,6 +382,7 @@ header.top.urg-vert { box-shadow: var(--clay-sm), inset 0 0 0 4px #3ddc76, 0 0 1
             </div>
           </div>
           <div class="champ large adr"><label for="f_adr">Adresse</label><input id="f_adr" data-f="adr" placeholder="Adresse de l'immeuble"></div>
+          <div class="champ" id="champAerien" hidden><label for="f_aerien">N° POI aérien<span class="poi-etat" id="etatAerien"></span></label><input id="f_aerien" data-f="aerien" placeholder="POI aérien"></div>
           <div class="champ"><label for="f_pc">N° PC</label><input id="f_pc" data-f="pc" placeholder="N° PC"></div>
           <div class="champ large ref-ligne"><label for="f_ref">Regroupement syndic</label><input id="f_ref" data-f="ref" placeholder="Regroupement syndic"></div>
           <div class="champ large regroup" id="regroupZone">
@@ -466,7 +469,9 @@ const TACHES = [
   { id: "t1", lib: "Réception de la POI", mode: "tout", kids: [
     { id: "t1_1", lib: "Classer les docs GEDAFFAIRE" },
     { id: "t1_2", lib: "Mettre un Geosignet dans GEORESO" },
-    { id: "t1_3", lib: "Regarder s’il y a de l’aérien" },
+    { id: "t1_3", lib: "Regarder s’il y a de l’aérien", mode: "un", choix: true, kids: [
+      { id: "t1_3_1", lib: "Oui" },
+      { id: "t1_3_2", lib: "Non" } ] },
     { id: "t1_4", lib: "Regarder place au PA" },
     { id: "t1_5", lib: "Mettre un ComL + modifier DRE/DLR + passer la POI à l’état 5" } ] },
   { id: "t2", lib: "Réception APD", mode: "tout", kids: [
@@ -1074,13 +1079,13 @@ document.querySelector(".feu").addEventListener("click", e => {
   sauver(); majUrgence();
 });
 
-/* ═══ Dates importantes : 14 dates, saisie comme la DLPI ═══ */
+/* ═══ Dates importantes : 17 dates, saisie comme la DLPI ═══ */
 // 1re ligne : Réception POI, DLPI, DRE, DLR ; ensuite dans l'ordre des tâches, puis les deux archivages
 // une seule date MAD : elle devient « MAD anticipée » quand elle vient de la tâche de MAD anticipée
 const DATES_IMP = [["poi", "Réception POI"], ["dre", "DRE"], ["dlr", "DLR"],
-  ["apd", "Réception APD"], ["travauxAnt", "Envoi en travaux anticipation"], ["doeAnt", "Réception DOE Anticipation"], ["doePre", "Réception DOE précâblage"], ["travaux", "Envoi en travaux"],
+  ["apd", "Réception APD"], ["poiAerien", "Réception POI aérien"], ["sepale", "Retour SEPALE"], ["travauxAnt", "Envoi en travaux anticipation"], ["doeAnt", "Réception DOE Anticipation"], ["doePre", "Réception DOE précâblage"], ["travaux", "Envoi en travaux"],
   ["doeRacco", "Réception DOE Racco D2"], ["paiement", "Paiement attachement"], ["mad", "MAD"],
-  ["archAnt", "Archivage POI anticipation"], ["archRacco", "Archivage POI Racco D2"]];
+  ["archAnt", "Archivage POI anticipation"], ["archRacco", "Archivage POI Racco D2"], ["archAerien", "Archivage POI aérien"]];
 // précisions au survol de l'astérisque ou du titre (pas pour les envois en travaux, le paiement ni les archivages ; celle de la DLPI est dans le HTML)
 const AIDE_DI = {
   poi: "Date à laquelle la POI a été intégrée à mon portefeuille.",
@@ -1119,6 +1124,10 @@ function majPoiEtat() {
   const di = etat.fiche.di || {}, src = etat.fiche.diSrc || {}, fait = id => NOEUDS[id] && valide(NOEUDS[id]);
   const ant = fait("t4_1_1") || src.archAnt === "t4_1_1" ? "annulée" : di.archAnt || fait("t4_2_11") ? "archivée" : "";
   const racco = di.archRacco || fait("t7_6") ? "archivée" : "";
+  // aérien : la case N° POI aérien n'apparaît que si « Oui » est coché ; grisée une fois la POI aérien archivée
+  const aerien = fait("t1_3_1");
+  $("champAerien").hidden = !aerien; document.querySelector(".fiche").classList.toggle("avec-aerien", aerien);
+  $("f_aerien").classList.toggle("poi-close", !!di.archAerien); $("etatAerien").textContent = di.archAerien ? " · archivée" : "";
   [["f_ant", "etatAnt", ant], ["f_racco", "etatRacco", racco]].forEach(([c, e, t]) => { $(c).classList.toggle("poi-close", !!t); $(e).textContent = t ? " · " + t : ""; });
   // anticipation non nécessaire : ses deux dates importantes passent aussi en grisé
   const sansAnt = engagee("t4_1");
