@@ -250,6 +250,8 @@ header.top.urg-vert { box-shadow: var(--clay-sm), inset 0 0 0 4px #3ddc76, 0 0 1
 .docs-tuile small { display: block; font-size: 11.5px; font-weight: 700; opacity: .8; }
 .docs .lien-edit { top: -6px; right: -6px; width: 24px; height: 24px; font-size: 12px; line-height: 24px; }
 .docs:hover .lien-edit { display: block; }
+.notes-tuile { background: #f6e7a8; border-color: #c9a93a; color: #4a3b08; }
+.notes-tuile:hover { background: #f9eebf; }
 .suivi-tuile { background: #2b2b2b; border-color: #000; color: #f2f2f2; }
 .suivi-tuile:hover { background: #3a3a3a; }
 
@@ -440,11 +442,15 @@ header.top.urg-vert { box-shadow: var(--clay-sm), inset 0 0 0 4px #3ddc76, 0 0 1
             </div>
           </div>
           <div class="docs">
+            <button class="docs-tuile notes-tuile" id="notesTuile" type="button"><svg viewBox="0 0 24 24" width="40" height="40" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4M9 11h7M9 15h7M9 19h4"/></svg><span>Notes<small id="notesEtat"></small></span></button>
+            <button class="lien-edit" id="notesEdit" type="button" aria-label="Changer ou retirer le lien des notes" title="Changer ou retirer le lien" hidden>✎</button>
+          </div>
+          <div class="docs">
             <button class="docs-tuile" id="docsTuile" type="button"><svg viewBox="0 0 24 24" width="40" height="40" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span>Documents POI<small id="docsEtat"></small></span></button>
             <button class="lien-edit" id="docsEdit" type="button" aria-label="Changer ou retirer le lien des documents" title="Changer ou retirer le lien" hidden>✎</button>
           </div>
           <div class="docs">
-            <button class="docs-tuile suivi-tuile" id="suiviTuile" type="button"><svg viewBox="0 0 24 24" width="40" height="40" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span>Suivi POI<small id="suiviEtat">Tableau de suivi de tous les dossiers</small></span></button>
+            <button class="docs-tuile suivi-tuile" id="suiviTuile" type="button"><svg viewBox="0 0 24 24" width="40" height="40" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span>Suivi des dossiers<small id="suiviEtat">Tableau de suivi de tous les dossiers</small></span></button>
           </div>
         </div>
       </div>
@@ -816,7 +822,7 @@ $("arbre").addEventListener("click", e => {
   const l = etat.liens[b.dataset.lien];
   if (l) window.open(l, "_blank", "noopener"); else ouvrirLienPop(b.dataset.lien, b);
 });
-document.addEventListener("pointerdown", e => { if (lienPop && !lienPop.contains(e.target) && !e.target.closest("[data-lien],[data-lienedit],#docsTuile,#docsEdit")) fermerLienPop(); });
+document.addEventListener("pointerdown", e => { if (lienPop && !lienPop.contains(e.target) && !e.target.closest("[data-lien],[data-lienedit],#docsTuile,#docsEdit,#notesTuile,#notesEdit")) fermerLienPop(); });
 document.addEventListener("keydown", e => { if (e.key === "Escape" && lienPop) fermerLienPop(); });
 
 /* ═══ DLPI : JJ/MM/AAAA au clavier, ou calendrier ; enregistrée en AAAA-MM-JJ ═══ */
@@ -1163,10 +1169,16 @@ function majDocs() {
   const l = etat.liens.docsPOI;
   $("docsEtat").textContent = l ? "Ouvrir le dossier OneDrive" : "Ajouter le lien OneDrive";
   $("docsEdit").hidden = !l;
+  const n = etat.liens.notes;
+  $("notesEtat").textContent = n ? "Ouvrir les notes OneDrive" : "Ajouter le lien OneDrive";
+  $("notesEdit").hidden = !n;
 }
+// Notes : même fonctionnement que Documents POI, vers le fichier de notes sur OneDrive
+$("notesTuile").onclick = () => { const l = etat.liens.notes; if (l) window.open(l, "_blank", "noopener"); else ouvrirLienPop("notes", $("notesTuile"), "Lien OneDrive · Notes"); };
+$("notesEdit").onclick = () => ouvrirLienPop("notes", $("notesEdit"), "Lien OneDrive · Notes");
 $("docsTuile").onclick = () => { const l = etat.liens.docsPOI; if (l) window.open(l, "_blank", "noopener"); else ouvrirLienPop("docsPOI", $("docsTuile"), "Lien du dossier OneDrive · Documents POI"); };
 $("docsEdit").onclick = () => ouvrirLienPop("docsPOI", $("docsEdit"), "Lien du dossier OneDrive · Documents POI");
-// Suivi POI : le tableau de tous les dossiers n'existe pas encore
+// Suivi des dossiers : le tableau de tous les dossiers n'existe pas encore
 $("suiviTuile").onclick = () => { const m = $("suiviEtat"); m.textContent = "Tableau de suivi à venir"; clearTimeout(m._t); m._t = setTimeout(() => m.textContent = "Tableau de suivi de tous les dossiers", 2500); };
 
 /* ═══ Infos utiles : texte noir fixe après « : », champ prérempli sinon ═══ */
