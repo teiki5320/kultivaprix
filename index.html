@@ -235,7 +235,7 @@ header.top.urg-vert { box-shadow: var(--clay-sm), inset 0 0 0 4px #3ddc76, 0 0 1
 .di-aide { display: none; position: absolute; z-index: 25; left: 0; bottom: calc(100% + 4px); width: max-content; max-width: 230px; padding: 7px 10px; border-radius: 10px;
   background: #2b2b2b; color: #f2f2f2; font-size: 12px; font-weight: 600; line-height: 1.35; box-shadow: var(--clay); pointer-events: none; }
 .dates-imp .avec-aide:hover + .di-aide { display: block; }
-.dates-imp .champ:nth-child(4n) .di-aide { left: auto; right: 0; }
+.dates-imp .champ.a-droite .di-aide { left: auto; right: 0; }
 
 /* ── Bas de la colonne droite : Documents POI + Infos utiles (étroit) | Commentaires (large) ── */
 .bas-droite { display: grid; grid-template-columns: minmax(270px, 1fr) minmax(0, 1.45fr); gap: 18px; align-items: start; }
@@ -1125,14 +1125,29 @@ function majPoiEtat() {
   const ant = fait("t4_1_1") || src.archAnt === "t4_1_1" ? "annulée" : di.archAnt || fait("t4_2_11") ? "archivée" : "";
   const racco = di.archRacco || fait("t7_6") ? "archivée" : "";
   // aérien : la case N° POI aérien n'apparaît que si « Oui » est coché ; grisée une fois la POI aérien archivée
+  // avec « Oui », N° POI aérien prend la place du Nombre d'EL, qui passe entre l'adresse et le N° PC
   const aerien = fait("t1_3_1");
   $("champAerien").hidden = !aerien; document.querySelector(".fiche").classList.toggle("avec-aerien", aerien);
+  const cRacco = $("f_racco").closest(".champ"), cAdr = $("f_adr").closest(".champ"), cEl = $("elZone"), cAe = $("champAerien");
+  if (aerien && cRacco.nextElementSibling !== cAe) { cRacco.after(cAe); cAdr.after(cEl); }
+  if (!aerien && cRacco.nextElementSibling !== cEl) { cRacco.after(cEl); cAdr.after(cAe); }
+  // avec « Non », les trois dates aérien disparaissent des Dates importantes
+  const sansAerien = fait("t1_3_2");
+  ["di_poiAerien", "di_sepale", "di_archAerien"].forEach(c => { const ch = $(c)?.closest(".champ"); if (ch) ch.hidden = sansAerien; });
+  placerAides();
   $("f_aerien").classList.toggle("poi-close", !!di.archAerien); $("etatAerien").textContent = di.archAerien ? " · archivée" : "";
   [["f_ant", "etatAnt", ant], ["f_racco", "etatRacco", racco]].forEach(([c, e, t]) => { $(c).classList.toggle("poi-close", !!t); $(e).textContent = t ? " · " + t : ""; });
   // anticipation non nécessaire : ses deux dates importantes passent aussi en grisé
   const sansAnt = engagee("t4_1");
   ["di_travauxAnt", "di_doeAnt"].forEach(c => $(c)?.classList.toggle("poi-close", sansAnt));
 }
+// la précision d'une date de la colonne de droite s'ouvre vers la gauche pour ne pas sortir de la carte
+function placerAides() {
+  const z = $("datesImp"); if (!z) return;
+  const droite = z.getBoundingClientRect().right;
+  [...z.children].forEach(c => c.classList.toggle("a-droite", c.getBoundingClientRect().right > droite - 20));
+}
+window.addEventListener("resize", placerAides);
 function majTitres() {
   Object.entries(TITRE_SRC).forEach(([k, t]) => {
     const lib = t[etat.fiche.diSrc[k]] || DATES_IMP.find(d => d[0] === k)[1];
