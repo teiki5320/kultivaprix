@@ -464,7 +464,7 @@ const TACHES = [
     { id: "t1_4", lib: "Regarder place au PA" },
     { id: "t1_5", lib: "Mettre un ComL + modifier DRE/DLR + passer la POI à l’état 5" } ] },
   { id: "t2", lib: "Réception APD", mode: "tout", kids: [
-    { id: "t2_1", lib: "Regarder conformité de l’APD", mode: "tout", kids: [
+    { id: "t2_1", lib: "Vérifier conformité de l’APD", mode: "tout", kids: [
       { id: "t2_1_1", lib: "APD non conforme", mode: "tout", kids: [
         { id: "t2_1_1_1", lib: "Mettre ComL + modifier DRE/DLR" },
         { id: "t2_1_1_2", lib: "Faire un mail GED à ZZZ Amaris OSA : Bonjour, APD non conforme (indiquer les docs manquants)" } ] },
@@ -511,7 +511,7 @@ const TACHES = [
         { id: "t4_2_10_3", lib: "Étape MAJ SI" } ] },
       { id: "t4_2_11", lib: "Archiver la POI d’anticipation dans PPR" } ] } ] },
   { id: "t5", lib: "Réception DOE précâblage", mode: "tout", kids: [
-    { id: "t5_1", lib: "Regarder conformité du DOE", mode: "tout", kids: [
+    { id: "t5_1", lib: "Vérifier conformité du DOE", mode: "tout", kids: [
       { id: "t5_1_1", lib: "DOE non conforme", mode: "tout", kids: [
         { id: "t5_1_1_1", lib: "Mettre ComL + modifier DRE/DLR" },
         { id: "t5_1_1_2", lib: "Faire un mail GED à ZZZ Amaris OSA : Bonjour, DOE non conforme (indiquer les docs manquants)" } ] },
@@ -533,7 +533,7 @@ const TACHES = [
     { id: "t6_8", lib: "Valider tâche « Lancement travaux » dans SPI" },
     { id: "t6_9", lib: "Demander la MAD anticipée (si POI à l’état DMS)" } ] },
   { id: "t7", lib: "Réception du DOE Racco D2", mode: "tout", kids: [
-    { id: "t7_1", lib: "Vérification faites" },
+    { id: "t7_1", lib: "Vérifier la conformité du DOE" },
     { id: "t7_2", lib: "Faire contraste", mode: "un", choix: true, kids: [
       { id: "t7_2_1", lib: "Non conforme avec reprise" },
       { id: "t7_2_2", lib: "Non conforme sans reprise" },
