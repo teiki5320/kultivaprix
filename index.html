@@ -631,7 +631,8 @@ function basculer(n, on) {
     const maintenant = engagee(si); if (maintenant === avant[si]) return;
     const branche = id => [NOEUDS[id], ...desc(NOEUDS[id])];
     if (maintenant) {
-      branche(si).forEach(x => delete etat.barres[x.id]);
+      // débarre la branche seulement si elle avait été barrée par la règle (sinon on garderait les barres du contraste, etc.)
+      if (etat.barres[si]) branche(si).forEach(x => delete etat.barres[x.id]);
       branche(cible).forEach(x => { etat.barres[x.id] = true; delete etat.coches[x.id]; });
     } else if (!engagee(cible)) branche(cible).forEach(x => delete etat.barres[x.id]);
   });
