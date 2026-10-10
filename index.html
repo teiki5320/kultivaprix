@@ -229,7 +229,7 @@ header.top.urg-vert { box-shadow: var(--clay-sm), inset 0 0 0 4px #3ddc76, 0 0 1
 .dates-imp .champ { justify-content: flex-end; position: relative; }   /* cases alignées même si un titre passe sur deux lignes */
 /* astérisque à côté du titre : la précision s'ouvre au survol de l'astérisque ou du titre */
 .dates-imp .avec-aide { cursor: help; align-self: flex-start; }
-.dates-imp label.serre { font-size: 10.5px; letter-spacing: -.2px; white-space: nowrap; }   /* les deux titres « Réception DOE … » tiennent sur une ligne */
+.dates-imp label.serre { font-size: 10.5px; letter-spacing: -.2px; white-space: nowrap; }   /* les titres longs tiennent sur une ligne */
 .dates-imp .ast { color: #c46a1c; font-size: 13px; font-weight: 800; margin-left: 2px; }
 .di-aide { display: none; position: absolute; z-index: 25; left: 0; bottom: calc(100% + 4px); width: max-content; max-width: 230px; padding: 7px 10px; border-radius: 10px;
   background: #2b2b2b; color: #f2f2f2; font-size: 12px; font-weight: 600; line-height: 1.35; box-shadow: var(--clay); pointer-events: none; }
@@ -1067,14 +1067,14 @@ document.querySelector(".feu").addEventListener("click", e => {
   sauver(); majUrgence();
 });
 
-/* ═══ Dates importantes : 13 dates, saisie comme la DLPI ═══ */
+/* ═══ Dates importantes : 14 dates, saisie comme la DLPI ═══ */
 // 1re ligne : Réception POI, DLPI, DRE, DLR ; ensuite dans l'ordre des tâches, puis les deux archivages
 // une seule date MAD : elle devient « MAD anticipée » quand elle vient de la tâche de MAD anticipée
 const DATES_IMP = [["poi", "Réception POI"], ["dre", "DRE"], ["dlr", "DLR"],
-  ["apd", "Réception APD"], ["doeAnt", "Réception DOE Anticipation"], ["doePre", "Réception DOE précâblage"], ["travaux", "Envoi en travaux"],
+  ["apd", "Réception APD"], ["travauxAnt", "Envoi en travaux anticipation"], ["doeAnt", "Réception DOE Anticipation"], ["doePre", "Réception DOE précâblage"], ["travaux", "Envoi en travaux"],
   ["doeRacco", "Réception DOE Racco D2"], ["paiement", "Paiement attachement"], ["mad", "MAD"],
   ["archAnt", "Archivage POI anticipation"], ["archRacco", "Archivage POI Racco D2"]];
-// précisions au survol de l'astérisque ou du titre (pas pour Paiement attachement ; celle de la DLPI est dans le HTML)
+// précisions au survol de l'astérisque ou du titre (pas pour les envois en travaux, le paiement ni les archivages ; celle de la DLPI est dans le HTML)
 const AIDE_DI = {
   poi: "Date à laquelle la POI a été intégrée à mon portefeuille.",
   dre: "Date à entrer manuellement selon l'état d'avancement du dossier.",
@@ -1082,10 +1082,10 @@ const AIDE_DI = {
   apd: "Date de réception de l'APD <u>conforme</u>.",
   doeAnt: "Date de réception du DOE anticipation <u>conforme</u>.",
   doePre: "Date de réception du DOE précâblage <u>conforme</u>.",
-  travaux: "Date à entrer manuellement selon l'état d'avancement du dossier.",
   doeRacco: "Date de réception du DOE Racco D2 <u>conforme</u>.",
   mad: "Date à laquelle j'ai fait la demande de MAD.",
 };
+const SERRE = new Set(["travauxAnt", "doeAnt", "doePre"]);   // titres longs écrits un peu plus serrés pour tenir sur une ligne
 if (!etat.fiche.di || typeof etat.fiche.di !== "object") etat.fiche.di = {};
 if (!etat.fiche.diSrc || typeof etat.fiche.diSrc !== "object") etat.fiche.diSrc = {};   // tâche d'où vient chaque date reliée
 if (etat.fiche.di.madAnt) {   // ancienne date « MAD anticipée » : reprise dans la date MAD
@@ -1122,8 +1122,8 @@ function majTitres() {
   $("aide_mad").textContent = `Date à laquelle j'ai fait la demande de ${$("di_mad").closest(".champ").querySelector(".di-lib").textContent}.`;
 }
 $("datesImp").insertAdjacentHTML("beforeend", DATES_IMP.map(([k, lib]) => `<div class="champ">` +
-  (AIDE_DI[k] ? `<label for="di_${k}" class="avec-aide${k === "doeAnt" || k === "doePre" ? " serre" : ""}"><span class="di-lib">${esc(lib)}</span><sup class="ast" aria-hidden="true">*</sup></label><span class="di-aide" id="aide_${k}" role="tooltip">${AIDE_DI[k]}</span>`
-    : `<label for="di_${k}"><span class="di-lib">${esc(lib)}</span></label>`) + `<div class="date-champ">` +
+  (AIDE_DI[k] ? `<label for="di_${k}" class="avec-aide${SERRE.has(k) ? " serre" : ""}"><span class="di-lib">${esc(lib)}</span><sup class="ast" aria-hidden="true">*</sup></label><span class="di-aide" id="aide_${k}" role="tooltip">${AIDE_DI[k]}</span>`
+    : `<label for="di_${k}"${SERRE.has(k) ? ' class="serre"' : ""}><span class="di-lib">${esc(lib)}</span></label>`) + `<div class="date-champ">` +
   `<input id="di_${k}" data-di="${k}"${AIDE_DI[k] ? ` aria-describedby="aide_${k}"` : ""} value="${isoVersFr(etat.fiche.di[k])}" placeholder="JJ/MM/AAAA" inputmode="numeric" maxlength="10" autocomplete="off">` +
   `<button class="cal" type="button" data-dical="${k}" aria-label="Choisir la date « ${esc(lib)} » dans le calendrier" title="Calendrier">${ICO_CAL}</button>` +
   `<input type="date" class="date-cachee" data-dipick="${k}" tabindex="-1" aria-hidden="true"></div></div>`).join(""));
