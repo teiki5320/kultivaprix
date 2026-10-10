@@ -764,7 +764,9 @@ document.addEventListener("change", e => {
   const t = Date.now();
   if (dernierClic.id === id && t - dernierClic.t < 450) {
     etat.coches = dernierClic.coches; etat.barres = dernierClic.barres; etat.memo = dernierClic.memo;
-    if (etat.barres[id]) delete etat.barres[id]; else etat.barres[id] = true;
+    // la tâche et toutes ses sous-tâches sont barrées, ou débarrées, ensemble
+    const barrer = !etat.barres[id];
+    [NOEUDS[id], ...desc(NOEUDS[id])].forEach(x => { if (barrer) etat.barres[x.id] = true; else delete etat.barres[x.id]; });
     dernierClic = { id: null, t: 0 };
     sauver(); rendu(); return;
   }
