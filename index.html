@@ -1447,7 +1447,7 @@ function majIndNote(id) {
   if (aCommentaire(id) && !ind) lib.insertAdjacentHTML("beforeend", IND_NOTE(id));
   if (!aCommentaire(id) && ind) ind.remove();
 }
-function majNoteFait() { const j = noteChoisie && etat.faitLe[noteChoisie]; $("noteFait").textContent = j ? `Cochée le ${isoVersFr(j)}` : ""; }
+function majNoteFait() { const j = noteChoisie && etat.faitLe[noteChoisie]; $("noteFait").textContent = j ? `Fait le ${isoVersFr(j)}` : ""; }
 function afficherNote(id) {
   noteChoisie = id;
   $("noteAide").hidden = true; $("noteDetail").hidden = false;
