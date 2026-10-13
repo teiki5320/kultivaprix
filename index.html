@@ -323,8 +323,14 @@ header.top.urg-vert { box-shadow: var(--clay-sm), inset 0 0 0 4px #3ddc76, 0 0 1
 /* tâche commentée : petite bulle bleue après son texte (bleu pour ne pas la confondre avec le Modop orange) */
 .note-ind { display: inline-grid; place-items: center; width: 20px; height: 18px; margin-left: 6px; vertical-align: -3px; border-radius: 6px; background: #3b6fd6; color: #fff; cursor: pointer; }
 .note-ind svg { fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linejoin: round; }
-.note-detail textarea { width: 100%; resize: vertical; border: 0; border-radius: 12px; background: var(--carte-2); box-shadow: var(--inset); padding: 9px 12px; font: inherit; font-size: 14px; outline: none; min-height: 140px; }
-.note-detail textarea:focus { box-shadow: var(--inset), 0 0 0 3px var(--accent-dim); }
+/* zone du commentaire : texte et captures mélangés (⌘V insère la capture à l'endroit du curseur) */
+.note-zone-cadre { position: relative; }
+.note-zone { width: 100%; border-radius: 12px; background: var(--carte-2); box-shadow: var(--inset); padding: 9px 12px; font-size: 14px; outline: none; min-height: 140px; max-height: 520px; overflow-y: auto; white-space: pre-wrap; overflow-wrap: anywhere; }
+.note-zone:focus { box-shadow: var(--inset), 0 0 0 3px var(--accent-dim); }
+.note-zone:empty::before { content: attr(data-placeholder); color: var(--muted); opacity: .7; pointer-events: none; }
+.note-zone img { display: block; max-width: 100%; margin: 6px 0; border-radius: 8px; box-shadow: var(--clay-sm); cursor: zoom-in; }
+.note-img-suppr { position: absolute; width: 20px; height: 20px; border: 0; border-radius: 50%; padding: 0; cursor: pointer; font-size: 13px; line-height: 20px; background: rgba(40, 30, 20, .7); color: #fff; }
+.note-img-suppr[hidden] { display: none; }
 .note-detail.depot { outline: 3px dashed var(--accent); outline-offset: 4px; border-radius: 12px; }
 .ligne.choisie .lib { text-decoration: underline; text-decoration-color: var(--accent); text-underline-offset: 3px; text-decoration-thickness: 2px; }
 .ligne .lib[data-note] { cursor: pointer; }
@@ -452,13 +458,13 @@ header.top.urg-vert { box-shadow: var(--clay-sm), inset 0 0 0 4px #3ddc76, 0 0 1
             <div class="note-aide" id="noteAide">Clique sur le texte d'une tâche pour y écrire un commentaire et ajouter des captures ou des fichiers.</div>
             <div class="note-detail" id="noteDetail" hidden>
               <div><div class="note-titre" id="noteTitre"></div><div class="note-fait" id="noteFait" hidden>Fait le <span class="date-mini date-champ"><input id="noteFaitDate" placeholder="JJ/MM/AAAA" inputmode="numeric" maxlength="10" autocomplete="off" aria-label="Date « Fait le »"><button class="cal" id="noteFaitCal" type="button" aria-label="Choisir la date « Fait le » dans le calendrier" title="Calendrier"><svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg></button><input type="date" class="date-cachee" id="noteFaitPick" tabindex="-1" aria-hidden="true"></span></div></div>
-              <textarea id="noteTache" placeholder="Écris ton commentaire… (tu peux aussi coller ou glisser une capture ou un fichier ici)"></textarea>
+              <div class="note-zone-cadre"><div class="note-zone" id="noteTache" contenteditable="true" role="textbox" aria-multiline="true" data-placeholder="Écris ton commentaire… (⌘V pour coller une capture à l'endroit du curseur)"></div><button type="button" class="note-img-suppr" id="noteImgSuppr" aria-label="Retirer cette capture" title="Retirer" hidden>×</button></div>
               <div class="captures" id="noteCaptures"></div>
               <div class="note-fichiers" id="noteFichiers"></div>
               <div class="bulle-bas">
                 <label class="btn btn-mini" for="noteTacheFichier">Ajouter une capture ou un fichier</label>
                 <input type="file" id="noteTacheFichier" multiple hidden>
-                <span class="bulle-aide">ou colle (⌘V) / glisse-les dans le commentaire</span>
+                <span class="bulle-aide">elles se rangent en dessous ; ⌘V dans le texte la met à l'endroit du curseur</span>
               </div>
             </div>
           </div>
@@ -595,7 +601,7 @@ const sauver = () => { try { localStorage.setItem(CLE, JSON.stringify(etat)); } 
 // Infos utiles, commentaires, captures, liens OneDrive, urgence) ; seule la mise en page (tâches repliées) est gardée
 if (!etat.fiche.raz4) {
   etat = { coches: {}, barres: {}, dates: {}, liens: {}, memo: {}, fiche: { raz4: true }, fermes: etat.fermes, listes: {}, faitLe: {}, sel: null };
-  ["racco-d2-captures", "racco-d2-notes-captures", "racco-d2-notes-fichiers"].forEach(k => { try { localStorage.removeItem(k); } catch (e) {} });
+  ["racco-d2-captures", "racco-d2-notes-captures", "racco-d2-notes-fichiers", "racco-d2-notes-images"].forEach(k => { try { localStorage.removeItem(k); } catch (e) {} });
   sauver();
 }
 
@@ -1438,10 +1444,16 @@ let notesCaptures = {}, notesFichiers = {};
 try { const c = JSON.parse(localStorage.getItem(NCAPCLE) || "{}"); if (c && typeof c === "object") notesCaptures = c; } catch (e) {}
 try { const c = JSON.parse(localStorage.getItem(NFICCLE) || "{}"); if (c && typeof c === "object") notesFichiers = c; } catch (e) {}
 const sauverNotesCaptures = () => { try { localStorage.setItem(NCAPCLE, JSON.stringify(notesCaptures)); return true; } catch (e) { return false; } };
+// captures collées dans le texte : rangées à part (le texte ne garde que leur repère data-img)
+const NIMGCLE = "racco-d2-notes-images";
+let notesImages = {};
+try { const c = JSON.parse(localStorage.getItem(NIMGCLE) || "{}"); if (c && typeof c === "object") notesImages = c; } catch (e) {}
+const sauverNotesImages = () => { try { localStorage.setItem(NIMGCLE, JSON.stringify(notesImages)); return true; } catch (e) { return false; } };
 const sauverNotesFichiers = () => { try { localStorage.setItem(NFICCLE, JSON.stringify(notesFichiers)); return true; } catch (e) { return false; } };
 let noteChoisie = null;
 // une tâche a un commentaire si elle a du texte, une capture ou un fichier
-const aCommentaire = id => !!(etat.memo[id]?.note?.trim() || (notesCaptures[id] || []).length || (notesFichiers[id] || []).length);
+const texteNote = m => !m ? "" : m.html != null ? (/<img/.test(m.html) ? "img" : m.html.replace(/<[^>]*>|&nbsp;/g, "").trim()) : (m.note || "").trim();
+const aCommentaire = id => !!(texteNote(etat.memo[id]) || (notesCaptures[id] || []).length || (notesFichiers[id] || []).length);
 const IND_NOTE = id => `<span class="note-ind" data-note="${id}" title="Commentaire" aria-label="Commentaire"><svg viewBox="0 0 24 24" width="12" height="12" aria-hidden="true"><path d="M5 5h14a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-7l-4 3v-3H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z"/></svg></span>`;
 // met à jour la bulle de la tâche sans redessiner toute la liste (on écrit peut-être dans le commentaire)
 function majIndNote(id) {
@@ -1475,15 +1487,82 @@ function afficherNote(id) {
   noteChoisie = id;
   $("noteAide").hidden = true; $("noteDetail").hidden = false;
   $("noteTitre").textContent = NOEUDS[id].lib;
-  $("noteTache").value = etat.memo[id]?.note || "";
+  const m = etat.memo[id], zone = $("noteTache");
+  zone.innerHTML = m?.html != null ? m.html : esc(m?.note || "").replace(/\n/g, "<br>");   // anciens commentaires : texte simple
+  zone.querySelectorAll("img[data-img]").forEach(im => { const src = notesImages[im.dataset.img]; if (src) im.src = src; else im.remove(); });
+  $("noteImgSuppr").hidden = true;
   rendreNoteCaptures(); rendreNoteFichiers(); rendu();
   document.querySelector(".commentaires").scrollIntoView({ block: "nearest", behavior: "smooth" });
 }
-$("noteTache").addEventListener("input", () => {
+// enregistre le texte (sans les images, rangées à part) et oublie les captures retirées du texte
+function sauverZone() {
   if (!noteChoisie) return;
-  const t = $("noteTache").value;
-  if (t) etat.memo[noteChoisie] = { note: t }; else delete etat.memo[noteChoisie];
-  sauver(); majIndNote(noteChoisie);
+  const id = noteChoisie, zone = $("noteTache"), garde = new Set();
+  const copie = zone.cloneNode(true);
+  copie.querySelectorAll("*").forEach(el => {
+    if (el.tagName === "IMG") {
+      const k = el.dataset.img; if (!k) { el.remove(); return; }
+      garde.add(k); if (!notesImages[k] && el.src.startsWith("data:")) notesImages[k] = el.src;   // capture revenue avec ⌘Z
+      el.removeAttribute("src");
+    } else [...el.attributes].forEach(a => el.removeAttribute(a.name));
+  });
+  Object.keys(notesImages).forEach(k => { if (k.startsWith(id + "~") && !garde.has(k)) delete notesImages[k]; });
+  sauverNotesImages();
+  const html = copie.innerHTML;
+  if (texteNote({ html })) etat.memo[id] = { html }; else { delete etat.memo[id]; if (!zone.querySelector("img")) zone.innerHTML = ""; }
+  sauver(); majIndNote(id);
+}
+$("noteTache").addEventListener("input", sauverZone);
+// ⌘V : une capture va à l'endroit du curseur ; le texte collé arrive sans mise en forme ; un autre fichier va dans la liste
+$("noteTache").addEventListener("paste", e => {
+  e.stopPropagation(); e.preventDefault();
+  const fs = [...(e.clipboardData?.files || [])];
+  if (!fs.length) { document.execCommand("insertText", false, e.clipboardData?.getData("text/plain") || ""); return; }
+  const sel = getSelection(), plage = sel.rangeCount ? sel.getRangeAt(0).cloneRange() : null;
+  insererImages(fs, plage);
+});
+$("noteTache").addEventListener("drop", e => {
+  const fs = [...(e.dataTransfer?.files || [])]; if (!fs.length) return;
+  e.stopPropagation(); e.preventDefault(); $("noteDetail").classList.remove("depot");
+  insererImages(fs, document.caretRangeFromPoint ? document.caretRangeFromPoint(e.clientX, e.clientY) : null);
+});
+async function insererImages(fichiers, plage) {
+  if (!noteChoisie) return;
+  const id = noteChoisie, zone = $("noteTache"), autres = [];
+  if (!plage || !zone.contains(plage.startContainer)) { plage = document.createRange(); plage.selectNodeContents(zone); plage.collapse(false); }
+  for (const f of fichiers) {
+    if (!f.type.startsWith("image/")) { autres.push(f); continue; }
+    let src; try { src = await reduire(f); } catch (e) { continue; }
+    if (noteChoisie !== id) return;
+    const k = `${id}~${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
+    notesImages[k] = src;
+    if (!sauverNotesImages()) { delete notesImages[k]; sauverNotesImages(); alert("Plus de place pour d'autres captures : retires-en une avant d'en ajouter."); break; }
+    const im = document.createElement("img"); im.src = src; im.dataset.img = k; im.alt = "Capture";
+    plage.deleteContents(); plage.insertNode(im);
+    if (!im.nextSibling) im.after(document.createElement("br"));   // une ligne après la capture pour continuer à écrire
+    plage.setStartAfter(im); plage.collapse(true);
+  }
+  zone.focus(); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(plage);
+  sauverZone();
+  if (autres.length) ajouterNoteFichiers(autres);
+}
+// clic sur une capture du texte : agrandie ; au survol, une croix pour la retirer
+let imgSurvol = null;
+$("noteTache").addEventListener("click", e => {
+  if (e.target.tagName !== "IMG") return;
+  const vis = document.createElement("div"); vis.className = "visionneuse"; vis.innerHTML = `<img src="${e.target.src}" alt="Capture agrandie">`; vis.onclick = () => vis.remove(); document.body.appendChild(vis);
+});
+$("noteTache").addEventListener("mouseover", e => {
+  if (e.target.tagName !== "IMG") { $("noteImgSuppr").hidden = true; return; }
+  imgSurvol = e.target; const b = $("noteImgSuppr"), cadre = b.parentElement.getBoundingClientRect(), ri = imgSurvol.getBoundingClientRect();
+  b.style.top = `${ri.top - cadre.top + 4}px`; b.style.left = `${ri.right - cadre.left - 24}px`; b.hidden = false;
+});
+$("noteTache").addEventListener("mouseleave", e => { if (e.relatedTarget !== $("noteImgSuppr")) $("noteImgSuppr").hidden = true; });
+$("noteTache").addEventListener("scroll", () => { $("noteImgSuppr").hidden = true; });
+$("noteImgSuppr").addEventListener("mouseleave", e => { if (e.relatedTarget !== imgSurvol) $("noteImgSuppr").hidden = true; });
+$("noteImgSuppr").addEventListener("click", () => {
+  if (imgSurvol) { if (imgSurvol.nextSibling?.nodeName === "BR" && !imgSurvol.nextSibling.nextSibling) imgSurvol.nextSibling.remove(); imgSurvol.remove(); imgSurvol = null; }
+  $("noteImgSuppr").hidden = true; sauverZone();
 });
 function rendreNoteCaptures() {
   const L = notesCaptures[noteChoisie] || [];
