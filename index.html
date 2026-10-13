@@ -316,7 +316,10 @@ header.top.urg-vert { box-shadow: var(--clay-sm), inset 0 0 0 4px #3ddc76, 0 0 1
 .note-aide { font-size: 12.5px; color: var(--muted); }
 .note-titre { font-size: 15px; font-weight: 800; }
 .note-fait { font-size: 12px; font-weight: 700; color: var(--ok); }
-.note-fait:empty { display: none; }
+.note-fait { display: flex; align-items: center; gap: 6px; margin-top: 3px; }
+.note-fait[hidden] { display: none; }
+.note-fait { white-space: nowrap; }
+.note-fait .date-mini input:not(.date-cachee) { width: 120px; padding-right: 28px; }
 /* tâche commentée : petite bulle bleue après son texte (bleu pour ne pas la confondre avec le Modop orange) */
 .note-ind { display: inline-grid; place-items: center; width: 20px; height: 18px; margin-left: 6px; vertical-align: -3px; border-radius: 6px; background: #3b6fd6; color: #fff; cursor: pointer; }
 .note-ind svg { fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linejoin: round; }
@@ -448,7 +451,7 @@ header.top.urg-vert { box-shadow: var(--clay-sm), inset 0 0 0 4px #3ddc76, 0 0 1
             <h2>Commentaires</h2>
             <div class="note-aide" id="noteAide">Clique sur le texte d'une tâche pour y écrire un commentaire et ajouter des captures ou des fichiers.</div>
             <div class="note-detail" id="noteDetail" hidden>
-              <div><div class="note-titre" id="noteTitre"></div><div class="note-fait" id="noteFait"></div></div>
+              <div><div class="note-titre" id="noteTitre"></div><div class="note-fait" id="noteFait" hidden>Fait le <span class="date-mini date-champ"><input id="noteFaitDate" placeholder="JJ/MM/AAAA" inputmode="numeric" maxlength="10" autocomplete="off" aria-label="Date « Fait le »"><button class="cal" id="noteFaitCal" type="button" aria-label="Choisir la date « Fait le » dans le calendrier" title="Calendrier"><svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg></button><input type="date" class="date-cachee" id="noteFaitPick" tabindex="-1" aria-hidden="true"></span></div></div>
               <textarea id="noteTache" placeholder="Écris ton commentaire… (tu peux aussi coller ou glisser une capture ou un fichier ici)"></textarea>
               <div class="captures" id="noteCaptures"></div>
               <div class="note-fichiers" id="noteFichiers"></div>
@@ -1447,7 +1450,27 @@ function majIndNote(id) {
   if (aCommentaire(id) && !ind) lib.insertAdjacentHTML("beforeend", IND_NOTE(id));
   if (!aCommentaire(id) && ind) ind.remove();
 }
-function majNoteFait() { const j = noteChoisie && etat.faitLe[noteChoisie]; $("noteFait").textContent = j ? `Fait le ${isoVersFr(j)}` : ""; }
+function majNoteFait() {
+  const j = noteChoisie && etat.faitLe[noteChoisie], champ = $("noteFaitDate");
+  $("noteFait").hidden = !j;
+  if (j && document.activeElement !== champ) { champ.value = isoVersFr(j); champ.classList.remove("invalide"); }
+}
+// « Fait le » modifiable : JJ/MM/AAAA au clavier ou calendrier
+$("noteFaitDate").addEventListener("input", e => {
+  e.target.value = formaterDate(e.target.value);
+  const iso = frVersIso(e.target.value);
+  e.target.classList.toggle("invalide", e.target.value.length === 10 && !iso);
+  if (iso && noteChoisie && etat.faitLe[noteChoisie]) { etat.faitLe[noteChoisie] = iso; sauver(); }
+});
+$("noteFaitDate").addEventListener("blur", e => { if (!frVersIso(e.target.value)) { e.target.value = isoVersFr(etat.faitLe[noteChoisie]); e.target.classList.remove("invalide"); } });
+$("noteFaitCal").onclick = () => {
+  const pick = $("noteFaitPick"); pick.value = etat.faitLe[noteChoisie] || versIso(new Date());
+  try { pick.showPicker(); } catch (err) { pick.focus(); pick.click(); }
+};
+$("noteFaitPick").addEventListener("change", e => {
+  if (!e.target.value || !noteChoisie || !etat.faitLe[noteChoisie]) return;
+  etat.faitLe[noteChoisie] = e.target.value; sauver(); majNoteFait();
+});
 function afficherNote(id) {
   noteChoisie = id;
   $("noteAide").hidden = true; $("noteDetail").hidden = false;
