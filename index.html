@@ -563,6 +563,31 @@ const TACHES = [
       { id: "t4_2_4", lib: "Envoyer en travaux", mode: "tout", kids: [
         { id: "t4_2_4_1", lib: "Mettre ComL" } ] },
       { id: "t4_2_18", lib: "Valider la tâche « lancement travaux » dans SPI" } ] } ] },
+  { id: "t4d", lib: "Réception du DOE d’anticipation", mode: "tout", parPetit: true, kids: [
+    { id: "t4d_1", lib: "Vérifier la conformité du DOE (juste des photos)", mode: "tout", kids: [
+      { id: "t4d_1_1", lib: "DOE non conforme" },
+      { id: "t4d_1_2", lib: "DOE Conforme" } ] },
+    { id: "t4d_2", lib: "Pour aérien", mode: "tout", kids: [
+      { id: "t4d_2_1", lib: "Si remplacement d’appui", mode: "tout", kids: [
+        { id: "t4d_2_1_1", lib: "Clore la Permission de voirie" } ] },
+      { id: "t4d_2_2", lib: "Envoyer DFT à OWF" },
+      { id: "t4d_2_3", lib: "Attendre le retour OWF", mode: "tout", kids: [
+        { id: "t4d_2_3_1", lib: "REFUSE" },
+        { id: "t4d_2_3_2", lib: "VALIDE" } ] } ] },
+    { id: "t4d_3", lib: "Pour souterrain", mode: "tout", kids: [
+      { id: "t4d_3_1", lib: "Envoyer DFT à OWF", mode: "un", choix: true, kids: [
+        { id: "t4d_3_1_1", lib: "SIMPLE", gras: ["SIMPLE"] },
+        { id: "t4d_3_1_2", lib: "COMPLEXE", gras: ["COMPLEXE"] } ] },
+      { id: "t4d_3_2", lib: "Attendre le retour OWF", mode: "tout", kids: [
+        { id: "t4d_3_2_1", lib: "REFUSE" },
+        { id: "t4d_3_2_2", lib: "VALIDE" } ] } ] },
+    { id: "t4d_4", lib: "Payer attachement" },
+    { id: "t4d_5", lib: "Mettre à jour le SI", mode: "tout", kids: [
+      { id: "t4d_5_1", lib: "LINE de l’anticipation", mode: "tout", kids: [
+        { id: "t4d_5_1_1", lib: "Cliquer sur « Valider travaux »" },
+        { id: "t4d_5_1_2", lib: "Cliquer sur « Clôturer le dossier »" },
+        { id: "t4d_5_1_3", lib: "Cliquer sur « Archiver le dossier »" } ] } ] },
+    { id: "t4d_6", lib: "Archiver la POI d’anticipation dans PPR" } ] },
   { id: "t5", lib: "Réception DOE précâblage", mode: "tout", kids: [
     { id: "t5_1", lib: "Vérifier la conformité du DOE", mode: "tout", kids: [
       { id: "t5_1_1", lib: "DOE non conforme", mode: "tout", kids: [
@@ -640,8 +665,8 @@ function valide(n) { return !!etat.coches[n.id]; }
 // … et seulement si toutes les dates des tâches non barrées (la très grande tâche comprise) sont renseignées
 const datesOk = t => [t, ...desc(t)].filter(d => AVEC_DATE.has(d.id) && !estBarre(d)).every(d => etat.dates[d.id]);
 const fini = t => valide(t) && datesOk(t);   // bloc et voyant au vert
-// tâche cochée automatiquement quand une autre est cochée ET datée : « APD / DOE conforme » daté → « Vérifier la conformité … »
-const AUTO_SI = { t2_1: "t2_1_2", t5_1: "t5_1_2" };
+// tâche cochée automatiquement quand une autre est cochée (ET datée si elle a une date) : « APD / DOE conforme » → « Vérifier la conformité … »
+const AUTO_SI = { t2_1: "t2_1_2", t5_1: "t5_1_2", t4d_1: "t4d_1_2" };
 function majFaitLe() {
   const j = versIso(new Date());
   Object.keys(etat.coches).forEach(id => { if (!etat.faitLe[id]) etat.faitLe[id] = j; });
@@ -649,7 +674,7 @@ function majFaitLe() {
 }
 // tâches cochées automatiquement quand toutes leurs sous-tâches non barrées le sont : IPON, GEORESO, SPI, LINE, OPTIMUM,
 // puis « Mettre à jour le SI » quand ces cinq-là le sont (étape 7) ; l'ordre compte : les sous-groupes d'abord
-const AUTO_TOUTES = ["t7_4_1", "t7_4_2", "t7_4_3", "t7_4_4", "t7_4_5", "t7_4"];
+const AUTO_TOUTES = ["t4d_5_1", "t4d_5", "t7_4_1", "t7_4_2", "t7_4_3", "t7_4_4", "t7_4_5", "t7_4"];
 function autoEtapes() {
   AUTO_TOUTES.forEach(t => {
     const ds = NOEUDS[t].kids.filter(k => !estBarre(k)), ok = ds.length > 0 && ds.every(k => etat.coches[k.id]);
@@ -657,7 +682,7 @@ function autoEtapes() {
     else if (!ok && etat.coches[t] === "auto") delete etat.coches[t];
   });
   Object.entries(AUTO_SI).forEach(([t, src]) => {
-    const ok = etat.coches[src] && etat.dates[src];
+    const ok = etat.coches[src] && (!AVEC_DATE.has(src) || etat.dates[src]);
     if (ok && !etat.coches[t]) etat.coches[t] = "auto";
     else if (!ok && etat.coches[t] === "auto") delete etat.coches[t];
   });
@@ -671,7 +696,7 @@ function autoEtapes() {
 
 // anticipation non nécessaire / nécessaire : cocher dans l'une (elle-même ou une de ses tâches) barre et décoche toute l'autre ;
 // tout décocher dans l'une débarre l'autre
-const BARRE_SI = { t4_1: "t4_2", t4_2: "t4_1", t6_9: "t7_5", t1_3_2: "t4_2_12", t3_4: "t6_2" };   // MAD anticipée demandée → plus de MAD au PBLO ; pas d'aérien → « Pour aérien » barré ; BANBOU fait en pré-étude → plus à faire en fin d'étude
+const BARRE_SI = { t4_1: ["t4_2", "t4d"], t4_2: "t4_1", t6_9: "t7_5", t1_3_2: ["t4_2_12", "t4d_2"], t3_4: "t6_2" };   // MAD anticipée demandée → plus de MAD au PBLO ; pas d'aérien → « Pour aérien » barré ; BANBOU fait en pré-étude → plus à faire en fin d'étude
 // contraste (_1 avec reprise, _2 sans reprise, _3 conforme) :
 // « Conforme » barre « sans reprise », et « avec reprise » seulement s'il n'a pas été coché (la reprise a eu lieu) ;
 // « sans reprise » barre « Conforme » et « avec reprise » ; « avec reprise » barre « sans reprise »
@@ -681,7 +706,8 @@ const CONTRASTE = {};
   [c + "_2"]: () => [c + "_3", c + "_1"],
   [c + "_1"]: () => [c + "_2"] });
 // conforme → non conforme barré ; cocher « non conforme » ne barre pas « conforme » (de même AUTORISE → REFUSE)
-const CONFORME_BARRE = { t2_1_2: "t2_1_1", t5_1_2: "t5_1_1", t4_2_12_3_2: "t4_2_12_3_1", t4_2_13_2_2: "t4_2_13_2_1" };
+const CONFORME_BARRE = { t2_1_2: "t2_1_1", t5_1_2: "t5_1_1", t4_2_12_3_2: "t4_2_12_3_1", t4_2_13_2_2: "t4_2_13_2_1",
+  t4d_1_2: "t4d_1_1", t4d_2_3_2: "t4d_2_3_1", t4d_3_2_2: "t4d_3_2_1" };
 const engagee = id => [NOEUDS[id], ...desc(NOEUDS[id])].some(x => etat.coches[x.id]);
 function basculer(n, on) {
   if (verrouillee(n)) { rendu(); return; }
@@ -706,12 +732,12 @@ function basculer(n, on) {
   }
   Object.entries(BARRE_SI).forEach(([si, cible]) => {
     const maintenant = engagee(si); if (maintenant === avant[si]) return;
-    const branche = id => [NOEUDS[id], ...desc(NOEUDS[id])];
+    const branche = id => [NOEUDS[id], ...desc(NOEUDS[id])], cibles = [].concat(cible);   // une ou plusieurs tâches barrées
     if (maintenant) {
       // débarre la branche seulement si elle avait été barrée par la règle (sinon on garderait les barres du contraste, etc.)
       if (etat.barres[si]) branche(si).forEach(x => delete etat.barres[x.id]);
-      branche(cible).forEach(x => { etat.barres[x.id] = true; delete etat.coches[x.id]; });
-    } else if (!engagee(cible)) branche(cible).forEach(x => delete etat.barres[x.id]);
+      cibles.forEach(c => branche(c).forEach(x => { etat.barres[x.id] = true; delete etat.coches[x.id]; }));
+    } else cibles.forEach(c => { if (!engagee(c)) branche(c).forEach(x => delete etat.barres[x.id]); });
   });
   // le choix (contraste, conforme / non conforme) passe après : la règle d'anticipation ne doit pas effacer ses barres
   const pc = PARENT[n.id];
@@ -762,9 +788,9 @@ function resultat(t) {
 // « Vérifier la conformité » (étapes 2, 5 et 7) : une liste de documents à cocher, propre à chaque tâche
 const AVEC_LISTE = new Set(["t2_1", "t5_1", "t7_1"]);
 const ICO_LISTE = `<svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M3.5 6l1.2 1.2L7 5M3.5 12l1.2 1.2L7 11M3.5 18l1.2 1.2L7 17"/></svg>`;
-const AVEC_DATE = new Set(["t1", "t2_1_1", "t2_1_2", "t3_5_5", "t3_5_6", "t4_1_1", "t4_2_2", "t4_2_12_1_2_1", "t4_2_12_1_2_2", "t4_2_12_1_3", "t4_2_12_2", "t4_2_12_3_2", "t4_2_13_1", "t4_2_13_2_2", "t4_2_4", "t5_1_1", "t5_1_2", "t6_7", "t6_9", "t7", "t7_3", "t7_5", "t7_6"]);
+const AVEC_DATE = new Set(["t1", "t2_1_1", "t2_1_2", "t3_5_5", "t3_5_6", "t4_1_1", "t4_2_2", "t4_2_12_1_2_1", "t4_2_12_1_2_2", "t4_2_12_1_3", "t4_2_12_2", "t4_2_12_3_2", "t4_2_13_1", "t4_2_13_2_2", "t4_2_4", "t4d", "t4d_2_1_1", "t4d_2_2", "t4d_2_3_2", "t4d_3_1", "t4d_3_2_2", "t4d_4", "t4d_6", "t5_1_1", "t5_1_2", "t6_7", "t6_9", "t7", "t7_3", "t7_5", "t7_6"]);
 const AVEC_MODOP = new Set(["t1_5", "t2_1_1_1", "t2_1_2_1", "t3_5_1", "t3_2", "t3_3", "t3_3_1", "t3_4", "t3_4_1", "t4_1_1", "t4_2_2", "t4_2_12_1_2", "t4_2_12_2", "t4_2_13_1", "t4_2_4_1",
-  "t4_2_18", "t5_1_1_1", "t5_1_2_1", "t6_1", "t6_2", "t6_2_1", "t6_3", "t6_4", "t6_5", "t6_6", "t6_7_1", "t6_8",
+  "t4_2_18", "t4d_2_2", "t4d_3_1", "t4d_4", "t4d_5", "t5_1_1_1", "t5_1_2_1", "t6_1", "t6_2", "t6_2_1", "t6_3", "t6_4", "t6_5", "t6_6", "t6_7_1", "t6_8",
   "t6_9", "t7_1", "t7_2", "t7_3", "t7_4_1_2", "t7_4_2_1", "t7_4_3_1", "t7_4_3_2", "t7_4_5_1", "t7_5"]);
 // Modop en rose
 const MODOP_ROSE = new Set(["t3_2"]);
@@ -1277,7 +1303,7 @@ if (etat.fiche.di.madAnt) {   // ancienne date « MAD anticipée » : reprise da
   delete etat.fiche.di.madAnt;
 }
 // dates des tâches reportées toutes seules dans les Dates importantes (la case reste modifiable à la main)
-const LIENS_DI = { t1: "poi", t2_1_2: "apd", t4_1_1: "archAnt", t4_2_4: "travauxAnt", t5_1_2: "doePre", t6_9: "mad", t7: "doeRacco", t7_3: "paiement",
+const LIENS_DI = { t1: "poi", t2_1_2: "apd", t4_1_1: "archAnt", t4_2_4: "travauxAnt", t4d: "doeAnt", t4d_6: "archAnt", t5_1_2: "doePre", t6_9: "mad", t7: "doeRacco", t7_3: "paiement",
   t7_5: "mad", t7_6: "archRacco" };
 // titre d'une date selon la tâche d'où elle vient (sinon le titre normal)
 const TITRE_SRC = { mad: { t6_9: "MAD anticipée" }, archAnt: { t4_1_1: "Annulation POI anticipation" } };
@@ -1294,7 +1320,7 @@ Object.keys(LIENS_DI).forEach(id => { if (etat.dates[id]) { etat.fiche.di[LIENS_
 // POI annulée ou archivée (date d'archivage/annulation remplie, ou tâche correspondante cochée) : son numéro passe en grisé
 function majPoiEtat() {
   const di = etat.fiche.di || {}, src = etat.fiche.diSrc || {}, fait = id => NOEUDS[id] && valide(NOEUDS[id]);
-  const ant = fait("t4_1_1") || src.archAnt === "t4_1_1" ? "annulée" : di.archAnt || fait("t4_2_11") ? "archivée" : "";
+  const ant = fait("t4_1_1") || src.archAnt === "t4_1_1" ? "annulée" : di.archAnt || fait("t4d_6") ? "archivée" : "";
   const racco = di.archRacco || fait("t7_6") ? "archivée" : "";
   // aérien : la case N° POI aérien n'apparaît que si « Oui » est coché ; grisée une fois la POI aérien archivée
   // avec « Oui », N° POI aérien prend la place du Nombre d'EL, qui passe entre l'adresse et le N° PC
