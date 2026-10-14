@@ -508,15 +508,22 @@ const TACHES = [
         { id: "t2_1_2_2", lib: "Faire un mail GED à ZZZ Amaris OSA : Bonjour, APD conforme." } ] } ] } ] },
   { id: "t3", lib: "Traiter la pré-étude", mode: "tout", kids: [
     { id: "t3_1", lib: "Repasser la POI à l’état 1" },
+    { id: "t3_5", lib: "Traiter l’aérien (sur la POI d’anticipation)", mode: "tout", kids: [
+      { id: "t3_5_3", lib: "Faire DT (au cas où il y a des remplacements ou implantation de poteau)" },
+      { id: "t3_5_1", lib: "Faire SEPALE" },
+      { id: "t3_5_4", lib: "Monter le dossier relevé de poteaux", mode: "tout", kids: [
+        { id: "t3_5_4_1", lib: "Faire un plan" },
+        { id: "t3_5_4_2", lib: "Importer mon relevé depuis SEPALE + le renommer" } ] },
+      { id: "t3_5_5", lib: "Envoyer le dossier relevé de poteaux au BO aérien" },
+      { id: "t3_5_6", lib: "Vérifier le retour du BO aérien : annexe C6 et C7 (si remplacement d’appui nécessaire)", mode: "un", choix: true, kids: [
+        { id: "t3_5_6_1", lib: "Calcul de charge OK" },
+        { id: "t3_5_6_2", lib: "Calcul de charge NON OK" } ] } ] },
     { id: "t3_2", lib: "Faire CMS", mode: "tout", kids: [
       { id: "t3_2_1", lib: "Retour CMS OK" } ] },
     { id: "t3_3", lib: "Faire resa au PA", mode: "tout", kids: [
       { id: "t3_3_1", lib: "Faire Desat PMZ" } ] },
     { id: "t3_4", lib: "Faire la demande BANBOU pour dessin TIGRE si j’ai tous les docs", mode: "tout", kids: [
       { id: "t3_4_1", lib: "Faire import PIT quand j’ai le retour BANBOU" } ] },
-    { id: "t3_5", lib: "Traiter l’aérien", mode: "tout", kids: [
-      { id: "t3_5_1", lib: "Faire le SEPALE" },
-      { id: "t3_5_2", lib: "…" } ] },
     { id: "t3_6", lib: "Repasser la POI à l’état 5" } ] },
   { id: "t4", lib: "Traiter la POI d’anticipation", mode: "tout", kids: [
     { id: "t4_1", lib: "Anticipation non nécessaire", mode: "tout", kids: [
@@ -744,8 +751,8 @@ function resultat(t) {
 // « Vérifier la conformité » (étapes 2, 5 et 7) : une liste de documents à cocher, propre à chaque tâche
 const AVEC_LISTE = new Set(["t2_1", "t5_1", "t7_1"]);
 const ICO_LISTE = `<svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M3.5 6l1.2 1.2L7 5M3.5 12l1.2 1.2L7 11M3.5 18l1.2 1.2L7 17"/></svg>`;
-const AVEC_DATE = new Set(["t1", "t2_1_1", "t2_1_2", "t4_1_1", "t4_2_4", "t4_2_6_2", "t4_2_11", "t5_1_1", "t5_1_2", "t6_7", "t6_9", "t7", "t7_3", "t7_5", "t7_6"]);
-const AVEC_MODOP = new Set(["t1_5", "t2_1_1_1", "t2_1_2_1", "t3_2", "t3_3", "t3_3_1", "t3_4", "t3_4_1", "t4_1_1", "t4_2_2", "t4_2_4_1",
+const AVEC_DATE = new Set(["t1", "t2_1_1", "t2_1_2", "t3_5_5", "t3_5_6", "t4_1_1", "t4_2_4", "t4_2_6_2", "t4_2_11", "t5_1_1", "t5_1_2", "t6_7", "t6_9", "t7", "t7_3", "t7_5", "t7_6"]);
+const AVEC_MODOP = new Set(["t1_5", "t2_1_1_1", "t2_1_2_1", "t3_5_1", "t3_2", "t3_3", "t3_3_1", "t3_4", "t3_4_1", "t4_1_1", "t4_2_2", "t4_2_4_1",
   "t4_2_5", "t4_2_7", "t4_2_8", "t4_2_9", "t5_1_1_1", "t5_1_2_1", "t6_1", "t6_2", "t6_2_1", "t6_3", "t6_4", "t6_5", "t6_6", "t6_7_1", "t6_8",
   "t6_9", "t7_1", "t7_2", "t7_3", "t7_4_1_2", "t7_4_2_1", "t7_4_3_1", "t7_4_3_2", "t7_4_5_1", "t7_5"]);
 const ICO_CAL = '<svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>';
