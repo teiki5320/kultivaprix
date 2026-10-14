@@ -596,7 +596,7 @@ const TACHES = [
         { id: "t7_4_4_3", lib: "Cliquer sur « Archiver le dossier »" } ] },
       { id: "t7_4_5", lib: "OPTIMUM", mode: "tout", kids: [
         { id: "t7_4_5_1", lib: "Aller voir si les dates sont bonnes (le lendemain du récolement)" } ] } ] },
-    { id: "t7_5", lib: "Demander la MAD au PBLO (si je n’ai pas fait de MAD anticipée)" },
+    { id: "t7_5", lib: "Demander la MAD au PBLO" },
     { id: "t7_6", lib: "Archiver la POI dans PPR" } ] }
 ];
 
@@ -660,7 +660,7 @@ function autoEtapes() {
 
 // anticipation non nécessaire / nécessaire : cocher dans l'une (elle-même ou une de ses tâches) barre et décoche toute l'autre ;
 // tout décocher dans l'une débarre l'autre
-const BARRE_SI = { t4_1: "t4_2", t4_2: "t4_1" };
+const BARRE_SI = { t4_1: "t4_2", t4_2: "t4_1", t6_9: "t7_5" };   // MAD anticipée demandée → plus de MAD au PBLO
 // contraste (_1 avec reprise, _2 sans reprise, _3 conforme) :
 // « Conforme » barre « sans reprise », et « avec reprise » seulement s'il n'a pas été coché (la reprise a eu lieu) ;
 // « sans reprise » barre « Conforme » et « avec reprise » ; « avec reprise » barre « sans reprise »
