@@ -696,7 +696,7 @@ function autoEtapes() {
 
 // anticipation non nécessaire / nécessaire : cocher dans l'une (elle-même ou une de ses tâches) barre et décoche toute l'autre ;
 // tout décocher dans l'une débarre l'autre
-const BARRE_SI = { t4_1: ["t4_2", "t4d"], t4_2: "t4_1", t6_9: "t7_5", t1_3_2: ["t4_2_12", "t4d_2"], t3_4: "t6_2",
+const BARRE_SI = { t4_1: ["t4_2", "t4d"], t4_2: ["t4_1", "t6_3_1"], t6_9: "t7_5", t1_3_2: ["t4_2_12", "t4d_2"], t3_4: "t6_2",
   // souterrain : le type SIMPLE / COMPLEXE choisi dans la tâche 4 barre l'autre type dans la tâche 5, et inversement
   t4_2_13_1_1_1: "t4d_3_1_2", t4_2_13_1_1_2: "t4d_3_1_1", t4d_3_1_1: "t4_2_13_1_1_2", t4d_3_1_2: "t4_2_13_1_1_1" };   // MAD anticipée demandée → plus de MAD au PBLO ; pas d'aérien → « Pour aérien » barré ; BANBOU fait en pré-étude → plus à faire en fin d'étude
 // contraste (_1 avec reprise, _2 sans reprise, _3 conforme) :
@@ -825,6 +825,11 @@ const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
 // texte d'une tâche : parenthèses en petit dans les grandes tâches marquées parPetit, mots de « gras » en gras
+// anticipation faite (« Anticipation nécessaire » engagée) : certaines tâches de « Finaliser l'étude » changent de texte
+const VARIANTE_ANT = {
+  t6_5: { lib: "Finir la FI", petit: "(préciser que le câble est déjà posé)" },
+  t6_4: { petit: "(pas de câble à commander) (ne pas recompter les articles anticipations)" } };
+const texte = n => VARIANTE_ANT[n.id] && engagee("t4_2") ? { ...n, ...VARIANTE_ANT[n.id] } : n;
 function libHTML(n) {
   let h = esc(n.lib);
   if ([n, ...anc(n)].some(x => x.parPetit)) h = h.replace(/\([^)]*\)/g, m => `<small class="lib-petit">${m}</small>`);
@@ -838,7 +843,7 @@ function ligneHTML(n, d, num) {
   if (d === 1) h += n.kids ? `<button class="chev" type="button" data-chev="${n.id}" aria-label="Réduire ou déplier" aria-expanded="${!etat.fermes[n.id]}">▼</button>` : `<span class="chev vide" aria-hidden="true"></span>`;
   h += `<input type="checkbox" class="cb${auto ? " auto" : ""}" id="cb_${n.id}" data-cb="${n.id}"${v ? " checked" : ""}${verrouillee(n) ? " disabled" : ""} aria-label="${esc(n.lib)}">`;
   // le texte ne coche pas : seule la case coche ; un clic sur le texte affiche le commentaire de la tâche
-  h += `<span class="lib" data-note="${n.id}">${d === 1 ? `<span class="num">${num}</span>` : ""}${libHTML(n)}${n.petit ? ` <small class="lib-petit">${esc(n.petit)}</small>` : ""}${aCommentaire(n.id) ? IND_NOTE(n.id) : ""}</span>`;
+  h += `<span class="lib" data-note="${n.id}">${d === 1 ? `<span class="num">${num}</span>` : ""}${libHTML(texte(n))}${texte(n).petit ? ` <small class="lib-petit">${esc(texte(n).petit)}</small>` : ""}${aCommentaire(n.id) ? IND_NOTE(n.id) : ""}</span>`;
   h += outilsHTML(n);
   if (d === 1) { const r = resultat(n), ok = r.tag === "ok" && datesOk(n); h += `<span class="led ${ok ? "on" : "off"}" role="img" aria-label="${esc(r.txt)}" title="${esc(r.txt)}"></span>`; }
   h += `</div>`;
@@ -1545,7 +1550,7 @@ $("noteFaitPick").addEventListener("change", e => {
 function afficherNote(id) {
   noteChoisie = id;
   $("noteAide").hidden = true; $("noteDetail").hidden = false;
-  $("noteTitre").textContent = NOEUDS[id].lib + (NOEUDS[id].petit ? " " + NOEUDS[id].petit : "");
+  const tx = texte(NOEUDS[id]); $("noteTitre").textContent = tx.lib + (tx.petit ? " " + tx.petit : "");
   const m = etat.memo[id], zone = $("noteTache");
   zone.innerHTML = m?.html != null ? m.html : esc(m?.note || "").replace(/\n/g, "<br>");   // anciens commentaires : texte simple
   zone.querySelectorAll("img[data-img]").forEach(im => { const src = notesImages[im.dataset.img]; if (src) im.src = src; else im.remove(); });
