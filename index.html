@@ -68,7 +68,10 @@ header.top .sous { font-size: 13px; opacity: .85; }
 .ligne.d3 { padding-left: 70px; font-weight: 600; font-size: 14px; }
 .ligne.d4 { padding-left: 102px; font-weight: 400; font-size: 13px; min-height: 34px; }
 .ligne.d4 .lib { color: var(--muted); }
-.ligne.d5 { padding-left: 134px; }
+.ligne.d5 { padding-left: 134px; font-weight: 400; font-size: 13px; min-height: 34px; }
+.ligne.d6 { padding-left: 166px; font-weight: 400; font-size: 13px; min-height: 34px; }
+.ligne.d5 .lib, .ligne.d6 .lib { color: var(--muted); }
+.ligne .lib b { font-weight: 800; }
 .ligne .lib { flex: 0 1 auto; min-width: 0; cursor: default; }
 .ligne.d1 .lib { cursor: pointer; text-decoration: underline; text-decoration-thickness: 1.5px; text-underline-offset: 4px; }
 .ligne.d1 .num { display: inline-block; }   /* le numéro n'est pas souligné */
@@ -528,33 +531,38 @@ const TACHES = [
     { id: "t3_4", lib: "Faire la demande BANBOU pour dessin TIGRE", petit: "(si j’ai tous les docs)", mode: "tout", kids: [
       { id: "t3_4_1", lib: "Faire import PIT quand j’ai le retour BANBOU" } ] },
     { id: "t3_6", lib: "Repasser la POI à l’état 5" } ] },
-  { id: "t4", lib: "Traiter la POI d’anticipation", mode: "tout", kids: [
+  { id: "t4", lib: "Traiter la POI d’anticipation", mode: "tout", parPetit: true, kids: [
     { id: "t4_1", lib: "Anticipation non nécessaire", mode: "tout", kids: [
       { id: "t4_1_1", lib: "Mettre un ComL d’annulation de la POI" } ] },
     { id: "t4_2", lib: "Anticipation nécessaire", mode: "tout", kids: [
       { id: "t4_2_1", lib: "Repasser la POI à l’état 1" },
       { id: "t4_2_2", lib: "Mettre ComL + modifier DRE/DLR" },
-      { id: "t4_2_3", lib: "Monter le dossier travaux d’anticipation", mode: "tout", kids: [
-        { id: "t4_2_3_1", lib: "….." },
-        { id: "t4_2_3_2", lib: "….." },
-        { id: "t4_2_3_3", lib: "….." } ] },
+      { id: "t4_2_12", lib: "Pour aérien", mode: "tout", kids: [
+        { id: "t4_2_12_1", lib: "Si remplacement d’appui", mode: "tout", kids: [
+          { id: "t4_2_12_1_1", lib: "Contrôler le retour DT" },
+          { id: "t4_2_12_1_2", lib: "Faire une Permission de voirie", mode: "tout", kids: [
+            { id: "t4_2_12_1_2_1", lib: "Demande PV" },
+            { id: "t4_2_12_1_2_2", lib: "Retour PV" } ] },
+          { id: "t4_2_12_1_3", lib: "ATLAS (sur la POI anticipation mais un autre Chelem)" } ] },
+        { id: "t4_2_12_2", lib: "Faire une commande d’accès GCBLO COMPLEXE", gras: ["COMPLEXE"] },
+        { id: "t4_2_12_3", lib: "Attendre le retour OWF", mode: "tout", kids: [
+          { id: "t4_2_12_3_1", lib: "REFUSE" },
+          { id: "t4_2_12_3_2", lib: "AUTORISE" } ] } ] },
+      { id: "t4_2_13", lib: "Pour souterrain", mode: "tout", kids: [
+        { id: "t4_2_13_1", lib: "Faire une commande d’accès GCBLO", mode: "tout", kids: [
+          { id: "t4_2_13_1_1", lib: "Utiliser l’outil d’aide GCBLO pour déterminer le type de commande", mode: "un", choix: true, kids: [
+            { id: "t4_2_13_1_1_1", lib: "SIMPLE", gras: ["SIMPLE"] },
+            { id: "t4_2_13_1_1_2", lib: "COMPLEXE", gras: ["COMPLEXE"] } ] } ] },
+        { id: "t4_2_13_2", lib: "Attendre le retour OWF", mode: "tout", kids: [
+          { id: "t4_2_13_2_1", lib: "REFUSE" },
+          { id: "t4_2_13_2_2", lib: "AUTORISE" } ] } ] },
+      { id: "t4_2_14", lib: "Faire mon GEORESO + IPON (du PA jusqu’au PR/PB)" },
+      { id: "t4_2_15", lib: "Faire la FI incomplète (en expliquant dans la description travaux et dans l’itinéraire où je m’arrête)" },
+      { id: "t4_2_16", lib: "Faire la valo (du PA jusqu’au PR/PB) + commande matériel (commander le tronçon câble complet)" },
+      { id: "t4_2_17", lib: "Faire le LINE" },
       { id: "t4_2_4", lib: "Envoyer en travaux", mode: "tout", kids: [
         { id: "t4_2_4_1", lib: "Mettre ComL" } ] },
-      { id: "t4_2_5", lib: "Valider tâche dans SPI ????" },
-      { id: "t4_2_6", lib: "Réception du DOE d’anticipation", mode: "tout", kids: [
-        { id: "t4_2_6_1", lib: "DOE non conforme" },
-        { id: "t4_2_6_2", lib: "DOE Conforme" } ] },
-      { id: "t4_2_7", lib: "Faire contraste", mode: "tout", kids: [
-        { id: "t4_2_7_1", lib: "Non conforme avec reprise" },
-        { id: "t4_2_7_2", lib: "Non conforme sans reprise" },
-        { id: "t4_2_7_3", lib: "Conforme" } ] },
-      { id: "t4_2_8", lib: "Payer attachement" },
-      { id: "t4_2_9", lib: "Mettre DOE dans SPI ???" },
-      { id: "t4_2_10", lib: "Mettre à jour le SI", mode: "tout", kids: [
-        { id: "t4_2_10_1", lib: "Étape MAJ SI" },
-        { id: "t4_2_10_2", lib: "Étape MAJ SI" },
-        { id: "t4_2_10_3", lib: "Étape MAJ SI" } ] },
-      { id: "t4_2_11", lib: "Archiver la POI d’anticipation dans PPR" } ] } ] },
+      { id: "t4_2_18", lib: "Valider la tâche « lancement travaux » dans SPI" } ] } ] },
   { id: "t5", lib: "Réception DOE précâblage", mode: "tout", kids: [
     { id: "t5_1", lib: "Vérifier la conformité du DOE", mode: "tout", kids: [
       { id: "t5_1_1", lib: "DOE non conforme", mode: "tout", kids: [
@@ -663,17 +671,17 @@ function autoEtapes() {
 
 // anticipation non nécessaire / nécessaire : cocher dans l'une (elle-même ou une de ses tâches) barre et décoche toute l'autre ;
 // tout décocher dans l'une débarre l'autre
-const BARRE_SI = { t4_1: "t4_2", t4_2: "t4_1", t6_9: "t7_5" };   // MAD anticipée demandée → plus de MAD au PBLO
+const BARRE_SI = { t4_1: "t4_2", t4_2: "t4_1", t6_9: "t7_5", t1_3_2: "t4_2_12" };   // MAD anticipée demandée → plus de MAD au PBLO ; pas d'aérien → « Pour aérien » barré
 // contraste (_1 avec reprise, _2 sans reprise, _3 conforme) :
 // « Conforme » barre « sans reprise », et « avec reprise » seulement s'il n'a pas été coché (la reprise a eu lieu) ;
 // « sans reprise » barre « Conforme » et « avec reprise » ; « avec reprise » barre « sans reprise »
 const CONTRASTE = {};
-["t4_2_7", "t7_2"].forEach(c => CONTRASTE[c] = {
+["t7_2"].forEach(c => CONTRASTE[c] = {
   [c + "_3"]: () => [c + "_2", ...(etat.coches[c + "_1"] ? [] : [c + "_1"])],
   [c + "_2"]: () => [c + "_3", c + "_1"],
   [c + "_1"]: () => [c + "_2"] });
-// conforme → non conforme barré ; cocher « non conforme » ne barre pas « conforme »
-const CONFORME_BARRE = { t2_1_2: "t2_1_1", t5_1_2: "t5_1_1", t4_2_6_2: "t4_2_6_1" };
+// conforme → non conforme barré ; cocher « non conforme » ne barre pas « conforme » (de même AUTORISE → REFUSE)
+const CONFORME_BARRE = { t2_1_2: "t2_1_1", t5_1_2: "t5_1_1", t4_2_12_3_2: "t4_2_12_3_1", t4_2_13_2_2: "t4_2_13_2_1" };
 const engagee = id => [NOEUDS[id], ...desc(NOEUDS[id])].some(x => etat.coches[x.id]);
 function basculer(n, on) {
   if (verrouillee(n)) { rendu(); return; }
@@ -754,9 +762,9 @@ function resultat(t) {
 // « Vérifier la conformité » (étapes 2, 5 et 7) : une liste de documents à cocher, propre à chaque tâche
 const AVEC_LISTE = new Set(["t2_1", "t5_1", "t7_1"]);
 const ICO_LISTE = `<svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M3.5 6l1.2 1.2L7 5M3.5 12l1.2 1.2L7 11M3.5 18l1.2 1.2L7 17"/></svg>`;
-const AVEC_DATE = new Set(["t1", "t2_1_1", "t2_1_2", "t3_5_5", "t3_5_6", "t4_1_1", "t4_2_4", "t4_2_6_2", "t4_2_11", "t5_1_1", "t5_1_2", "t6_7", "t6_9", "t7", "t7_3", "t7_5", "t7_6"]);
-const AVEC_MODOP = new Set(["t1_5", "t2_1_1_1", "t2_1_2_1", "t3_5_1", "t3_2", "t3_3", "t3_3_1", "t3_4", "t3_4_1", "t4_1_1", "t4_2_2", "t4_2_4_1",
-  "t4_2_5", "t4_2_7", "t4_2_8", "t4_2_9", "t5_1_1_1", "t5_1_2_1", "t6_1", "t6_2", "t6_2_1", "t6_3", "t6_4", "t6_5", "t6_6", "t6_7_1", "t6_8",
+const AVEC_DATE = new Set(["t1", "t2_1_1", "t2_1_2", "t3_5_5", "t3_5_6", "t4_1_1", "t4_2_2", "t4_2_12_1_2_1", "t4_2_12_1_2_2", "t4_2_12_1_3", "t4_2_12_2", "t4_2_12_3_2", "t4_2_13_1", "t4_2_13_2_2", "t4_2_4", "t5_1_1", "t5_1_2", "t6_7", "t6_9", "t7", "t7_3", "t7_5", "t7_6"]);
+const AVEC_MODOP = new Set(["t1_5", "t2_1_1_1", "t2_1_2_1", "t3_5_1", "t3_2", "t3_3", "t3_3_1", "t3_4", "t3_4_1", "t4_1_1", "t4_2_2", "t4_2_12_1_2", "t4_2_12_2", "t4_2_13_1", "t4_2_4_1",
+  "t4_2_18", "t5_1_1_1", "t5_1_2_1", "t6_1", "t6_2", "t6_2_1", "t6_3", "t6_4", "t6_5", "t6_6", "t6_7_1", "t6_8",
   "t6_9", "t7_1", "t7_2", "t7_3", "t7_4_1_2", "t7_4_2_1", "t7_4_3_1", "t7_4_3_2", "t7_4_5_1", "t7_5"]);
 // Modop en rose
 const MODOP_ROSE = new Set(["t3_2"]);
@@ -784,6 +792,13 @@ function outilsHTML(n) {
 const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
+// texte d'une tâche : parenthèses en petit dans les grandes tâches marquées parPetit, mots de « gras » en gras
+function libHTML(n) {
+  let h = esc(n.lib);
+  if ([n, ...anc(n)].some(x => x.parPetit)) h = h.replace(/\([^)]*\)/g, m => `<small class="lib-petit">${m}</small>`);
+  (n.gras || []).forEach(g => { h = h.replace(new RegExp(`\\b${g}\\b`), `<b>${g}</b>`); });
+  return h;
+}
 function ligneHTML(n, d, num) {
   // une tâche barrée n'apparaît pas cochée juste parce que toutes ses sous-tâches sont barrées
   const v = valide(n) && !(estBarre(n) && !etat.coches[n.id]), auto = v && !etat.coches[n.id];
@@ -791,7 +806,7 @@ function ligneHTML(n, d, num) {
   if (d === 1) h += n.kids ? `<button class="chev" type="button" data-chev="${n.id}" aria-label="Réduire ou déplier" aria-expanded="${!etat.fermes[n.id]}">▼</button>` : `<span class="chev vide" aria-hidden="true"></span>`;
   h += `<input type="checkbox" class="cb${auto ? " auto" : ""}" id="cb_${n.id}" data-cb="${n.id}"${v ? " checked" : ""}${verrouillee(n) ? " disabled" : ""} aria-label="${esc(n.lib)}">`;
   // le texte ne coche pas : seule la case coche ; un clic sur le texte affiche le commentaire de la tâche
-  h += `<span class="lib" data-note="${n.id}">${d === 1 ? `<span class="num">${num}</span>` : ""}${esc(n.lib)}${n.petit ? ` <small class="lib-petit">${esc(n.petit)}</small>` : ""}${aCommentaire(n.id) ? IND_NOTE(n.id) : ""}</span>`;
+  h += `<span class="lib" data-note="${n.id}">${d === 1 ? `<span class="num">${num}</span>` : ""}${libHTML(n)}${n.petit ? ` <small class="lib-petit">${esc(n.petit)}</small>` : ""}${aCommentaire(n.id) ? IND_NOTE(n.id) : ""}</span>`;
   h += outilsHTML(n);
   if (d === 1) { const r = resultat(n), ok = r.tag === "ok" && datesOk(n); h += `<span class="led ${ok ? "on" : "off"}" role="img" aria-label="${esc(r.txt)}" title="${esc(r.txt)}"></span>`; }
   h += `</div>`;
@@ -1262,7 +1277,7 @@ if (etat.fiche.di.madAnt) {   // ancienne date « MAD anticipée » : reprise da
   delete etat.fiche.di.madAnt;
 }
 // dates des tâches reportées toutes seules dans les Dates importantes (la case reste modifiable à la main)
-const LIENS_DI = { t1: "poi", t2_1_2: "apd", t4_1_1: "archAnt", t4_2_4: "travauxAnt", t4_2_6_2: "doeAnt", t4_2_11: "archAnt", t5_1_2: "doePre", t6_9: "mad", t7: "doeRacco", t7_3: "paiement",
+const LIENS_DI = { t1: "poi", t2_1_2: "apd", t4_1_1: "archAnt", t4_2_4: "travauxAnt", t5_1_2: "doePre", t6_9: "mad", t7: "doeRacco", t7_3: "paiement",
   t7_5: "mad", t7_6: "archRacco" };
 // titre d'une date selon la tâche d'où elle vient (sinon le titre normal)
 const TITRE_SRC = { mad: { t6_9: "MAD anticipée" }, archAnt: { t4_1_1: "Annulation POI anticipation" } };
