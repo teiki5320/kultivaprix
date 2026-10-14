@@ -89,7 +89,6 @@ header.top .sous { font-size: 13px; opacity: .85; }
 .modop-btn:hover { background: #f7ae63; }
 .modop-btn.rose { background: #f59ac0; color: #5a1532; border-color: #d0578b; }
 .modop-btn.rose:hover { background: #f8b2d0; }
-.ligne .lib.justifie { text-align: justify; }
 .lib-petit { font-size: .8em; font-weight: 500; color: var(--muted); }
 .lien-edit { position: absolute; top: -8px; right: -8px; width: 18px; height: 18px; border: 0; border-radius: 50%; padding: 0; cursor: pointer; font-size: 10px; line-height: 18px;
   background: var(--carte); color: var(--texte); box-shadow: var(--clay-sm); display: none; }
@@ -519,7 +518,7 @@ const TACHES = [
         { id: "t3_5_4_1", lib: "Faire un plan" },
         { id: "t3_5_4_2", lib: "Importer mon relevé depuis SEPALE + le renommer" } ] },
       { id: "t3_5_5", lib: "Envoyer le dossier relevé de poteaux au BO aérien" },
-      { id: "t3_5_6", lib: "Vérifier le retour du BO aérien : annexe C6 et C7 (si remplacement d’appui nécessaire)", mode: "un", choix: true, kids: [
+      { id: "t3_5_6", lib: "Vérifier le retour du BO aérien :", petit: "annexe C6 et C7 (si remplacement d’appui nécessaire)", mode: "un", choix: true, kids: [
         { id: "t3_5_6_1", lib: "Calcul de charge OK" },
         { id: "t3_5_6_2", lib: "Calcul de charge NON OK" } ] } ] },
     { id: "t3_2", lib: "Faire CMS", mode: "tout", kids: [
@@ -759,8 +758,8 @@ const AVEC_DATE = new Set(["t1", "t2_1_1", "t2_1_2", "t3_5_5", "t3_5_6", "t4_1_1
 const AVEC_MODOP = new Set(["t1_5", "t2_1_1_1", "t2_1_2_1", "t3_5_1", "t3_2", "t3_3", "t3_3_1", "t3_4", "t3_4_1", "t4_1_1", "t4_2_2", "t4_2_4_1",
   "t4_2_5", "t4_2_7", "t4_2_8", "t4_2_9", "t5_1_1_1", "t5_1_2_1", "t6_1", "t6_2", "t6_2_1", "t6_3", "t6_4", "t6_5", "t6_6", "t6_7_1", "t6_8",
   "t6_9", "t7_1", "t7_2", "t7_3", "t7_4_1_2", "t7_4_2_1", "t7_4_3_1", "t7_4_3_2", "t7_4_5_1", "t7_5"]);
-// texte justifié jusqu'à la date quand il passe sur deux lignes ; Modop en rose
-const JUSTIFIE = new Set(["t3_5_6"]), MODOP_ROSE = new Set(["t3_2"]);
+// Modop en rose
+const MODOP_ROSE = new Set(["t3_2"]);
 const ICO_CAL = '<svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>';
 const ICO_DOC = '<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M7 3h7l5 5v11a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg>';
 function outilsHTML(n) {
@@ -792,7 +791,7 @@ function ligneHTML(n, d, num) {
   if (d === 1) h += n.kids ? `<button class="chev" type="button" data-chev="${n.id}" aria-label="Réduire ou déplier" aria-expanded="${!etat.fermes[n.id]}">▼</button>` : `<span class="chev vide" aria-hidden="true"></span>`;
   h += `<input type="checkbox" class="cb${auto ? " auto" : ""}" id="cb_${n.id}" data-cb="${n.id}"${v ? " checked" : ""}${verrouillee(n) ? " disabled" : ""} aria-label="${esc(n.lib)}">`;
   // le texte ne coche pas : seule la case coche ; un clic sur le texte affiche le commentaire de la tâche
-  h += `<span class="lib${JUSTIFIE.has(n.id) ? " justifie" : ""}" data-note="${n.id}">${d === 1 ? `<span class="num">${num}</span>` : ""}${esc(n.lib)}${n.petit ? ` <small class="lib-petit">${esc(n.petit)}</small>` : ""}${aCommentaire(n.id) ? IND_NOTE(n.id) : ""}</span>`;
+  h += `<span class="lib" data-note="${n.id}">${d === 1 ? `<span class="num">${num}</span>` : ""}${esc(n.lib)}${n.petit ? ` <small class="lib-petit">${esc(n.petit)}</small>` : ""}${aCommentaire(n.id) ? IND_NOTE(n.id) : ""}</span>`;
   h += outilsHTML(n);
   if (d === 1) { const r = resultat(n), ok = r.tag === "ok" && datesOk(n); h += `<span class="led ${ok ? "on" : "off"}" role="img" aria-label="${esc(r.txt)}" title="${esc(r.txt)}"></span>`; }
   h += `</div>`;
