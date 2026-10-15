@@ -712,6 +712,7 @@ const CONTRASTE = {};
 // conforme → non conforme barré ; cocher « non conforme » ne barre pas « conforme » (de même AUTORISE → REFUSE)
 const CONFORME_BARRE = { t2_1_2: "t2_1_1", t5_1_2: "t5_1_1", t4_2_12_3_2: "t4_2_12_3_1", t4_2_13_2_2: "t4_2_13_2_1",
   t4d_1_2: "t4d_1_1", t4d_2_3_2: "t4d_2_3_1", t4d_3_2_2: "t4d_3_2_1" };
+const COCHE_PARENT = new Set(["t1_3", "t3_7"]);
 const engagee = id => [NOEUDS[id], ...desc(NOEUDS[id])].some(x => etat.coches[x.id]);
 function basculer(n, on) {
   if (verrouillee(n)) { rendu(); return; }
@@ -726,13 +727,13 @@ function basculer(n, on) {
     // choix exclusif (aérien Oui / Non) : l'option choisie barre les autres (avec leurs sous-tâches)
     const p = PARENT[n.id];
     if (p && p.choix) { p.kids.forEach(k => [k, ...desc(k)].forEach(x => { if (k === n) delete etat.barres[x.id]; else etat.barres[x.id] = true; })); }
-    // aérien : cocher « Oui » ou « Non » coche vraiment « Regarder s'il y a de l'aérien » (date dans Commentaires)
-    if (p && p.id === "t1_3") etat.coches[p.id] = true;
+    // aérien Oui / Non, type GCBLO SIMPLE / COMPLEXE : cocher une option coche vraiment la tâche au-dessus (date dans Commentaires)
+    if (p && COCHE_PARENT.has(p.id)) etat.coches[p.id] = true;
   } else {
     delete etat.coches[n.id];
     const p = PARENT[n.id];
     if (p && p.choix) p.kids.forEach(k => [k, ...desc(k)].forEach(x => delete etat.barres[x.id]));
-    if (p && p.id === "t1_3") delete etat.coches[p.id];   // décocher « Oui » ou « Non » décoche aussi l'aérien
+    if (p && COCHE_PARENT.has(p.id)) delete etat.coches[p.id];   // décocher l'option décoche aussi la tâche au-dessus
   }
   Object.entries(BARRE_SI).forEach(([si, cible]) => {
     const maintenant = engagee(si); if (maintenant === avant[si]) return;
@@ -748,8 +749,6 @@ function basculer(n, on) {
   // le choix (contraste, conforme / non conforme) passe après : la règle d'anticipation ne doit pas effacer ses barres
   Object.values(NOEUDS).forEach(p => { const k = p.choix && p.kids.find(o => etat.coches[o.id]);
     if (k) p.kids.forEach(o => { if (o !== k) [o, ...desc(o)].forEach(x => etat.barres[x.id] = true); }); });
-  // type de commande GCBLO choisi (SIMPLE ou COMPLEXE) : la tâche « Déterminer le type… » est rayée
-  ["t3_7"].forEach(id => { if (NOEUDS[id].kids.some(k => etat.coches[k.id])) etat.barres[id] = true; else delete etat.barres[id]; });
   const pc = PARENT[n.id];
   if (on && pc && pc.choix) pc.kids.forEach(k => [k, ...desc(k)].forEach(x => { if (k === n) delete etat.barres[x.id]; else etat.barres[x.id] = true; }));
   // contraste : les barres découlent des options cochées
