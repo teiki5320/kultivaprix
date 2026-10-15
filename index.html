@@ -671,7 +671,7 @@ function majFaitLe() {
 }
 // tâches cochées automatiquement quand toutes leurs sous-tâches non barrées le sont : IPON, GEORESO, SPI, LINE, OPTIMUM,
 // puis « Mettre à jour le SI » quand ces cinq-là le sont (étape 7) ; l'ordre compte : les sous-groupes d'abord
-const AUTO_TOUTES = ["t4_2_12", "t4_2_13", "t4d_5_1", "t4d_5", "t7_4_1", "t7_4_2", "t7_4_3", "t7_4_4", "t7_4_5", "t7_4"];
+const AUTO_TOUTES = ["t4_2_12_1_2", "t4_2_12_1", "t4_2_12", "t4_2_13", "t4d_5_1", "t4d_5", "t7_4_1", "t7_4_2", "t7_4_3", "t7_4_4", "t7_4_5", "t7_4"];
 function autoEtapes() {
   // AUTO_SI d'abord : « Attendre le retour OWF » coché par AUTORISE compte pour « Pour souterrain »
   Object.entries(AUTO_SI).forEach(([t, src]) => {
