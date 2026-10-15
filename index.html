@@ -693,6 +693,10 @@ function autoEtapes() {
     if (complet && !etat.coches[t.id]) etat.coches[t.id] = "auto";
     else if (!complet && etat.coches[t.id] === "auto") delete etat.coches[t.id];
   });
+  // anticipation non nécessaire : la tâche 5 (toute barrée) passe au vert en même temps que la tâche 4
+  const sansAnt = engagee("t4_1") && fini(NOEUDS.t4);
+  if (sansAnt && !etat.coches.t4d) etat.coches.t4d = "auto";
+  else if (!sansAnt && etat.coches.t4d === "auto") delete etat.coches.t4d;
   majFaitLe();   // date à laquelle chaque tâche a été cochée (à la main ou automatiquement) ; retirée si elle est décochée
 }
 
