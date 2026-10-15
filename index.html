@@ -514,6 +514,9 @@ const TACHES = [
         { id: "t2_1_2_2", lib: "Faire un mail GED à ZZZ Amaris OSA : Bonjour, APD conforme." } ] } ] } ] },
   { id: "t3", lib: "Traiter la pré-étude", mode: "tout", kids: [
     { id: "t3_1", lib: "Repasser la POI à l’état 1" },
+    { id: "t3_7", lib: "Déterminer le type de commande GCBLO", mode: "un", choix: true, kids: [
+      { id: "t3_7_1", lib: "SIMPLE", gras: ["SIMPLE"] },
+      { id: "t3_7_2", lib: "COMPLEXE", gras: ["COMPLEXE"] } ] },
     { id: "t3_5", lib: "Traiter l’aérien (sur la POI d’anticipation)", mode: "tout", kids: [
       { id: "t3_5_3", lib: "Faire DT (au cas où il y a des remplacements ou implantation de poteau)" },
       { id: "t3_5_1", lib: "Faire SEPALE" },
