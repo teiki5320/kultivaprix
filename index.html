@@ -748,6 +748,8 @@ function basculer(n, on) {
   // le choix (contraste, conforme / non conforme) passe après : la règle d'anticipation ne doit pas effacer ses barres
   Object.values(NOEUDS).forEach(p => { const k = p.choix && p.kids.find(o => etat.coches[o.id]);
     if (k) p.kids.forEach(o => { if (o !== k) [o, ...desc(o)].forEach(x => etat.barres[x.id] = true); }); });
+  // type de commande GCBLO choisi (SIMPLE ou COMPLEXE) : la tâche « Déterminer le type… » est rayée
+  ["t3_7"].forEach(id => { if (NOEUDS[id].kids.some(k => etat.coches[k.id])) etat.barres[id] = true; else delete etat.barres[id]; });
   const pc = PARENT[n.id];
   if (on && pc && pc.choix) pc.kids.forEach(k => [k, ...desc(k)].forEach(x => { if (k === n) delete etat.barres[x.id]; else etat.barres[x.id] = true; }));
   // contraste : les barres découlent des options cochées
