@@ -665,7 +665,7 @@ function valide(n) { return !!etat.coches[n.id]; }
 const datesOk = t => [t, ...desc(t)].filter(d => AVEC_DATE.has(d.id) && !estBarre(d)).every(d => etat.dates[d.id]);
 const fini = t => valide(t) && datesOk(t);   // bloc et voyant au vert
 // tâche cochée automatiquement quand une autre est cochée (ET datée si elle a une date) : « APD / DOE conforme » → « Vérifier la conformité … »
-const AUTO_SI = { t2_1: "t2_1_2", t5_1: "t5_1_2", t4d_1: "t4d_1_2" };
+const AUTO_SI = { t2_1: "t2_1_2", t5_1: "t5_1_2", t4d_1: "t4d_1_2", t4_2_12_3: "t4_2_12_3_2", t4_2_13_2: "t4_2_13_2_2" };   // … AUTORISE daté → « Attendre le retour OWF »
 function majFaitLe() {
   const j = versIso(new Date());
   Object.keys(etat.coches).forEach(id => { if (!etat.faitLe[id]) etat.faitLe[id] = j; });
