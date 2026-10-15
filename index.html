@@ -673,15 +673,16 @@ function majFaitLe() {
 }
 // tâches cochées automatiquement quand toutes leurs sous-tâches non barrées le sont : IPON, GEORESO, SPI, LINE, OPTIMUM,
 // puis « Mettre à jour le SI » quand ces cinq-là le sont (étape 7) ; l'ordre compte : les sous-groupes d'abord
-const AUTO_TOUTES = ["t4d_5_1", "t4d_5", "t7_4_1", "t7_4_2", "t7_4_3", "t7_4_4", "t7_4_5", "t7_4"];
+const AUTO_TOUTES = ["t4_2_13", "t4d_5_1", "t4d_5", "t7_4_1", "t7_4_2", "t7_4_3", "t7_4_4", "t7_4_5", "t7_4"];
 function autoEtapes() {
-  AUTO_TOUTES.forEach(t => {
-    const ds = NOEUDS[t].kids.filter(k => !estBarre(k)), ok = ds.length > 0 && ds.every(k => etat.coches[k.id]);
+  // AUTO_SI d'abord : « Attendre le retour OWF » coché par AUTORISE compte pour « Pour souterrain »
+  Object.entries(AUTO_SI).forEach(([t, src]) => {
+    const ok = etat.coches[src] && (!AVEC_DATE.has(src) || etat.dates[src]);
     if (ok && !etat.coches[t]) etat.coches[t] = "auto";
     else if (!ok && etat.coches[t] === "auto") delete etat.coches[t];
   });
-  Object.entries(AUTO_SI).forEach(([t, src]) => {
-    const ok = etat.coches[src] && (!AVEC_DATE.has(src) || etat.dates[src]);
+  AUTO_TOUTES.forEach(t => {
+    const ds = NOEUDS[t].kids.filter(k => !estBarre(k)), ok = ds.length > 0 && ds.every(k => etat.coches[k.id]);
     if (ok && !etat.coches[t]) etat.coches[t] = "auto";
     else if (!ok && etat.coches[t] === "auto") delete etat.coches[t];
   });
