@@ -720,7 +720,7 @@ const COCHE_PARENT = new Set(["t1_3", "t3_7"]);
 const engagee = id => [NOEUDS[id], ...desc(NOEUDS[id])].some(x => etat.coches[x.id]);
 function basculer(n, on) {
   if (verrouillee(n)) { rendu(); return; }
-  const avant = Object.fromEntries(Object.keys(BARRE_SI).map(id => [id, engagee(id)]));
+  const avant = Object.fromEntries(Object.keys(BARRE_SI).map(id => [id, engagee(id)])), complexeAvant = !!etat.coches.t3_7_2;
   if (on) {
     etat.coches[n.id] = true;   // seule la tâche cochée : ses sous-tâches se cochent à la main
     // branches au choix : cocher dans une branche efface les autres
@@ -740,8 +740,11 @@ function basculer(n, on) {
     if (p && COCHE_PARENT.has(p.id)) delete etat.coches[p.id];   // décocher l'option décoche aussi la tâche au-dessus
   }
   // commande GCBLO COMPLEXE en pré-étude : « Anticipation nécessaire » se coche toute seule (la règle d'anticipation raye alors « non nécessaire »)
-  if (etat.coches.t3_7_2 && !etat.coches.t4_2) etat.coches.t4_2 = "auto";
-  else if (!etat.coches.t3_7_2 && etat.coches.t4_2 === "auto") delete etat.coches.t4_2;
+  // seulement au moment où COMPLEXE change : cocher ensuite « non nécessaire » garde le dernier mot
+  if (!!etat.coches.t3_7_2 !== complexeAvant) {
+    if (etat.coches.t3_7_2 && !etat.coches.t4_2) etat.coches.t4_2 = "auto";
+    else if (!etat.coches.t3_7_2 && etat.coches.t4_2 === "auto") delete etat.coches.t4_2;
+  }
   // deux passages : une règle peut en déclencher une autre (COMPLEXE → nécessaire → « non nécessaire » décochée → tâche 5 débarrée)
   for (let passe = 0; passe < 2; passe++) Object.entries(BARRE_SI).forEach(([si, cible]) => {
     const maintenant = engagee(si); if (maintenant === avant[si]) return;
