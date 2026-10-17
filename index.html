@@ -1833,6 +1833,7 @@ const COML_CHAMPS = {
   t1_5: [{ k: "dlpiM3", lib: "DLPI − 3 mois", sorte: "calc", calc: d => ajMois(d.dlpi, -3), aide: "Calculé depuis la DLPI" }],
   t2_1_1_1: COML_APD(), t2_1_2_1: COML_APD(),
   t4_1_1: [{ k: "noteAnnul", sorte: "note", val: "On ne change pas la DRE/DLR." }],
+  t4_2_4_1: [{ k: "noteTrav", sorte: "note", val: "On ne change pas la DRE/DLR." }],
   t4_2_2: [
     { k: "recApd", lib: "Date de réception de l’APD", sorte: "calc", brut: true, calc: d => d.t.t2, aide: "La date mise à côté de « Réception APD » (grande tâche 2)" },
     { k: "dre", lib: "DRE", sorte: "calc", calc: (d, v) => ajJours(v("recApd"), 14), aide: "Date de réception de l’APD + 14 jours" },
