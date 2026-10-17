@@ -1538,6 +1538,8 @@ function iuVisibilite() {
   const ae = typeof NOEUDS !== "undefined" && NOEUDS.t1_3_1 && valide(NOEUDS.t1_3_1);
   if ($("iuSecPV")) $("iuSecPV").hidden = !ae;
   if ($("iuLaRoche")) $("iuLaRoche").hidden = !aLaRoche();
+  // « Faire CMS » barré (pré-étude) : la ligne CMS de BANBOU disparaît (ce qui y est écrit est gardé)
+  if ($("iuCms")) $("iuCms").hidden = typeof NOEUDS !== "undefined" && !!NOEUDS.t3_2 && estBarre(NOEUDS.t3_2);
 }
 const pbAjoute = id => ({ t: "PB", k: id, ajout: "pb:" + id, l: [{ pre: "PT", k: id + "_pt" }, { pre: "PF", k: id + "_pf" }, { pre: "CH/", k: id + "_ch", type: id + "_type" }] });
 const clesAjout = (sorte, id) => sorte === "gc" ? [id] : sorte === "pb" ? [id, id + "_pt", id + "_pf", id + "_ch", id + "_type"] : [id + "_de", id + "_a", id + "_tr"];
@@ -1569,7 +1571,7 @@ function rendreIU() {
     `</div>`; }).join("") +
     (Object.keys(M).length ? `<button class="iu-retablir" type="button" id="iuRetablir">↺ Rétablir les lignes</button>` : "");
   const ligne = (lab, champ, attrs = "") => `<div class="iu-ligne"${attrs}><span class="fixe">${esc(lab)}</span>${champ}</div>`;
-  const pile = (lab, champ) => `<div class="iu-ligne pile"><span class="fixe">${esc(lab)}</span><div class="iu-rang">${champ}</div></div>`;
+  const pile = (lab, champ, attrs = "") => `<div class="iu-ligne pile"${attrs}><span class="fixe">${esc(lab)}</span><div class="iu-rang">${champ}</div></div>`;
   const dems = ["gcblo_1", ...etat.fiche.iuGcblo];
   const gcblo = `<div class="iu-dem">` + dems.map((k, i) => pile(`${ordinal(i + 1)} demande :`,
     iuChamp(k, "plein", "", `GCBLO ${ordinal(i + 1)} demande`, "N° de commande d’accès") +
@@ -1579,7 +1581,7 @@ function rendreIU() {
   $("infosUtiles").innerHTML = sec("IPON", ipon) +
     sec("PV", ligne("SAVOIR :", iuChiffres("pv_savoir", "PV SAVOIR")) + ligne("La Roche :", iuChiffres("pv_roche", "PV La Roche"), ` id="iuLaRoche"`), ` id="iuSecPV"`, true) +
     sec("GCBLO", gcblo, "", true) +
-    sec("BANBOU", pile("CMS :", iuChamp("banbou_cms", "plein", "", "BANBOU CMS", "Référence BANBOU")) +
+    sec("BANBOU", pile("CMS :", iuChamp("banbou_cms", "plein", "", "BANBOU CMS", "Référence BANBOU"), ` id="iuCms"`) +
       pile("Dessin TIGRE :", iuChamp("banbou_tigre", "plein", "", "BANBOU Dessin TIGRE", "Référence BANBOU")), "", true);
   iuVisibilite();
 }
