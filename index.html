@@ -860,7 +860,7 @@ function resultat(t) {
 // « Vérifier la conformité » (étapes 2, 5 et 7) : une liste de documents à cocher, propre à chaque tâche
 const AVEC_LISTE = new Set(["t2_1", "t5_1", "t7_1"]);
 const ICO_LISTE = `<svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M3.5 6l1.2 1.2L7 5M3.5 12l1.2 1.2L7 11M3.5 18l1.2 1.2L7 17"/></svg>`;
-const AVEC_DATE = new Set(["t1", "t2_1_1", "t2_1_2", "t3_5_5", "t3_5_6", "t4_1_1", "t4_2_2", "t4_2_12_1_2_1", "t4_2_12_1_2_2", "t4_2_12_1_3", "t4_2_12_2", "t4_2_12_3_2", "t4_2_13_1", "t4_2_13_2_2", "t4_2_4", "t4d", "t4d_2_1_1", "t4d_2_2", "t4d_2_3_2", "t4d_3_1", "t4d_3_2_2", "t4d_4", "t4d_6", "t5_1_1", "t5_1_2", "t6_7", "t6_9", "t7", "t7_3", "t7_5", "t7_6"]);
+const AVEC_DATE = new Set(["t1", "t2", "t2_1_1", "t2_1_2", "t3_5_5", "t3_5_6", "t4_1_1", "t4_2_2", "t4_2_12_1_2_1", "t4_2_12_1_2_2", "t4_2_12_1_3", "t4_2_12_2", "t4_2_12_3_2", "t4_2_13_1", "t4_2_13_2_2", "t4_2_4", "t4d", "t4d_2_1_1", "t4d_2_2", "t4d_2_3_2", "t4d_3_1", "t4d_3_2_2", "t4d_4", "t4d_6", "t5_1_1", "t5_1_2", "t6_7", "t6_9", "t7", "t7_3", "t7_5", "t7_6"]);
 const AVEC_MODOP = new Set(["t1_5", "t2_1_1_1", "t2_1_2_1", "t3_5_1", "t3_2", "t3_3", "t3_3_1", "t3_4", "t3_4_1", "t4_1_1", "t4_2_2", "t4_2_12", "t4_2_12_1_1", "t4_2_12_1_2", "t4_2_12_2", "t4_2_14", "t4_2_16", "t4_2_17", "t4_2_13_1", "t4_2_4_1",
   "t4_2_15", "t4_2_18", "t4d_2", "t4d_2_1_1", "t4d_2_2", "t4d_3_1", "t4d_7", "t4d_5", "t5_1_1_1", "t5_1_2_1", "t6_1", "t6_2", "t6_2_1", "t6_3", "t6_4", "t6_5", "t6_6", "t6_7_1", "t6_8",
   "t6_9", "t7_1", "t7_2", "t7_3", "t7_4_1_2", "t7_4_2_1", "t7_4_3_1", "t7_4_3_2", "t7_4_5_1", "t7_5"]);
@@ -1361,7 +1361,7 @@ document.querySelector(".feu").addEventListener("click", e => {
 // une seule date MAD : elle devient « MAD anticipée » quand elle vient de la tâche de MAD anticipée
 const GROUPES_DI = [
   { id: "gen", titre: "Générale", dates: [["poi", "Réception POI"], ["dre", "DRE"], ["dlr", "DLR"], ["mad", "MAD"]] },
-  { id: "racco", titre: "Racco D2", dates: [["apd", "Réception APD"], ["doePre", "Réception DOE précâblage"], ["travaux", "Envoi en travaux D2"],
+  { id: "racco", titre: "Racco D2", dates: [["apd", "Réception APD conforme"], ["doePre", "Réception DOE précâblage"], ["travaux", "Envoi en travaux D2"],
     ["doeRacco", "Réception DOE Racco D2"], ["paiement", "Paiement attachement D2"], ["archRacco", "Archivage POI Racco D2"]] },
   { id: "ant", titre: "Anticipation", dates: [["travauxAnt", "Envoi en travaux anticipation"], ["doeAnt", "Réception DOE Anticipation"],
     ["paiementAnt", "Paiement attachement anticipation"], ["archAnt", "Archivage POI anticipation"]] },
@@ -1820,10 +1820,17 @@ majUrgence(); majDocs(); rendu(); ajusterEchelle();
    à droite les champs de la tâche : calculés depuis les Dates importantes (modifiables à la main), à remplir ou fixes */
 const COML = ["t1_5", "t2_1_1_1", "t2_1_2_1", "t4_1_1", "t4_2_2", "t4_2_4_1", "t5_1_1_1", "t5_1_2_1", "t6_7_1"];
 // champs par tâche : { k, lib, sorte: "calc" | "date" | "texte" | "fixe", calc: d => iso, aide, val }
-// d = les Dates importantes du dossier (d.dlpi, d.poi, d.dre…) ; les outils : ajJours(iso, n), ajMois(iso, n), plusTard(a, b), plusTot(a, b)
+// d = les Dates importantes du dossier (d.dlpi, d.poi, d.dre…) et d.t les dates des tâches ; v("k") = la valeur d'un autre champ de la fenêtre ; les outils : ajJours(iso, n), ajMois(iso, n), plusTard(a, b), plusTot(a, b)
 // une date calculée ne tombe jamais un week-end ni un jour férié : elle passe au premier jour ouvré qui suit (horsFerie)
+// tâche 2 (APD non conforme et conforme : les mêmes champs)
+function COML_APD() { return [
+  { k: "recApd", lib: "Date de réception de l’APD", sorte: "calc", brut: true, calc: d => d.t.t2, aide: "La date mise à côté de « Réception APD » (grande tâche 2)" },
+  { k: "dre", lib: "DRE", sorte: "calc", calc: (d, v) => plusTard(ajJours(ajMois(d.dlpi, -2), -15), v("recApd") && ajJours(ajMois(v("recApd"), 4), 15)),
+    aide: "DLPI − 2,5 mois, mais au moins réception de l’APD + 4,5 mois" },
+  { k: "dlr", lib: "DLR", sorte: "calc", calc: (d, v) => ajMois(v("dre"), 1), aide: "DRE + 1 mois" }]; }
 const COML_CHAMPS = {
   t1_5: [{ k: "dlpiM3", lib: "DLPI − 3 mois", sorte: "calc", calc: d => ajMois(d.dlpi, -3), aide: "Calculé depuis la DLPI" }],
+  t2_1_1_1: COML_APD(), t2_1_2_1: COML_APD(),
 };
 const ajJours = (iso, n) => { if (!iso) return ""; const [a, m, j] = iso.split("-").map(Number); return versIso(new Date(a, m - 1, j + n)); };
 const ajMois = (iso, n) => { if (!iso) return ""; const [a, m, j] = iso.split("-").map(Number); const d = new Date(a, m - 1 + n, 1);
@@ -1844,7 +1851,7 @@ const horsFerie = iso => {
 };
 const plusTard = (a, b) => !a ? b || "" : !b ? a : a > b ? a : b;
 const plusTot = (a, b) => !a ? b || "" : !b ? a : a < b ? a : b;
-const datesComl = () => ({ ...(etat.fiche.di || {}), dlpi: etat.fiche.dlpi || "" });
+const datesComl = () => ({ ...(etat.fiche.di || {}), dlpi: etat.fiche.dlpi || "", t: etat.dates });
 if (!etat.coml || typeof etat.coml !== "object") etat.coml = {};   // ce qui est tapé ou remplacé à la main, par dossier
 // les captures : base IndexedDB à part (elles sont grosses et ne dépendent pas du dossier)
 let comlBase = null;
@@ -1897,11 +1904,15 @@ async function poserComlPhoto(f) {
   try { await comlPhoto(comlOuvert, await reduire(f, 2400, 0.9)); } catch (e) { alert("La capture n'a pas pu être enregistrée."); return; }
   rendreComlPhoto();
 }
-function valComl(id, c) {
+function valComl(id, c, pile = []) {
   const m = (etat.coml[id] || {})[c.k];
   if (c.sorte === "fixe") return { v: c.val || "", manuel: false };
   if (m != null) return { v: m, manuel: c.sorte === "calc" };
-  return { v: c.sorte === "calc" ? isoVersFr(horsFerie(c.calc(datesComl()) || "")) : "", manuel: false };
+  if (c.sorte !== "calc" || pile.includes(c.k)) return { v: "", manuel: false };
+  // un champ peut partir d'un autre champ de la fenêtre (tel qu'affiché, donc aussi s'il a été changé à la main)
+  const v = k => { const o = (COML_CHAMPS[id] || []).find(x => x.k === k); return o ? frVersIso(valComl(id, o, [...pile, c.k]).v) || "" : ""; };
+  const iso = c.calc(datesComl(), v) || "";
+  return { v: isoVersFr(c.brut ? iso : horsFerie(iso)), manuel: false };   // brut : date reprise telle quelle (pas décalée au jour ouvré)
 }
 function rendreComlChamps() {
   const z = $("comlChamps"), id = comlOuvert; if (!z) return;
@@ -1936,7 +1947,9 @@ document.addEventListener("input", e => {
   const o = etat.coml[comlOuvert] = etat.coml[comlOuvert] || {};
   if (e.target.value) o[k] = e.target.value; else delete o[k];
   sauver();
-  if (c.sorte === "calc" && !e.target.classList.contains("manuel")) { rendreComlChamps(); const i = $("coml_" + k); i.focus(); i.setSelectionRange(i.value.length, i.value.length); }
+  // date complète (ou effacée) : les champs qui en dépendent se recalculent
+  if (!e.target.dataset.comldate || e.target.value.length === 10 || !e.target.value || (c.sorte === "calc" && !e.target.classList.contains("manuel"))) {
+    rendreComlChamps(); const i = $("coml_" + k); i.focus(); i.setSelectionRange(i.value.length, i.value.length); }
 });
 document.addEventListener("paste", e => {
   if (!comlOuvert || e.target.closest?.("[data-comlk]")) return;
