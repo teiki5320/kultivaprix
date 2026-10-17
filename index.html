@@ -1430,8 +1430,8 @@ function majPoiEtat() {
   const cRacco = $("f_racco").closest(".champ"), cAdr = $("f_adr").closest(".champ"), cEl = $("elZone"), cAe = $("champAerien");
   if (aerien && cRacco.nextElementSibling !== cAe) { cRacco.after(cAe); cAdr.after(cEl); }
   if (!aerien && cRacco.nextElementSibling !== cEl) { cRacco.after(cEl); cAdr.after(cAe); }
-  // les sous-parties Aérien et Permission de voirie des Dates importantes n'apparaissent que si « Oui » est coché
-  ["diGrp_aer", "diGrp_pv"].forEach(g => { if ($(g)) $(g).hidden = !aerien; });
+  // sans « Oui » à l'aérien, les cases des sous-parties Aérien et Permission de voirie des Dates importantes passent en grisé
+  ["diGrp_aer", "diGrp_pv"].forEach(g => $(g)?.querySelectorAll("input[data-di]").forEach(c => c.classList.toggle("poi-close", !aerien)));
   if (typeof iuVisibilite === "function") iuVisibilite();   // Infos utiles : la sous-partie PV aussi
   placerAides();
   [["f_ant", "etatAnt", ant], ["f_racco", "etatRacco", racco]].forEach(([c, e, t]) => { $(c).classList.toggle("poi-close", !!t); $(e).textContent = t ? " · " + t : ""; });
