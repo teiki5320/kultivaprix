@@ -311,7 +311,7 @@ header.top.urg-vert { box-shadow: var(--clay-sm), inset 0 0 0 4px #3ddc76, 0 0 1
 
 /* ── Bas de la colonne droite : Documents POI + Infos utiles (étroit) | Commentaires (large) ── */
 /* Dates importantes (étroite, à gauche) et Infos utiles à côté, qui commencent à la même hauteur */
-.haut-droite { display: grid; grid-template-columns: minmax(250px, 300px) minmax(0, 1fr); gap: 18px; align-items: start; }
+.haut-droite { display: grid; grid-template-columns: minmax(0, 1.63fr) minmax(0, 1fr);   /* Infos utiles réduite d'un tiers au profit des dates */ gap: 18px; align-items: start; }
 @media (max-width: 700px) { .haut-droite { grid-template-columns: 1fr; } }
 .bas-droite { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; align-items: start; }
 .cote { display: grid; gap: 18px; min-width: 0; }
