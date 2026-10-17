@@ -1591,11 +1591,11 @@ function rendreIU() {
     (i ? iuSupAjout("gc:" + k, `la ${ordinal(i + 1)} demande`) : ""))).join("") + `</div>`;
   // espaces : titre de la carte → IPON, titre → 1re rubrique, entre rubriques, entre sous-parties ;
   // ils grandissent tous dans la même proportion pour que le contenu descende jusqu'au bas de la carte
-  const ESP = { haut: 16, titre: 14, rub: 18, sec: 30 };
+  const ESP = { haut: 16, titre: 14, rub: 24, ligne: 8, sec: 30 };   // ligne : entre CMS et Dessin TIGRE, entre SAVOIR et La Roche
   const esp = w => `<i class="iu-esp" style="--e:${w}" aria-hidden="true"></i>`;
-  const item = ([html, id], i) => `<div class="iu-it"${id ? ` id="${id}"` : ""}>${i ? esp(ESP.rub) : ""}${html}</div>`;
-  const sec = (titre, items, attrs = "", premier = false) => `<section class="iu-sec"${attrs}>${esp(premier ? ESP.haut : ESP.sec)}<h3 class="iu-sec-titre">${titre}</h3>${esp(ESP.titre)}${items.map(item).join("")}</section>`;
-  $("infosUtiles").innerHTML = sec("IPON", ipon.map(h => [h]), "", true) +
+  const item = w => ([html, id], i) => `<div class="iu-it"${id ? ` id="${id}"` : ""}>${i ? esp(w) : ""}${html}</div>`;
+  const sec = (titre, items, attrs = "", premier = false, w = ESP.ligne) => `<section class="iu-sec"${attrs}>${esp(premier ? ESP.haut : ESP.sec)}<h3 class="iu-sec-titre">${titre}</h3>${esp(ESP.titre)}${items.map(item(w)).join("")}</section>`;
+  $("infosUtiles").innerHTML = sec("IPON", ipon.map(h => [h]), "", true, ESP.rub) +
     sec("PV", [[ligne("SAVOIR :", iuChiffres("pv_savoir", "PV SAVOIR"))], [ligne("La Roche :", iuChiffres("pv_roche", "PV La Roche")), "iuLaRoche"]], ` id="iuSecPV"`) +
     sec("GCBLO", [[gcblo]]) +
     sec("BANBOU", [[pile("CMS :", iuChamp("banbou_cms", "plein", "", "BANBOU CMS", "Référence BANBOU")), "iuCms"],
