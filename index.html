@@ -1820,13 +1820,15 @@ majUrgence(); majDocs(); rendu(); ajusterEchelle();
    à droite les champs de la tâche : calculés depuis les Dates importantes (modifiables à la main), à remplir ou fixes */
 const COML = ["t1_5", "t2_1_1_1", "t2_1_2_1", "t4_1_1", "t4_2_2", "t4_2_4_1", "t5_1_1_1", "t5_1_2_1", "t6_7_1"];
 // champs par tâche : { k, lib, sorte: "calc" | "date" | "texte" | "fixe", calc: d => iso, aide, val }
-// d = les Dates importantes du dossier (d.dlpi, d.poi, d.dre…) ; les outils : ajJours(iso, n), ajMois(iso, n), plusTard(a, b), plusTot(a, b)
+// d = les Dates importantes du dossier (d.dlpi, d.poi, d.dre…) ; les outils : ajJours(iso, n), ajMois(iso, n), plusTard(a, b), plusTot(a, b), horsWeekend(iso)
 const COML_CHAMPS = {
-  t1_5: [{ k: "dlpiM3", lib: "DLPI − 3 mois", sorte: "calc", calc: d => ajMois(d.dlpi, -3), aide: "Calculé depuis la DLPI des Dates importantes" }],
+  t1_5: [{ k: "dlpiM3", lib: "DLPI − 3 mois", sorte: "calc", calc: d => horsWeekend(ajMois(d.dlpi, -3)), aide: "Calculé depuis la DLPI ; un samedi ou un dimanche passe au lundi" }],
 };
 const ajJours = (iso, n) => { if (!iso) return ""; const [a, m, j] = iso.split("-").map(Number); return versIso(new Date(a, m - 1, j + n)); };
 const ajMois = (iso, n) => { if (!iso) return ""; const [a, m, j] = iso.split("-").map(Number); const d = new Date(a, m - 1 + n, 1);
   d.setDate(Math.min(j, new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate())); return versIso(d); };
+// une date qui tombe un samedi ou un dimanche passe au lundi suivant
+const horsWeekend = iso => { if (!iso) return ""; const [a, m, j] = iso.split("-").map(Number), w = new Date(a, m - 1, j).getDay(); return w === 6 ? ajJours(iso, 2) : w === 0 ? ajJours(iso, 1) : iso; };
 const plusTard = (a, b) => !a ? b || "" : !b ? a : a > b ? a : b;
 const plusTot = (a, b) => !a ? b || "" : !b ? a : a < b ? a : b;
 const datesComl = () => ({ ...(etat.fiche.di || {}), dlpi: etat.fiche.dlpi || "" });
