@@ -248,8 +248,20 @@ header.top.urg-vert { box-shadow: var(--clay-sm), inset 0 0 0 4px #3ddc76, 0 0 1
 .feu .v { background: radial-gradient(circle at 35% 35%, #c9f5d8 0 18%, #36c26a 50%); }
 .feu .v.on { box-shadow: 0 0 10px rgba(54, 194, 106, .8); }
 
-/* ── Dates importantes : 11 dates comme la DLPI ── */
-.dates-imp { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px 10px; }
+/* ── Dates importantes : sous-parties de couleur, dates comme la DLPI ── */
+.dates-imp { display: flex; flex-direction: column; gap: 12px; }
+.dates-imp > .champ { display: none; }   /* la DLPI, le temps d'être rangée dans Générale */
+.di-grp { --di: var(--muted); }
+.di-grp[hidden] { display: none; }
+.di-titre { margin: 0 0 6px; font-size: 12px; font-weight: 800; letter-spacing: .4px; text-transform: uppercase; color: var(--di);
+  padding-left: 8px; border-left: 4px solid var(--di); line-height: 1.2; }
+.di-sous { margin-left: 14px; margin-top: -4px; }
+.di-sous .di-titre { font-size: 11px; text-transform: none; letter-spacing: 0; border-left-width: 3px; }
+.di-gcblo { margin-bottom: -6px; }
+.di-gcblo .di-titre { margin-bottom: 0; }
+.di-liste { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px 10px; }
+.di-gen { --di: #b08a12; } .di-racco { --di: #4f8a3a; } .di-ant { --di: #b23a2e; }
+.di-gcblo { --di: var(--texte); } .di-sout { --di: #3b78b0; } .di-aer { --di: #7a3f86; } .di-pv { --di: #c46a1c; }
 .dates-imp .champ { justify-content: flex-end; position: relative; }   /* cases alignées même si un titre passe sur deux lignes */
 /* astérisque à côté du titre : la précision s'ouvre au survol de l'astérisque ou du titre */
 .dates-imp .avec-aide { cursor: help; align-self: flex-start; }
@@ -544,12 +556,12 @@ const TACHES = [
           { id: "t4_2_12_1_1", lib: "Contrôler le retour DT" },
           { id: "t4_2_12_1_2", lib: "Faire une Permission de voirie", mode: "tout", kids: [
             { id: "t4_2_12_1_2_1", lib: "Demande PV" },
-            { id: "t4_2_12_1_2_2", lib: "Retour PV" } ] },
-          { id: "t4_2_12_1_3", lib: "ATLAS (sur la POI anticipation mais un autre Chelem)" } ] },
+            { id: "t4_2_12_1_2_2", lib: "Retour PV" } ] } ] },
         { id: "t4_2_12_2", lib: "Faire une commande d’accès GCBLO COMPLEXE" },
         { id: "t4_2_12_3", lib: "Attendre le retour OWF", mode: "tout", kids: [
           { id: "t4_2_12_3_1", lib: "REFUSE" },
-          { id: "t4_2_12_3_2", lib: "AUTORISE" } ] } ] },
+          { id: "t4_2_12_3_2", lib: "AUTORISE" } ] },
+        { id: "t4_2_12_1_3", lib: "ATLAS (sur la POI anticipation mais un autre Chelem)" } ] },
       { id: "t4_2_13", lib: "Pour souterrain", mode: "tout", kids: [
         { id: "t4_2_13_1", lib: "Faire une commande d’accès GCBLO COMPLEXE" },
         { id: "t4_2_13_2", lib: "Attendre le retour OWF", mode: "tout", kids: [
@@ -1302,13 +1314,23 @@ document.querySelector(".feu").addEventListener("click", e => {
   sauver(); majUrgence();
 });
 
-/* ═══ Dates importantes : 17 dates, saisie comme la DLPI ═══ */
-// 1re ligne : Réception POI, DLPI, DRE, DLR ; ensuite dans l'ordre des tâches, puis les deux archivages
+/* ═══ Dates importantes : saisie comme la DLPI, rangées en sous-parties ═══ */
+// Générale, Racco D2, Anticipation, GCBLO (Souterrain, Aérien), Permission de voirie ; la DLPI vient en 2e, après Réception POI
 // une seule date MAD : elle devient « MAD anticipée » quand elle vient de la tâche de MAD anticipée
-const DATES_IMP = [["poi", "Réception POI"], ["dre", "DRE"], ["dlr", "DLR"],
-  ["apd", "Réception APD"], ["sepale", "Retour BO aérien"], ["travauxAnt", "Envoi en travaux anticipation"], ["doeAnt", "Réception DOE Anticipation"], ["doePre", "Réception DOE précâblage"], ["travaux", "Envoi en travaux D2"],
-  ["doeRacco", "Réception DOE Racco D2"], ["paiement", "Paiement attachement D2"], ["mad", "MAD"],
-  ["archAnt", "Archivage POI anticipation"], ["archRacco", "Archivage POI Racco D2"]];
+const GROUPES_DI = [
+  { id: "gen", titre: "Générale", dates: [["poi", "Réception POI"], ["dre", "DRE"], ["dlr", "DLR"], ["mad", "MAD"]] },
+  { id: "racco", titre: "Racco D2", dates: [["apd", "Réception APD"], ["doePre", "Réception DOE précâblage"], ["travaux", "Envoi en travaux D2"],
+    ["doeRacco", "Réception DOE Racco D2"], ["paiement", "Paiement attachement D2"], ["archRacco", "Archivage POI Racco D2"]] },
+  { id: "ant", titre: "Anticipation", dates: [["travauxAnt", "Envoi en travaux anticipation"], ["doeAnt", "Réception DOE Anticipation"],
+    ["paiementAnt", "Paiement attachement anticipation"], ["archAnt", "Archivage POI anticipation"]] },
+  { id: "gcblo", titre: "GCBLO", dates: [] },
+  { id: "sout", titre: "Souterrain", sous: true, dates: [["cmdSout", "Demande commande d’accès souterrain"], ["retCmdSout", "Retour OK commande d’accès souterrain"],
+    ["dftSout", "Envoi DFT souterrain"], ["retDftSout", "Retour OK DFT souterrain"]] },
+  { id: "aer", titre: "Aérien", sous: true, dates: [["releveBo", "Envoi relevé poteau au BO aérien"], ["sepale", "Retour BO aérien"],
+    ["cmdAer", "Demande commande d’accès aérien"], ["retCmdAer", "Retour OK commande d’accès aérien"], ["atlas", "ATLAS"],
+    ["dftAer", "Envoi DFT aérien"], ["retDftAer", "Retour OK DFT aérien"]] },
+  { id: "pv", titre: "Permission de voirie", dates: [["pvDemande", "Demande PV"], ["pvRetour", "Retour PV"], ["pvCloture", "Clôture PV"]] }];
+const DATES_IMP = GROUPES_DI.flatMap(g => g.dates);
 // précisions au survol de l'astérisque ou du titre (pas pour les envois en travaux, le paiement ni les archivages ; celle de la DLPI est dans le HTML)
 const AIDE_DI = {
   poi: "Date à laquelle la POI a été intégrée à mon portefeuille.",
@@ -1328,8 +1350,11 @@ if (etat.fiche.di.madAnt) {   // ancienne date « MAD anticipée » : reprise da
   delete etat.fiche.di.madAnt;
 }
 // dates des tâches reportées toutes seules dans les Dates importantes (la case reste modifiable à la main)
-const LIENS_DI = { t1: "poi", t2_1_2: "apd", t4_1_1: "archAnt", t4_2_4: "travauxAnt", t4d: "doeAnt", t4d_6: "archAnt", t5_1_2: "doePre", t6_9: "mad", t7: "doeRacco", t7_3: "paiement",
-  t7_5: "mad", t7_6: "archRacco" };
+const LIENS_DI = { t1: "poi", t2_1_2: "apd", t4_1_1: "archAnt", t4_2_4: "travauxAnt", t4d: "doeAnt", t4d_4: "paiementAnt", t4d_6: "archAnt", t5_1_2: "doePre", t6_9: "mad", t7: "doeRacco", t7_3: "paiement",
+  t7_5: "mad", t7_6: "archRacco",
+  t4_2_13_1: "cmdSout", t4_2_13_2_2: "retCmdSout", t4d_3_1: "dftSout", t4d_3_2_2: "retDftSout",
+  t3_5_5: "releveBo", t3_5_6: "sepale", t4_2_12_2: "cmdAer", t4_2_12_3_2: "retCmdAer", t4_2_12_1_3: "atlas", t4d_2_2: "dftAer", t4d_2_3_2: "retDftAer",
+  t4_2_12_1_2_1: "pvDemande", t4_2_12_1_2_2: "pvRetour", t4d_2_1_1: "pvCloture" };
 // titre d'une date selon la tâche d'où elle vient (sinon le titre normal)
 const TITRE_SRC = { mad: { t6_9: "MAD anticipée" }, archAnt: { t4_1_1: "Annulation POI anticipation" } };
 function reporterDate(id) {
@@ -1354,19 +1379,19 @@ function majPoiEtat() {
   const cRacco = $("f_racco").closest(".champ"), cAdr = $("f_adr").closest(".champ"), cEl = $("elZone"), cAe = $("champAerien");
   if (aerien && cRacco.nextElementSibling !== cAe) { cRacco.after(cAe); cAdr.after(cEl); }
   if (!aerien && cRacco.nextElementSibling !== cEl) { cRacco.after(cEl); cAdr.after(cAe); }
-  // la date aérien (Retour BO aérien) n'apparaît dans les Dates importantes que si « Oui » est coché
-  const chSepale = $("di_sepale")?.closest(".champ"); if (chSepale) chSepale.hidden = !aerien;
+  // les sous-parties Aérien et Permission de voirie des Dates importantes n'apparaissent que si « Oui » est coché
+  ["diGrp_aer", "diGrp_pv"].forEach(g => { if ($(g)) $(g).hidden = !aerien; });
   placerAides();
   [["f_ant", "etatAnt", ant], ["f_racco", "etatRacco", racco]].forEach(([c, e, t]) => { $(c).classList.toggle("poi-close", !!t); $(e).textContent = t ? " · " + t : ""; });
-  // anticipation non nécessaire : ses deux dates importantes passent aussi en grisé
+  // anticipation non nécessaire : ses dates importantes passent aussi en grisé (sauf l'archivage, qui reçoit la date d'annulation)
   const sansAnt = engagee("t4_1");
-  ["di_travauxAnt", "di_doeAnt"].forEach(c => $(c)?.classList.toggle("poi-close", sansAnt));
+  ["di_travauxAnt", "di_doeAnt", "di_paiementAnt"].forEach(c => $(c)?.classList.toggle("poi-close", sansAnt));
 }
 // la précision d'une date de la colonne de droite s'ouvre vers la gauche pour ne pas sortir de la carte
 function placerAides() {
   const z = $("datesImp"); if (!z) return;
   const droite = z.getBoundingClientRect().right;
-  [...z.children].forEach(c => c.classList.toggle("a-droite", c.getBoundingClientRect().right > droite - 20));
+  z.querySelectorAll(".champ").forEach(c => c.classList.toggle("a-droite", c.getBoundingClientRect().right > droite - 20));
 }
 window.addEventListener("resize", placerAides);
 function majTitres() {
@@ -1376,12 +1401,14 @@ function majTitres() {
   });
   $("aide_mad").textContent = `Date à laquelle j'ai fait la demande de ${$("di_mad").closest(".champ").querySelector(".di-lib").textContent}.`;
 }
-$("datesImp").insertAdjacentHTML("beforeend", DATES_IMP.map(([k, lib]) => `<div class="champ">` +
+const champDI = ([k, lib]) => `<div class="champ">` +
   (AIDE_DI[k] ? `<label for="di_${k}" class="avec-aide${SERRE.has(k) ? " serre" : ""}"><span class="di-lib">${esc(lib)}</span><sup class="ast" aria-hidden="true">*</sup></label><span class="di-aide" id="aide_${k}" role="tooltip">${AIDE_DI[k]}</span>`
     : `<label for="di_${k}"${SERRE.has(k) ? ` class="serre"` : ""}><span class="di-lib">${esc(lib)}</span></label>`) + `<div class="date-champ">` +
   `<input id="di_${k}" data-di="${k}"${AIDE_DI[k] ? ` aria-describedby="aide_${k}"` : ""} value="${isoVersFr(etat.fiche.di[k])}" placeholder="JJ/MM/AAAA" inputmode="numeric" maxlength="10" autocomplete="off">` +
   `<button class="cal" type="button" data-dical="${k}" aria-label="Choisir la date « ${esc(lib)} » dans le calendrier" title="Calendrier">${ICO_CAL}</button>` +
-  `<input type="date" class="date-cachee" data-dipick="${k}" tabindex="-1" aria-hidden="true"></div></div>`).join(""));
+  `<input type="date" class="date-cachee" data-dipick="${k}" tabindex="-1" aria-hidden="true"></div></div>`;
+$("datesImp").insertAdjacentHTML("beforeend", GROUPES_DI.map(g => `<section class="di-grp di-${g.id}${g.sous ? " di-sous" : ""}" id="diGrp_${g.id}">` +
+  `<h3 class="di-titre">${esc(g.titre)}</h3>` + (g.dates.length ? `<div class="di-liste">${g.dates.map(champDI).join("")}</div>` : "") + `</section>`).join(""));
 $("di_poi").closest(".champ").after($("f_dlpi").closest(".champ"));   // la DLPI en 2e, juste après Réception POI
 majTitres();
 $("datesImp").addEventListener("input", e => {
