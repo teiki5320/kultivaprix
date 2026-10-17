@@ -861,7 +861,7 @@ function resultat(t) {
 // « Vérifier la conformité » (étapes 2, 5 et 7) : une liste de documents à cocher, propre à chaque tâche
 const AVEC_LISTE = new Set(["t2_1", "t5_1", "t7_1"]);
 const ICO_LISTE = `<svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M3.5 6l1.2 1.2L7 5M3.5 12l1.2 1.2L7 11M3.5 18l1.2 1.2L7 17"/></svg>`;
-const AVEC_DATE = new Set(["t1", "t2", "t2_1_1", "t2_1_2", "t3_5_5", "t3_5_6", "t4_1_1", "t4_2_2", "t4_2_12_1_2_1", "t4_2_12_1_2_2", "t4_2_12_1_3", "t4_2_12_2", "t4_2_12_3_2", "t4_2_13_1", "t4_2_13_2_2", "t4_2_4", "t4d", "t4d_2_1_1", "t4d_2_2", "t4d_2_3_2", "t4d_3_1", "t4d_3_2_2", "t4d_4", "t4d_6", "t5_1_1", "t5_1_2", "t6_7", "t6_9", "t7", "t7_3", "t7_5", "t7_6"]);
+const AVEC_DATE = new Set(["t1", "t2", "t5", "t2_1_1", "t2_1_2", "t3_5_5", "t3_5_6", "t4_1_1", "t4_2_2", "t4_2_12_1_2_1", "t4_2_12_1_2_2", "t4_2_12_1_3", "t4_2_12_2", "t4_2_12_3_2", "t4_2_13_1", "t4_2_13_2_2", "t4_2_4", "t4d", "t4d_2_1_1", "t4d_2_2", "t4d_2_3_2", "t4d_3_1", "t4d_3_2_2", "t4d_4", "t4d_6", "t5_1_1", "t5_1_2", "t6_7", "t6_9", "t7", "t7_3", "t7_5", "t7_6"]);
 const AVEC_MODOP = new Set(["t1_5", "t2_1_1_1", "t2_1_2_1", "t3_5_1", "t3_2", "t3_3", "t3_3_1", "t3_4", "t3_4_1", "t4_1_1", "t4_2_2", "t4_2_12", "t4_2_12_1_1", "t4_2_12_1_2", "t4_2_12_2", "t4_2_14", "t4_2_16", "t4_2_17", "t4_2_13_1", "t4_2_4_1",
   "t4_2_15", "t4_2_18", "t4d_2", "t4d_2_1_1", "t4d_2_2", "t4d_3_1", "t4d_7", "t4d_5", "t5_1_1_1", "t5_1_2_1", "t6_1", "t6_2", "t6_2_1", "t6_3", "t6_4", "t6_5", "t6_6", "t6_7_1", "t6_8",
   "t6_9", "t7_1", "t7_2", "t7_3", "t7_4_1_2", "t7_4_2_1", "t7_4_3_1", "t7_4_3_2", "t7_4_5_1", "t7_5"]);
@@ -1362,7 +1362,7 @@ document.querySelector(".feu").addEventListener("click", e => {
 // une seule date MAD : elle devient « MAD anticipée » quand elle vient de la tâche de MAD anticipée
 const GROUPES_DI = [
   { id: "gen", titre: "Générale", dates: [["poi", "Réception POI"], ["dre", "DRE"], ["dlr", "DLR"], ["mad", "MAD"]] },
-  { id: "racco", titre: "Racco D2", dates: [["apd", "Réception APD conforme"], ["doePre", "Réception DOE précâblage"], ["travaux", "Envoi en travaux D2"],
+  { id: "racco", titre: "Racco D2", dates: [["apd", "Réception APD conforme"], ["doePre", "Réception DOE précâblage conforme"], ["travaux", "Envoi en travaux D2"],
     ["doeRacco", "Réception DOE Racco D2"], ["paiement", "Paiement attachement D2"], ["archRacco", "Archivage POI Racco D2"]] },
   { id: "ant", titre: "Anticipation", dates: [["travauxAnt", "Envoi en travaux anticipation"], ["doeAnt", "Réception DOE Anticipation"],
     ["paiementAnt", "Paiement attachement anticipation"], ["archAnt", "Archivage POI anticipation"]] },
@@ -1385,7 +1385,7 @@ const AIDE_DI = {
   doeRacco: "Date de réception du DOE Racco D2 <u>conforme</u>.",
   mad: "Date à laquelle j'ai fait la demande de MAD.",
 };
-const SERRE = new Set(["travauxAnt", "doeAnt", "doePre"]);   // titres longs écrits un peu plus serrés pour tenir sur une ligne
+const SERRE = new Set(["travauxAnt", "doeAnt"]);   // titres longs écrits un peu plus serrés pour tenir sur une ligne
 if (!etat.fiche.di || typeof etat.fiche.di !== "object") etat.fiche.di = {};
 if (!etat.fiche.diSrc || typeof etat.fiche.diSrc !== "object") etat.fiche.diSrc = {};   // tâche d'où vient chaque date reliée
 if (etat.fiche.di.madAnt) {   // ancienne date « MAD anticipée » : reprise dans la date MAD
@@ -1829,9 +1829,16 @@ function COML_APD() { return [
   { k: "dre", lib: "DRE", sorte: "calc", calc: (d, v) => plusTard(ajJours(ajMois(d.dlpi, -2), -15), v("recApd") && ajJours(ajMois(v("recApd"), 4), 15)),
     aide: "DLPI − 2,5 mois, mais au moins réception de l’APD + 4,5 mois" },
   { k: "dlr", lib: "DLR", sorte: "calc", calc: (d, v) => ajMois(v("dre"), 1), aide: "DRE + 1 mois" }]; }
+// tâche 6 (DOE précâblage non conforme et conforme : les mêmes champs)
+function COML_DOE_PRE() { return [
+  { k: "recDoe", lib: "Date de réception du DOE précâblage", sorte: "calc", brut: true, calc: d => d.t.t5, aide: "La date mise à côté de « Réception DOE précâblage » (grande tâche 6)" },
+  { k: "dre", lib: "DRE", sorte: "calc", calc: (d, v) => plusTard(ajJours(ajMois(d.dlpi, -2), -15), v("recDoe") && ajJours(v("recDoe"), 15)),
+    aide: "DLPI − 2,5 mois, mais au moins réception du DOE précâblage + 15 jours" },
+  { k: "dlr", lib: "DLR", sorte: "calc", calc: (d, v) => ajMois(v("dre"), 1), aide: "DRE + 1 mois" }]; }
 const COML_CHAMPS = {
   t1_5: [{ k: "dlpiM3", lib: "DLPI − 3 mois", sorte: "calc", calc: d => ajMois(d.dlpi, -3), aide: "Calculé depuis la DLPI" }],
   t2_1_1_1: COML_APD(), t2_1_2_1: COML_APD(),
+  t5_1_1_1: COML_DOE_PRE(), t5_1_2_1: COML_DOE_PRE(),
   t4_1_1: [{ k: "noteAnnul", sorte: "note", val: "On ne change pas la DRE/DLR." }],
   t4_2_4_1: [{ k: "noteTrav", sorte: "note", val: "On ne change pas la DRE/DLR." }],
   t4_2_2: [
