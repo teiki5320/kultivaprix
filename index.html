@@ -337,7 +337,9 @@ header.top.urg-vert { box-shadow: var(--clay-sm), inset 0 0 0 4px #3ddc76, 0 0 1
 .suivi-tuile:hover { background: #3a3a3a; }
 
 /* Infos utiles : rubriques en gras, sous-lignes à puce, champs à remplir */
-.iu { display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; }   /* un peu d'air entre les sous-parties */
+/* sous-parties plus aérées ; elles s'écartent pour descendre jusqu'au bas de la carte (au niveau des Dates importantes) */
+.iu { display: flex; flex-direction: column; gap: 30px; justify-content: space-between; flex: 1; }
+.c-utiles { display: flex; flex-direction: column; }
 .iu-rub { display: grid; grid-template-columns: minmax(0, 1fr); gap: 4px; }   /* les champs rétrécissent au lieu de déborder */
 .iu-tete { display: flex; align-items: center; gap: 6px; font-weight: 800; font-size: 14px; }
 .iu-tete::before { content: ""; width: 7px; height: 7px; border-radius: 50%; border: 1.5px solid var(--texte); flex: none; }
@@ -365,8 +367,8 @@ header.top.urg-vert { box-shadow: var(--clay-sm), inset 0 0 0 4px #3ddc76, 0 0 1
 .iu-cab { cursor: text; }
 /* sous-parties : IPON, PV, GCBLO, BANBOU */
 .iu-sec[hidden], .iu-ligne[hidden] { display: none; }
-.iu-sec-titre { margin: 0 0 10px; padding-left: 8px; border-left: 4px solid #f5a04b; font-size: 12px; font-weight: 800; letter-spacing: .4px; text-transform: uppercase; color: #f5c48f; line-height: 1.2; }
-.iu-corps { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; }
+.iu-sec-titre { margin: 0 0 12px; padding-left: 8px; border-left: 4px solid #f5a04b; font-size: 14.5px; font-weight: 800; letter-spacing: .4px; text-transform: uppercase; color: #f5c48f; line-height: 1.2; }
+.iu-corps { display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; }   /* entre les rubriques (PMZ, PA…) */
 .iu-corps.serre { gap: 6px; }
 /* titre au-dessus du champ (GCBLO, BANBOU) : le texte gris du champ se lit en entier */
 .iu-ligne.pile { flex-direction: column; align-items: stretch; gap: 3px; }
