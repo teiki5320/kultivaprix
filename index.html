@@ -281,16 +281,17 @@ header.top.urg-vert { box-shadow: var(--clay-sm), inset 0 0 0 4px #3ddc76, 0 0 1
 .lien-pop { z-index: 80; }
 
 /* ── Dates importantes : sous-parties de couleur, dates comme la DLPI ── */
-.dates-imp { display: flex; flex-direction: column; gap: 12px; }
+/* les grandes parties s'écartent pour que le bas de la carte arrive au niveau du bas des Infos utiles */
+.dates-imp { display: flex; flex-direction: column; gap: 12px; justify-content: space-between; flex: 1; }
+.c-dates { display: flex; flex-direction: column; }
 .dates-imp > .champ { display: none; }   /* la DLPI, le temps d'être rangée dans Générale */
 .di-grp { --di: var(--muted); }
 .di-grp[hidden] { display: none; }
 .di-titre { margin: 0 0 6px; font-size: 12px; font-weight: 800; letter-spacing: .4px; text-transform: uppercase; color: var(--di);
   padding-left: 8px; border-left: 4px solid var(--di); line-height: 1.2; }
-.di-sous { margin-left: 10px; margin-top: -4px; }
+.di-sous { margin-left: 10px; margin-top: 8px; }
 .di-sous .di-titre { font-size: 11px; text-transform: none; letter-spacing: 0; border-left-width: 3px; }
-.di-gcblo { margin-bottom: -6px; }
-.di-gcblo .di-titre { margin-bottom: 0; }
+.di-gcblo > .di-titre { margin-bottom: 0; }
 /* les dates les unes sous les autres : le titre à gauche, la case date à droite */
 .di-liste { display: grid; grid-template-columns: minmax(0, 1fr); gap: 5px; }
 .dates-imp .di-liste .champ { flex-direction: row; align-items: center; gap: 8px; }
@@ -311,7 +312,7 @@ header.top.urg-vert { box-shadow: var(--clay-sm), inset 0 0 0 4px #3ddc76, 0 0 1
 
 /* ── Bas de la colonne droite : Documents POI + Infos utiles (étroit) | Commentaires (large) ── */
 /* Dates importantes (étroite, à gauche) et Infos utiles à côté, qui commencent à la même hauteur */
-.haut-droite { display: grid; grid-template-columns: minmax(0, 1.63fr) minmax(0, 1fr);   /* Infos utiles réduite d'un tiers au profit des dates */ gap: 18px; align-items: start; }
+.haut-droite { display: grid; grid-template-columns: minmax(0, 1.63fr) minmax(0, 1fr);   /* Infos utiles réduite d'un tiers au profit des dates */ gap: 18px; align-items: stretch; }
 @media (max-width: 700px) { .haut-droite { grid-template-columns: 1fr; } }
 .bas-droite { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; align-items: start; }
 .cote { display: grid; gap: 18px; min-width: 0; }
@@ -1458,8 +1459,12 @@ const champDI = ([k, lib]) => `<div class="champ">` +
   `<input id="di_${k}" data-di="${k}"${AIDE_DI[k] ? ` aria-describedby="aide_${k}"` : ""} value="${isoVersFr(etat.fiche.di[k])}" placeholder="JJ/MM/AAAA" inputmode="numeric" maxlength="10" autocomplete="off">` +
   `<button class="cal" type="button" data-dical="${k}" aria-label="Choisir la date « ${esc(lib)} » dans le calendrier" title="Calendrier">${ICO_CAL}</button>` +
   `<input type="date" class="date-cachee" data-dipick="${k}" tabindex="-1" aria-hidden="true"></div></div>`;
-$("datesImp").insertAdjacentHTML("beforeend", GROUPES_DI.map(g => `<section class="di-grp di-${g.id}${g.sous ? " di-sous" : ""}" id="diGrp_${g.id}">` +
-  `<h3 class="di-titre">${esc(g.titre)}</h3>` + (g.dates.length ? `<div class="di-liste">${g.dates.map(champDI).join("")}</div>` : "") + `</section>`).join(""));
+// Souterrain et Aérien sont rangés dans la section GCBLO (l'espace entre grandes parties ne les sépare pas de leur titre)
+GROUPES_DI.forEach(g => {
+  const html = `<section class="di-grp di-${g.id}${g.sous ? " di-sous" : ""}" id="diGrp_${g.id}">` +
+    `<h3 class="di-titre">${esc(g.titre)}</h3>` + (g.dates.length ? `<div class="di-liste">${g.dates.map(champDI).join("")}</div>` : "") + `</section>`;
+  (g.sous ? $("datesImp").lastElementChild : $("datesImp")).insertAdjacentHTML("beforeend", html);
+});
 $("di_poi").closest(".champ").after($("f_dlpi").closest(".champ"));   // la DLPI en 2e, juste après Réception POI
 majTitres();
 $("datesImp").addEventListener("input", e => {
