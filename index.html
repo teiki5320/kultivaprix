@@ -298,6 +298,11 @@ header.top.urg-vert { box-shadow: var(--clay-sm), inset 0 0 0 4px #3ddc76, 0 0 1
 .dates-imp .di-liste .champ > label { flex: 1 1 auto; min-width: 0; line-height: 1.2; }
 .dates-imp .di-liste .champ > .date-champ { flex: 0 0 122px; }
 .dates-imp .di-liste .champ input:not(.date-cachee) { min-height: 28px; padding-block: 3px; font-size: 13px; }
+/* chaque grande partie dans un encadré de sa couleur, en plus clair (titre et dates compris) */
+.di-grp { background: color-mix(in srgb, var(--di) 13%, #fff); border: 1px solid color-mix(in srgb, var(--di) 28%, transparent); border-radius: var(--r-sm); padding: 8px 10px 10px; }
+.di-gcblo { background: color-mix(in srgb, var(--di) 7%, #fff); }
+.di-grp .di-liste .champ input:not(.date-cachee):not(.poi-close) { background: rgba(255, 255, 255, .85); }
+.di-sous { margin-left: 0; margin-top: 8px; padding: 6px 8px 8px; }
 .di-gen { --di: #b08a12; } .di-racco { --di: #4f8a3a; } .di-ant { --di: #b23a2e; }
 .di-gcblo { --di: var(--texte); } .di-sout { --di: #3b78b0; } .di-aer { --di: #7a3f86; } .di-pv { --di: #c46a1c; }
 .dates-imp .champ { justify-content: flex-end; position: relative; }   /* cases alignées même si un titre passe sur deux lignes */
