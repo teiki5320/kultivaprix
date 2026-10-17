@@ -112,7 +112,7 @@ header.top .sous { font-size: 13px; opacity: .85; }
 .doc-ligne button { border: 0; background: none; color: var(--muted); cursor: pointer; font-size: 14px; padding: 0 2px; visibility: hidden; }
 .doc-ligne:hover button { visibility: visible; }
 .liste-bulle .doc-ajout { width: 100%; border: 0; border-radius: 10px; background: var(--carte-2); box-shadow: var(--inset); padding: 6px 9px; font: inherit; font-size: 13px; outline: none; }
-.lien-pop { position: fixed; z-index: 60; width: min(360px, 90vw); background: var(--carte); border-radius: var(--r-md); box-shadow: var(--clay), 0 0 0 1px var(--ligne); padding: 10px 12px; display: grid; gap: 8px; }
+.lien-pop { position: fixed; width: min(360px, 90vw); background: var(--carte); border-radius: var(--r-md); box-shadow: var(--clay), 0 0 0 1px var(--ligne); padding: 10px 12px; display: grid; gap: 8px; }
 .lien-pop input { width: 100%; border: 0; border-radius: 10px; background: var(--carte-2); box-shadow: var(--inset); padding: 7px 10px; font: inherit; font-size: 13px; outline: none; }
 .lien-pop input:focus { box-shadow: var(--inset), 0 0 0 3px var(--accent-dim); }
 .lien-pop .actions { display: flex; gap: 6px; justify-content: flex-end; flex-wrap: wrap; }
@@ -247,6 +247,37 @@ header.top.urg-vert { box-shadow: var(--clay-sm), inset 0 0 0 4px #3ddc76, 0 0 1
 .feu .o.on { box-shadow: 0 0 10px rgba(242, 154, 46, .8); }
 .feu .v { background: radial-gradient(circle at 35% 35%, #c9f5d8 0 18%, #36c26a 50%); }
 .feu .v.on { box-shadow: 0 0 10px rgba(54, 194, 106, .8); }
+
+/* ── Fenêtre ComL : capture du logiciel (modèle commun à tous les dossiers) + champs calculés ── */
+.coml-fond { position: fixed; inset: 0; z-index: 70; background: rgba(40, 30, 20, .45); display: grid; place-items: center; padding: 16px; }
+.coml-fen { width: min(1240px, 100%); height: min(860px, 100%); background: var(--carte); border-radius: var(--r-lg); box-shadow: var(--clay), 0 20px 60px rgba(0,0,0,.3);
+  display: grid; grid-template-rows: auto minmax(0, 1fr); overflow: hidden; }
+.coml-tete { display: flex; align-items: center; gap: 8px; padding: 12px 16px; border-bottom: 1px solid var(--ligne); flex-wrap: wrap; }
+.coml-titre { flex: 1 1 260px; min-width: 0; }
+.coml-titre small { display: block; font-size: 11.5px; font-weight: 700; color: var(--muted); }
+.coml-titre b { font-size: 15px; }
+.coml-ferme { width: 30px; height: 30px; border: 0; border-radius: 50%; background: var(--carte-2); color: var(--texte); font-size: 16px; cursor: pointer; }
+.coml-corps { display: grid; grid-template-columns: minmax(0, 1fr) 340px; min-height: 0; }
+.coml-photo { position: relative; margin: 14px; border-radius: var(--r-md); background: var(--carte-2); box-shadow: var(--inset); display: grid; place-items: center; overflow: auto; min-height: 0; }
+.coml-photo.vide { border: 2px dashed rgba(74, 66, 56, .25); cursor: pointer; }
+.coml-photo.survol { box-shadow: var(--inset), 0 0 0 3px var(--accent-dim); }
+.coml-photo img { max-width: 100%; max-height: 100%; object-fit: contain; display: block; }
+.coml-vide { text-align: center; color: var(--muted); font-weight: 700; font-size: 13.5px; line-height: 1.5; padding: 20px; }
+.coml-vide b { display: block; font-size: 15px; color: var(--texte); }
+.coml-actions-photo { position: absolute; top: 8px; right: 8px; display: flex; gap: 6px; }
+.coml-champs { border-left: 1px solid var(--ligne); padding: 14px; overflow: auto; display: grid; align-content: start; gap: 10px; }
+.coml-champs .vide-msg { color: var(--muted); font-size: 13px; font-weight: 600; line-height: 1.45; }
+.coml-champ { display: grid; gap: 3px; }
+.coml-champ label { font-size: 12px; font-weight: 800; }
+.coml-rang { display: flex; gap: 5px; align-items: center; }
+.coml-rang input { flex: 1; min-width: 0; border: 0; border-radius: 8px; background: var(--carte-2); box-shadow: var(--inset); padding: 6px 9px; font: inherit; font-size: 13px; outline: none; }
+.coml-rang input:focus { box-shadow: var(--inset), 0 0 0 3px var(--accent-dim); }
+.coml-rang input.manuel { background: #f9e9b8; }   /* calcul remplacé à la main */
+.coml-rang button { flex: none; width: 28px; height: 28px; border: 0; border-radius: 8px; background: var(--carte-2); color: var(--texte); cursor: pointer; font-size: 13px; }
+.coml-rang button:hover { background: var(--corail); }
+.coml-aide { font-size: 11px; color: var(--muted); font-weight: 600; }
+@media (max-width: 820px) { .coml-corps { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(260px, 1fr) auto; } .coml-champs { border-left: 0; border-top: 1px solid var(--ligne); } }
+.lien-pop { z-index: 80; }
 
 /* ── Dates importantes : sous-parties de couleur, dates comme la DLPI ── */
 .dates-imp { display: flex; flex-direction: column; gap: 12px; }
@@ -1070,6 +1101,7 @@ $("arbre").addEventListener("click", e => {
   const ed = e.target.closest("[data-lienedit]");
   if (ed) { ouvrirLienPop(ed.dataset.lienedit, ed); return; }
   const b = e.target.closest("[data-lien]"); if (!b) return;
+  if (COML.includes(b.dataset.lien)) { ouvrirComl(b.dataset.lien); return; }
   const l = etat.liens[b.dataset.lien];
   if (l) window.open(l, "_blank", "noopener"); else ouvrirLienPop(b.dataset.lien, b);
 });
@@ -1262,16 +1294,16 @@ function sauverCaptures() {
   try { localStorage.setItem(CAPCLE, JSON.stringify(captures)); return true; } catch (e) { return false; }
 }
 // réduit l'image (1400 px max, JPEG) pour tenir dans la mémoire du navigateur
-function reduire(fichier) {
+function reduire(fichier, max = 1400, q = 0.72) {
   return new Promise((ok, ko) => {
     const lect = new FileReader();
     lect.onload = () => {
       const img = new Image();
       img.onload = () => {
-        const k = Math.min(1, 1400 / Math.max(img.width, img.height));
+        const k = Math.min(1, max / Math.max(img.width, img.height));
         const cv = document.createElement("canvas"); cv.width = Math.round(img.width * k); cv.height = Math.round(img.height * k);
         cv.getContext("2d").drawImage(img, 0, 0, cv.width, cv.height);
-        ok(cv.toDataURL("image/jpeg", 0.72));
+        ok(cv.toDataURL("image/jpeg", q));
       };
       img.onerror = ko; img.src = lect.result;
     };
@@ -1450,6 +1482,7 @@ $("datesImp").addEventListener("change", e => {
 
 /* ═══ Documents POI : grande tuile vers le dossier OneDrive ═══ */
 function majDocs() {
+  if (typeof majComlLien === "function") majComlLien();
   const l = etat.liens.docsPOI;
   $("docsEtat").textContent = l ? "Ouvrir le dossier OneDrive" : "Ajouter le lien OneDrive";
   $("docsEdit").hidden = !l;
@@ -1781,6 +1814,123 @@ let attenteEchelle;
 addEventListener("resize", () => { clearTimeout(attenteEchelle); attenteEchelle = setTimeout(ajusterEchelle, 100); });
 
 majUrgence(); majDocs(); rendu(); ajusterEchelle();
+
+/* ═══ ComL : le dossier orange ouvre une grande fenêtre ═══
+   à gauche la capture du logiciel (une par tâche, la même pour tous les dossiers, gardée à part dans IndexedDB),
+   à droite les champs de la tâche : calculés depuis les Dates importantes (modifiables à la main), à remplir ou fixes */
+const COML = ["t1_5", "t2_1_1_1", "t2_1_2_1", "t4_1_1", "t4_2_2", "t4_2_4_1", "t5_1_1_1", "t5_1_2_1", "t6_7_1"];
+// champs par tâche : { k, lib, sorte: "calc" | "date" | "texte" | "fixe", calc: d => iso, aide, val }
+// d = les Dates importantes du dossier (d.dlpi, d.poi, d.dre…) ; les outils : ajJours(iso, n), ajMois(iso, n), plusTard(a, b), plusTot(a, b)
+const COML_CHAMPS = {};
+const ajJours = (iso, n) => { if (!iso) return ""; const [a, m, j] = iso.split("-").map(Number); return versIso(new Date(a, m - 1, j + n)); };
+const ajMois = (iso, n) => { if (!iso) return ""; const [a, m, j] = iso.split("-").map(Number); const d = new Date(a, m - 1 + n, 1);
+  d.setDate(Math.min(j, new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate())); return versIso(d); };
+const plusTard = (a, b) => !a ? b || "" : !b ? a : a > b ? a : b;
+const plusTot = (a, b) => !a ? b || "" : !b ? a : a < b ? a : b;
+const datesComl = () => ({ ...(etat.fiche.di || {}), dlpi: etat.fiche.dlpi || "" });
+if (!etat.coml || typeof etat.coml !== "object") etat.coml = {};   // ce qui est tapé ou remplacé à la main, par dossier
+// les captures : base IndexedDB à part (elles sont grosses et ne dépendent pas du dossier)
+let comlBase = null;
+const comlDb = () => comlBase || (comlBase = new Promise((ok, ko) => {
+  const r = indexedDB.open("racco-d2-coml", 1);
+  r.onupgradeneeded = () => r.result.createObjectStore("photos");
+  r.onsuccess = () => ok(r.result); r.onerror = () => ko(r.error);
+}));
+const comlPhoto = async (id, val) => {
+  const db = await comlDb();
+  return new Promise((ok, ko) => {
+    const t = db.transaction("photos", val === undefined ? "readonly" : "readwrite"), st = t.objectStore("photos");
+    const r = val === undefined ? st.get(id) : val === null ? st.delete(id) : st.put(val, id);
+    r.onsuccess = () => ok(r.result); r.onerror = () => ko(r.error);
+  });
+};
+let comlOuvert = null;
+function ouvrirComl(id) {
+  fermerComl();
+  comlOuvert = id;
+  const n = NOEUDS[id], ch = [...anc(n)].reverse(), grande = ch[0];
+  const fond = document.createElement("div");
+  fond.className = "coml-fond"; fond.id = "comlFond";
+  fond.innerHTML = `<div class="coml-fen" role="dialog" aria-modal="true" aria-labelledby="comlTitre">
+    <div class="coml-tete"><div class="coml-titre" id="comlTitre"><small>${TACHES.indexOf(grande) + 1}. ${esc(grande.lib)}${ch.length > 1 ? " › " + ch.slice(1).map(x => esc(x.lib)).join(" › ") : ""}</small><b>${esc(n.lib)}</b></div>
+      <span id="comlLien"></span><button class="coml-ferme" type="button" data-coml="fermer" aria-label="Fermer" title="Fermer (Échap)">✕</button></div>
+    <div class="coml-corps"><div class="coml-photo" id="comlPhoto" tabindex="0"></div><div class="coml-champs" id="comlChamps"></div></div>
+    <input type="file" id="comlFichier" accept="image/*" hidden></div>`;
+  document.body.appendChild(fond);
+  majComlLien(); rendreComlChamps(); rendreComlPhoto();
+  $("comlPhoto").focus();
+}
+function fermerComl() { $("comlFond")?.remove(); comlOuvert = null; }
+function majComlLien() {
+  const z = $("comlLien"); if (!z || !comlOuvert) return;
+  const l = etat.liens[comlOuvert];
+  z.innerHTML = l ? `<button class="btn btn-mini" type="button" data-coml="modop">Ouvrir le Modop</button> <button class="btn btn-mini" type="button" data-coml="lien" title="Changer ou retirer le lien">✎</button>`
+    : `<button class="btn btn-mini" type="button" data-coml="lien">Ajouter le lien du Modop</button>`;
+}
+async function rendreComlPhoto() {
+  const z = $("comlPhoto"), id = comlOuvert; if (!z) return;
+  let src = null; try { src = await comlPhoto(id); } catch (e) {}
+  if (id !== comlOuvert) return;
+  z.classList.toggle("vide", !src);
+  z.innerHTML = src ? `<img src="${src}" alt="Capture du logiciel pour ${esc(NOEUDS[id].lib)}"><div class="coml-actions-photo"><button class="btn btn-mini" type="button" data-coml="choisir">Remplacer</button><button class="btn btn-mini" type="button" data-coml="retirer">Retirer</button></div>`
+    : `<div class="coml-vide"><b>Emplacement de la capture</b>Colle-la ici (⌘V), glisse-la dans ce cadre<br>ou clique pour la choisir.<br><small>La même capture servira pour tous les dossiers.</small></div>`;
+}
+async function poserComlPhoto(f) {
+  if (!f || !f.type.startsWith("image/") || !comlOuvert) return;
+  try { await comlPhoto(comlOuvert, await reduire(f, 2400, 0.9)); } catch (e) { alert("La capture n'a pas pu être enregistrée."); return; }
+  rendreComlPhoto();
+}
+function valComl(id, c) {
+  const m = (etat.coml[id] || {})[c.k];
+  if (c.sorte === "fixe") return { v: c.val || "", manuel: false };
+  if (m != null) return { v: m, manuel: c.sorte === "calc" };
+  return { v: c.sorte === "calc" ? isoVersFr(c.calc(datesComl()) || "") : "", manuel: false };
+}
+function rendreComlChamps() {
+  const z = $("comlChamps"), id = comlOuvert; if (!z) return;
+  const L = COML_CHAMPS[id] || [];
+  z.innerHTML = !L.length ? `<div class="vide-msg">Les champs de cette tâche arriveront ici.<br>Donne-moi leur liste et leurs formules : les dates se calculeront toutes seules depuis les Dates importantes.</div>`
+    : L.map(c => { const { v, manuel } = valComl(id, c), date = c.sorte === "calc" || c.sorte === "date";
+      return `<div class="coml-champ"><label for="coml_${c.k}">${esc(c.lib)}</label><div class="coml-rang">` +
+        `<input id="coml_${c.k}" data-comlk="${c.k}"${date ? ` data-comldate="1" placeholder="JJ/MM/AAAA" inputmode="numeric" maxlength="10"` : ""}${c.sorte === "fixe" ? " readonly" : ""} class="${manuel ? "manuel" : ""}" value="${esc(v)}" autocomplete="off">` +
+        (manuel ? `<button type="button" data-comlcalc="${c.k}" title="Revenir au calcul" aria-label="Revenir au calcul">↺</button>` : "") +
+        `<button type="button" data-comlcopie="${c.k}" title="Copier" aria-label="Copier ${esc(c.lib)}">⧉</button></div>` +
+        (c.aide ? `<div class="coml-aide">${esc(c.aide)}</div>` : "") + `</div>`; }).join("");
+}
+document.addEventListener("click", e => {
+  if (!comlOuvert) return;
+  if (e.target.id === "comlFond") { fermerComl(); return; }
+  const a = e.target.closest("[data-coml]")?.dataset.coml;
+  if (a === "fermer") return fermerComl();
+  if (a === "modop") return window.open(etat.liens[comlOuvert], "_blank", "noopener");
+  if (a === "lien") return ouvrirLienPop(comlOuvert, e.target.closest("[data-coml]"));
+  if (a === "choisir" || (!a && e.target.closest(".coml-photo.vide"))) return $("comlFichier").click();
+  if (a === "retirer") { if (confirm("Retirer cette capture ? Elle disparaîtra pour tous les dossiers.")) comlPhoto(comlOuvert, null).then(rendreComlPhoto); return; }
+  const r = e.target.closest("[data-comlcalc]");
+  if (r) { delete (etat.coml[comlOuvert] || {})[r.dataset.comlcalc]; sauver(); rendreComlChamps(); return; }
+  const cp = e.target.closest("[data-comlcopie]");
+  if (cp) { const v = $("coml_" + cp.dataset.comlcopie).value; navigator.clipboard?.writeText(v).then(() => { cp.textContent = "✓"; setTimeout(() => cp.textContent = "⧉", 1200); }); }
+});
+document.addEventListener("change", e => { if (e.target.id === "comlFichier") { poserComlPhoto(e.target.files[0]); e.target.value = ""; } });
+document.addEventListener("input", e => {
+  const k = e.target.dataset?.comlk; if (!k || !comlOuvert) return;
+  const c = (COML_CHAMPS[comlOuvert] || []).find(x => x.k === k); if (!c) return;
+  if (e.target.dataset.comldate) e.target.value = formaterDate(e.target.value);
+  const o = etat.coml[comlOuvert] = etat.coml[comlOuvert] || {};
+  if (e.target.value) o[k] = e.target.value; else delete o[k];
+  sauver();
+  if (c.sorte === "calc" && !e.target.classList.contains("manuel")) { rendreComlChamps(); const i = $("coml_" + k); i.focus(); i.setSelectionRange(i.value.length, i.value.length); }
+});
+document.addEventListener("paste", e => {
+  if (!comlOuvert || e.target.closest?.("[data-comlk]")) return;
+  const f = [...(e.clipboardData?.files || [])].find(x => x.type.startsWith("image/"));
+  if (f) { e.preventDefault(); poserComlPhoto(f); }
+});
+document.addEventListener("dragover", e => { const z = e.target.closest?.("#comlPhoto"); if (z) { e.preventDefault(); z.classList.add("survol"); } });
+document.addEventListener("dragleave", e => e.target.closest?.("#comlPhoto")?.classList.remove("survol"));
+document.addEventListener("drop", e => { const z = e.target.closest?.("#comlPhoto"); if (!z) return; e.preventDefault(); z.classList.remove("survol"); poserComlPhoto(e.dataTransfer.files[0]); });
+// Échap : ferme d'abord la bulle du lien si elle est ouverte, sinon la fenêtre
+document.addEventListener("keydown", e => { if (e.key === "Escape" && comlOuvert && !lienPop) fermerComl(); }, true);
 </script>
 </body>
 </html>
