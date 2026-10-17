@@ -339,7 +339,10 @@ header.top.urg-vert { box-shadow: var(--clay-sm), inset 0 0 0 4px #3ddc76, 0 0 1
 
 /* Infos utiles : rubriques en gras, sous-lignes à puce, champs à remplir */
 /* sous-parties plus aérées ; elles s'écartent pour descendre jusqu'au bas de la carte (au niveau des Dates importantes) */
-.iu { display: flex; flex-direction: column; gap: 30px; justify-content: space-between; flex: 1; }
+.iu { display: flex; flex-direction: column; flex: 1; }
+.iu-sec, .iu-it { display: contents; }
+.iu-sec[hidden], .iu-it[hidden] { display: none; }
+.iu-esp { display: block; flex: var(--e) 0 calc(var(--e) * 1px); }
 .c-utiles { display: flex; flex-direction: column; }
 .iu-rub { display: grid; grid-template-columns: minmax(0, 1fr); gap: 4px; }   /* les champs rétrécissent au lieu de déborder */
 .iu-tete { display: flex; align-items: center; gap: 6px; font-weight: 800; font-size: 14px; }
@@ -367,10 +370,8 @@ header.top.urg-vert { box-shadow: var(--clay-sm), inset 0 0 0 4px #3ddc76, 0 0 1
 .iu .tr { flex: 0 1 60px; width: 60px; }
 .iu-cab { cursor: text; }
 /* sous-parties : IPON, PV, GCBLO, BANBOU */
-.iu-sec[hidden], .iu-ligne[hidden] { display: none; }
-.iu-sec-titre { margin: 0 0 12px; padding-left: 8px; border-left: 4px solid #f5a04b; font-size: 14.5px; font-weight: 800; letter-spacing: .4px; text-transform: uppercase; color: #f5c48f; line-height: 1.2; }
-.iu-corps { display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; }   /* entre les rubriques (PMZ, PA…) */
-.iu-corps.serre { gap: 6px; }
+.iu-ligne[hidden] { display: none; }
+.iu-sec-titre { margin: 0; padding-left: 8px; border-left: 4px solid #f5a04b; font-size: 14.5px; font-weight: 800; letter-spacing: .4px; text-transform: uppercase; color: #f5c48f; line-height: 1.2; }
 /* titre au-dessus du champ (GCBLO, BANBOU) : le texte gris du champ se lit en entier */
 .iu-ligne.pile { flex-direction: column; align-items: stretch; gap: 3px; }
 .iu-rang { display: flex; align-items: center; gap: 5px; }
@@ -1580,21 +1581,25 @@ function rendreIU() {
       iuChamp(id + "_de", "bout", "", "Câble · départ", "départ") + `<span class="fixe">–</span>` + iuChamp(id + "_a", "bout", "", "Câble · arrivée", "arrivée") +
       `<span class="fixe">:</span>`) + iuChamp(id + "_tr", fige ? "plein" : "tr", "TR ", "Câble · TR") + iuSupAjout("cab:" + id, "ce câble") + `</div>`; }).join("") +
       `<button class="iu-retablir iu-ajout" type="button" data-iuplus="cab">+ Ajouter un câble</button>` : "") +
-    `</div>`; }).join("") +
-    (Object.keys(M).length ? `<button class="iu-retablir" type="button" id="iuRetablir">↺ Rétablir les lignes</button>` : "");
-  const ligne = (lab, champ, attrs = "") => `<div class="iu-ligne"${attrs}><span class="fixe">${esc(lab)}</span>${champ}</div>`;
-  const pile = (lab, champ, attrs = "") => `<div class="iu-ligne pile"${attrs}><span class="fixe">${esc(lab)}</span><div class="iu-rang">${champ}</div></div>`;
+    `</div>`; }).concat(Object.keys(M).length ? [`<button class="iu-retablir" type="button" id="iuRetablir">↺ Rétablir les lignes</button>`] : []);
+  const ligne = (lab, champ) => `<div class="iu-ligne"><span class="fixe">${esc(lab)}</span>${champ}</div>`;
+  const pile = (lab, champ) => `<div class="iu-ligne pile"><span class="fixe">${esc(lab)}</span><div class="iu-rang">${champ}</div></div>`;
   const dems = ["gcblo_1", ...etat.fiche.iuGcblo];
   const gcblo = `<div class="iu-dem">` + dems.map((k, i) => pile(`${ordinal(i + 1)} demande :`,
     iuChamp(k, "plein", "", `GCBLO ${ordinal(i + 1)} demande`, "N° de commande d’accès") +
     (i === dems.length - 1 ? `<button class="iu-plus" type="button" data-iuplus="gc" aria-label="Ajouter une demande GCBLO" title="Ajouter une demande">+</button>` : "") +
     (i ? iuSupAjout("gc:" + k, `la ${ordinal(i + 1)} demande`) : ""))).join("") + `</div>`;
-  const sec = (titre, corps, attrs = "", serre = false) => `<section class="iu-sec"${attrs}><h3 class="iu-sec-titre">${titre}</h3><div class="iu-corps${serre ? " serre" : ""}">${corps}</div></section>`;
-  $("infosUtiles").innerHTML = sec("IPON", ipon) +
-    sec("PV", ligne("SAVOIR :", iuChiffres("pv_savoir", "PV SAVOIR")) + ligne("La Roche :", iuChiffres("pv_roche", "PV La Roche"), ` id="iuLaRoche"`), ` id="iuSecPV"`, true) +
-    sec("GCBLO", gcblo, "", true) +
-    sec("BANBOU", pile("CMS :", iuChamp("banbou_cms", "plein", "", "BANBOU CMS", "Référence BANBOU"), ` id="iuCms"`) +
-      pile("Dessin TIGRE :", iuChamp("banbou_tigre", "plein", "", "BANBOU Dessin TIGRE", "Référence BANBOU")), "", true);
+  // espaces : titre de la carte → IPON, titre → 1re rubrique, entre rubriques, entre sous-parties ;
+  // ils grandissent tous dans la même proportion pour que le contenu descende jusqu'au bas de la carte
+  const ESP = { haut: 16, titre: 14, rub: 18, sec: 30 };
+  const esp = w => `<i class="iu-esp" style="--e:${w}" aria-hidden="true"></i>`;
+  const item = ([html, id], i) => `<div class="iu-it"${id ? ` id="${id}"` : ""}>${i ? esp(ESP.rub) : ""}${html}</div>`;
+  const sec = (titre, items, attrs = "", premier = false) => `<section class="iu-sec"${attrs}>${esp(premier ? ESP.haut : ESP.sec)}<h3 class="iu-sec-titre">${titre}</h3>${esp(ESP.titre)}${items.map(item).join("")}</section>`;
+  $("infosUtiles").innerHTML = sec("IPON", ipon.map(h => [h]), "", true) +
+    sec("PV", [[ligne("SAVOIR :", iuChiffres("pv_savoir", "PV SAVOIR"))], [ligne("La Roche :", iuChiffres("pv_roche", "PV La Roche")), "iuLaRoche"]], ` id="iuSecPV"`) +
+    sec("GCBLO", [[gcblo]]) +
+    sec("BANBOU", [[pile("CMS :", iuChamp("banbou_cms", "plein", "", "BANBOU CMS", "Référence BANBOU")), "iuCms"],
+      [pile("Dessin TIGRE :", iuChamp("banbou_tigre", "plein", "", "BANBOU Dessin TIGRE", "Référence BANBOU"))]]);
   iuVisibilite();
 }
 rendreIU();
