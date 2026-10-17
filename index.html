@@ -710,12 +710,21 @@ const TACHES = [
 
 const CLE = "racco-d2-v1";
 let etat = { coches: {}, barres: {}, dates: {}, liens: {}, memo: {}, fiche: {}, fermes: {}, listes: {}, faitLe: {}, sel: null };
-try { const s = JSON.parse(localStorage.getItem(CLE) || "null"); if (s && typeof s === "object") ["coches", "barres", "dates", "liens", "memo", "fiche", "fermes", "listes", "faitLe"].forEach(k => { if (s[k] && typeof s[k] === "object") etat[k] = s[k]; }), etat.sel = typeof s.sel === "string" ? s.sel : null; } catch (e) {}
+try { const s = JSON.parse(localStorage.getItem(CLE) || "null"); if (s && typeof s === "object") ["coches", "barres", "dates", "liens", "memo", "fiche", "fermes", "listes", "faitLe", "coml"].forEach(k => { if (s[k] && typeof s[k] === "object") etat[k] = s[k]; }), etat.sel = typeof s.sel === "string" ? s.sel : null; } catch (e) {}
 const sauver = () => { try { localStorage.setItem(CLE, JSON.stringify(etat)); } catch (e) {} };
 // remise à zéro complète des tests (10 octobre 2026) : tout ce qui a été saisi est effacé (tâches, dates, infos du dossier, IMB,
 // Infos utiles, commentaires, captures, liens OneDrive, urgence) ; seule la mise en page (tâches repliées) est gardée
 if (!etat.fiche.raz4) {
-  etat = { coches: {}, barres: {}, dates: {}, liens: {}, memo: {}, fiche: { raz4: true }, fermes: etat.fermes, listes: {}, faitLe: {}, sel: null };
+  etat = { coches: {}, barres: {}, dates: {}, liens: {}, memo: {}, fiche: { raz4: true, raz5: true }, fermes: etat.fermes, listes: {}, faitLe: {}, sel: null };
+  ["racco-d2-captures", "racco-d2-notes-captures", "racco-d2-notes-fichiers", "racco-d2-notes-images"].forEach(k => { try { localStorage.removeItem(k); } catch (e) {} });
+  sauver();
+}
+// nouvelle remise à zéro pour les tests (18 octobre 2026) : le dossier repart de zéro (tâches, dates, infos du dossier, Dates importantes,
+// Infos utiles, commentaires et leurs captures, saisies des fenêtres ComL) ; on garde les liens (Modop, OneDrive), la mise en page,
+// les documents des listes (décochés) et les captures des fenêtres ComL (rangées à part)
+if (!etat.fiche.raz5) {
+  const listes = Object.fromEntries(Object.entries(etat.listes || {}).map(([id, L]) => [id, (Array.isArray(L) ? L : []).map(d => ({ ...d, c: false }))]));
+  etat = { coches: {}, barres: {}, dates: {}, liens: etat.liens || {}, memo: {}, fiche: { raz4: true, raz5: true }, fermes: etat.fermes || {}, listes, faitLe: {}, sel: null, coml: {} };
   ["racco-d2-captures", "racco-d2-notes-captures", "racco-d2-notes-fichiers", "racco-d2-notes-images"].forEach(k => { try { localStorage.removeItem(k); } catch (e) {} });
   sauver();
 }
