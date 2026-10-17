@@ -275,6 +275,7 @@ header.top.urg-vert { box-shadow: var(--clay-sm), inset 0 0 0 4px #3ddc76, 0 0 1
 .coml-rang input.manuel { background: #f9e9b8; }   /* calcul remplacé à la main */
 .coml-rang button { flex: none; width: 28px; height: 28px; border: 0; border-radius: 8px; background: var(--carte-2); color: var(--texte); cursor: pointer; font-size: 13px; }
 .coml-rang button:hover { background: var(--corail); }
+.coml-note { padding: 10px 12px; border-radius: var(--r-sm); background: var(--sun); color: var(--sun-ink); font-weight: 800; font-size: 13.5px; line-height: 1.4; }
 .coml-aide { font-size: 11px; color: var(--muted); font-weight: 600; }
 @media (max-width: 820px) { .coml-corps { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(260px, 1fr) auto; } .coml-champs { border-left: 0; border-top: 1px solid var(--ligne); } }
 .lien-pop { z-index: 80; }
@@ -1819,7 +1820,7 @@ majUrgence(); majDocs(); rendu(); ajusterEchelle();
    à gauche la capture du logiciel (une par tâche, la même pour tous les dossiers, gardée à part dans IndexedDB),
    à droite les champs de la tâche : calculés depuis les Dates importantes (modifiables à la main), à remplir ou fixes */
 const COML = ["t1_5", "t2_1_1_1", "t2_1_2_1", "t4_1_1", "t4_2_2", "t4_2_4_1", "t5_1_1_1", "t5_1_2_1", "t6_7_1"];
-// champs par tâche : { k, lib, sorte: "calc" | "date" | "texte" | "fixe", calc: d => iso, aide, val }
+// champs par tâche : { k, lib, sorte: "calc" | "date" | "texte" | "fixe" | "note", calc: d => iso, aide, val } (note : simple consigne écrite)
 // d = les Dates importantes du dossier (d.dlpi, d.poi, d.dre…) et d.t les dates des tâches ; v("k") = la valeur d'un autre champ de la fenêtre ; les outils : ajJours(iso, n), ajMois(iso, n), plusTard(a, b), plusTot(a, b)
 // une date calculée ne tombe jamais un week-end ni un jour férié : elle passe au premier jour ouvré qui suit (horsFerie)
 // tâche 2 (APD non conforme et conforme : les mêmes champs)
@@ -1831,6 +1832,11 @@ function COML_APD() { return [
 const COML_CHAMPS = {
   t1_5: [{ k: "dlpiM3", lib: "DLPI − 3 mois", sorte: "calc", calc: d => ajMois(d.dlpi, -3), aide: "Calculé depuis la DLPI" }],
   t2_1_1_1: COML_APD(), t2_1_2_1: COML_APD(),
+  t4_1_1: [{ k: "noteAnnul", sorte: "note", val: "On ne change pas la DRE/DLR." }],
+  t4_2_2: [
+    { k: "recApd", lib: "Date de réception de l’APD", sorte: "calc", brut: true, calc: d => d.t.t2, aide: "La date mise à côté de « Réception APD » (grande tâche 2)" },
+    { k: "dre", lib: "DRE", sorte: "calc", calc: (d, v) => ajJours(v("recApd"), 14), aide: "Date de réception de l’APD + 14 jours" },
+    { k: "dlr", lib: "DLR", sorte: "calc", calc: (d, v) => ajMois(v("dre"), 1), aide: "DRE + 1 mois" }],
 };
 const ajJours = (iso, n) => { if (!iso) return ""; const [a, m, j] = iso.split("-").map(Number); return versIso(new Date(a, m - 1, j + n)); };
 const ajMois = (iso, n) => { if (!iso) return ""; const [a, m, j] = iso.split("-").map(Number); const d = new Date(a, m - 1 + n, 1);
@@ -1918,7 +1924,8 @@ function rendreComlChamps() {
   const z = $("comlChamps"), id = comlOuvert; if (!z) return;
   const L = COML_CHAMPS[id] || [];
   z.innerHTML = !L.length ? `<div class="vide-msg">Les champs de cette tâche arriveront ici.<br>Donne-moi leur liste et leurs formules : les dates se calculeront toutes seules depuis les Dates importantes.</div>`
-    : L.map(c => { const { v, manuel } = valComl(id, c), date = c.sorte === "calc" || c.sorte === "date";
+    : L.map(c => { if (c.sorte === "note") return `<div class="coml-note">${esc(c.val)}</div>`;
+      const { v, manuel } = valComl(id, c), date = c.sorte === "calc" || c.sorte === "date";
       return `<div class="coml-champ"><label for="coml_${c.k}">${esc(c.lib)}</label><div class="coml-rang">` +
         `<input id="coml_${c.k}" data-comlk="${c.k}"${date ? ` data-comldate="1" placeholder="JJ/MM/AAAA" inputmode="numeric" maxlength="10"` : ""}${c.sorte === "fixe" ? " readonly" : ""} class="${manuel ? "manuel" : ""}" value="${esc(v)}" autocomplete="off">` +
         (manuel ? `<button type="button" data-comlcalc="${c.k}" title="Revenir au calcul" aria-label="Revenir au calcul">↺</button>` : "") +
