@@ -790,6 +790,7 @@ const COCHE_PARENT = new Set(["t1_3", "t3_7"]);
 const engagee = id => [NOEUDS[id], ...desc(NOEUDS[id])].some(x => etat.coches[x.id]);
 function basculer(n, on) {
   if (verrouillee(n)) { rendu(); return; }
+  if (COML_DRE_DLR.includes(n.id)) reporterDreDlr(n.id, on);
   const avant = Object.fromEntries(Object.keys(BARRE_SI).map(id => [id, engagee(id)])), complexeAvant = !!etat.coches.t3_7_2;
   if (on) {
     etat.coches[n.id] = true;   // seule la tâche cochée : ses sous-tâches se cochent à la main
@@ -970,6 +971,7 @@ document.addEventListener("change", e => {
   const t = Date.now();
   if (dernierClic.id === id && t - dernierClic.t < 450) {
     etat.coches = dernierClic.coches; etat.barres = dernierClic.barres;
+    if (dernierClic.di) { etat.fiche.di = dernierClic.di; etat.fiche.dreDlrAvant = dernierClic.mem; rafraichirDatesImp(); }
     // la tâche et toutes ses sous-tâches sont barrées, ou débarrées, ensemble
     const barrer = !etat.barres[id];
     [NOEUDS[id], ...desc(NOEUDS[id])].forEach(x => { if (barrer) etat.barres[x.id] = true; else delete etat.barres[x.id]; });
@@ -977,7 +979,7 @@ document.addEventListener("change", e => {
     dernierClic = { id: null, t: 0 };
     sauver(); rendu(); return;
   }
-  dernierClic = { id, t, coches: { ...etat.coches }, barres: { ...etat.barres } };
+  dernierClic = { id, t, coches: { ...etat.coches }, barres: { ...etat.barres }, di: { ...etat.fiche.di }, mem: JSON.parse(JSON.stringify(etat.fiche.dreDlrAvant || {})) };
   basculer(NOEUDS[id], e.target.checked);
 });
 document.addEventListener("click", e => {
@@ -1914,6 +1916,29 @@ const comlPhoto = async (id, val) => {
     r.onsuccess = () => ok(r.result); r.onerror = () => ko(r.error);
   });
 };
+// ComL cochée : sa DRE et sa DLR (calculées, ou changées à la main dans la fenêtre) passent dans les Dates importantes
+// (pas la tâche 1 : la DRE/DLR de départ se met à la main ; ni les ComL « On ne change pas la DRE/DLR »)
+const COML_DRE_DLR = ["t2_1_1_1", "t2_1_2_1", "t4_2_2", "t5_1_1_1", "t5_1_2_1"];
+// ComL décochée : la DRE/DLR d'avant revient (si elle n'a pas changé depuis, par exemple par un autre ComL)
+function reporterDreDlr(id, on) {
+  const di = etat.fiche.di, mem = etat.fiche.dreDlrAvant = etat.fiche.dreDlrAvant || {};
+  if (on) {
+    const avant = { dre: di.dre || "", dlr: di.dlr || "" }, mis = {};
+    ["dre", "dlr"].forEach(k => {
+      const c = (COML_CHAMPS[id] || []).find(x => x.k === k), iso = c && frVersIso(valComl(id, c).v);
+      if (iso) di[k] = mis[k] = iso;
+    });
+    mem[id] = { avant, mis };
+  } else if (mem[id]) {
+    const { avant, mis } = mem[id];
+    Object.keys(mis).forEach(k => { if (di[k] === mis[k]) { if (avant[k]) di[k] = avant[k]; else delete di[k]; } });
+    delete mem[id];
+  }
+  sauver(); rafraichirDatesImp();
+}
+function rafraichirDatesImp() {
+  DATES_IMP.forEach(([k]) => { const c = $("di_" + k); if (c) { c.value = isoVersFr(etat.fiche.di[k]); c.classList.remove("invalide"); } });
+}
 let comlOuvert = null;
 function ouvrirComl(id) {
   fermerComl();
