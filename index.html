@@ -292,7 +292,7 @@ header.top.urg-vert { box-shadow: var(--clay-sm), inset 0 0 0 4px #3ddc76, 0 0 1
 .suivi-tuile:hover { background: #3a3a3a; }
 
 /* Infos utiles : rubriques en gras, sous-lignes à puce, champs à remplir */
-.iu { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; }   /* un peu d'air entre les rubriques */
+.iu { display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; }   /* un peu d'air entre les sous-parties */
 .iu-rub { display: grid; grid-template-columns: minmax(0, 1fr); gap: 4px; }   /* les champs rétrécissent au lieu de déborder */
 .iu-tete { display: flex; align-items: center; gap: 6px; font-weight: 800; font-size: 14px; }
 .iu-tete::before { content: ""; width: 7px; height: 7px; border-radius: 50%; border: 1.5px solid var(--texte); flex: none; }
@@ -307,7 +307,7 @@ header.top.urg-vert { box-shadow: var(--clay-sm), inset 0 0 0 4px #3ddc76, 0 0 1
 .iu-tete input { flex: 1; font-weight: 600; }
 .iu-sup { flex: none; margin-left: auto; width: 20px; height: 20px; border: 0; border-radius: 50%; padding: 0; background: var(--carte-2); color: var(--muted); cursor: pointer;
   font-size: 13px; line-height: 20px; visibility: hidden; }
-.iu-tete:hover > .iu-sup, .iu-ligne:hover > .iu-sup, .iu-sup:focus-visible { visibility: visible; }
+.iu-tete:hover > .iu-sup, .iu-ligne:hover > .iu-sup, .iu-ligne:hover .iu-rang > .iu-sup, .iu-sup:focus-visible { visibility: visible; }
 .iu-sup:hover { background: var(--ko); color: #fff; }
 .iu-retablir { justify-self: start; border: 0; background: none; padding: 2px 0; color: var(--muted); font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
 .iu-retablir:hover { color: var(--texte); text-decoration: underline; }
@@ -318,6 +318,16 @@ header.top.urg-vert { box-shadow: var(--clay-sm), inset 0 0 0 4px #3ddc76, 0 0 1
 .iu .bout { flex: 1 1 0; width: 0; padding: 4px 6px; }
 .iu .tr { flex: 0 1 60px; width: 60px; }
 .iu-cab { cursor: text; }
+/* sous-parties : IPON, PV, GCBLO, BANBOU */
+.iu-sec[hidden], .iu-ligne[hidden] { display: none; }
+.iu-sec-titre { margin: 0 0 10px; padding-left: 8px; border-left: 4px solid #f5a04b; font-size: 12px; font-weight: 800; letter-spacing: .4px; text-transform: uppercase; color: #f5c48f; line-height: 1.2; }
+.iu-corps { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; }
+.iu-corps.serre { gap: 6px; }
+/* titre au-dessus du champ (GCBLO, BANBOU) : le texte gris du champ se lit en entier */
+.iu-ligne.pile { flex-direction: column; align-items: stretch; gap: 3px; }
+.iu-rang { display: flex; align-items: center; gap: 5px; }
+.iu-rang .plein { flex: 1 1 auto; width: auto; }
+.iu-dem { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 6px 10px; }   /* les demandes GCBLO : en dessous ou à côté selon la place, la plus ancienne en haut */
 
 /* Commentaires : le commentaire, les captures et les fichiers de la tâche dont on a cliqué le texte */
 .card.commentaires { display: grid; gap: 10px; min-height: 460px; align-content: start; }
@@ -1381,6 +1391,7 @@ function majPoiEtat() {
   if (!aerien && cRacco.nextElementSibling !== cEl) { cRacco.after(cEl); cAdr.after(cAe); }
   // les sous-parties Aérien et Permission de voirie des Dates importantes n'apparaissent que si « Oui » est coché
   ["diGrp_aer", "diGrp_pv"].forEach(g => { if ($(g)) $(g).hidden = !aerien; });
+  if (typeof iuVisibilite === "function") iuVisibilite();   // Infos utiles : la sous-partie PV aussi
   placerAides();
   [["f_ant", "etatAnt", ant], ["f_racco", "etatRacco", racco]].forEach(([c, e, t]) => { $(c).classList.toggle("poi-close", !!t); $(e).textContent = t ? " · " + t : ""; });
   // anticipation non nécessaire : ses dates importantes passent aussi en grisé (sauf l'archivage, qui reçoit la date d'annulation)
@@ -1471,8 +1482,19 @@ if (!etat.fiche.iuMasques || typeof etat.fiche.iuMasques !== "object") etat.fich
 // PB et câbles ajoutés à la main : une liste d'identifiants par dossier, leurs valeurs vont dans etat.fiche.iu
 if (!Array.isArray(etat.fiche.iuPB)) etat.fiche.iuPB = [];
 if (!Array.isArray(etat.fiche.iuCables)) etat.fiche.iuCables = [];
+// demandes GCBLO ajoutées avec le « + » (la 1re demande est gcblo_1)
+if (!Array.isArray(etat.fiche.iuGcblo)) etat.fiche.iuGcblo = [];
+const ordinal = i => i === 1 ? "1ère" : i + "ème";
+// La Roche : la case n'apparaît que si l'adresse parle de La Roche(-sur-Yon) ou du code postal 85000
+const aLaRoche = () => /la[\s-]*roche|\b85000\b/.test((etat.fiche.adr || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase());
+const iuChiffres = (k, lib) => `<input class="plein chiffres" data-iu="${k}" value="${iuVal(k)}" inputmode="numeric" maxlength="10" placeholder="10 chiffres max" aria-label="${esc(lib)}" autocomplete="off">`;
+function iuVisibilite() {
+  const ae = typeof NOEUDS !== "undefined" && NOEUDS.t1_3_1 && valide(NOEUDS.t1_3_1);
+  if ($("iuSecPV")) $("iuSecPV").hidden = !ae;
+  if ($("iuLaRoche")) $("iuLaRoche").hidden = !aLaRoche();
+}
 const pbAjoute = id => ({ t: "PB", k: id, ajout: "pb:" + id, l: [{ pre: "PT", k: id + "_pt" }, { pre: "PF", k: id + "_pf" }, { pre: "CH/", k: id + "_ch", type: id + "_type" }] });
-const clesAjout = (sorte, id) => sorte === "pb" ? [id, id + "_pt", id + "_pf", id + "_ch", id + "_type"] : [id + "_de", id + "_a", id + "_tr"];
+const clesAjout = (sorte, id) => sorte === "gc" ? [id] : sorte === "pb" ? [id, id + "_pt", id + "_pf", id + "_ch", id + "_type"] : [id + "_de", id + "_a", id + "_tr"];
 const iuSup = (cle, lib) => `<button class="iu-sup" type="button" data-iusup="${cle}" aria-label="Retirer ${esc(lib)}" title="Retirer">×</button>`;
 const iuSupAjout = (cle, lib) => `<button class="iu-sup" type="button" data-iuajout="${cle}" aria-label="Supprimer ${esc(lib)}" title="Supprimer">×</button>`;
 const cabEdition = new Set();   // câbles ajoutés dont on modifie le départ ou l'arrivée
@@ -1482,7 +1504,7 @@ function rendreIU() {
   const rubs = IU.flatMap(r => r.t === "PB" ? [r, ...etat.fiche.iuPB.map(pbAjoute)] : [r]).filter(r => !(r.ajout ? false : M["r:" + r.t]));
   const pbs = rubs.filter(r => r.t === "PB");
   const nom = r => r.t === "PB" && pbs.length > 1 ? "PB" + (pbs.indexOf(r) + 1) : r.t;
-  $("infosUtiles").innerHTML = rubs.map(r => { const n = nom(r); return `<div class="iu-rub"><div class="iu-tete"><span class="fixe">${esc(n)} :</span>${r.k ? iuChamp(r.k, "plein", "", `${n} · ${r.aide || "ID Référentiel PT"}`, r.aide || "ID Référentiel PT") : ""}` +
+  const ipon = rubs.map(r => { const n = nom(r); return `<div class="iu-rub"><div class="iu-tete"><span class="fixe">${esc(n)} :</span>${r.k ? iuChamp(r.k, "plein", "", `${n} · ${r.aide || "ID Référentiel PT"}`, r.aide || "ID Référentiel PT") : ""}` +
     (r.t === "PB" && r === pbs[pbs.length - 1] ? `<button class="iu-plus" type="button" data-iuplus="pb" aria-label="Ajouter un PB" title="Ajouter un PB">+</button>` : "") +
     (r.ajout ? iuSupAjout(r.ajout, n) : iuSup("r:" + r.t, n)) + `</div>` +
     r.l.filter(x => !M[x.k]).map(x => `<div class="iu-ligne">` +
@@ -1500,9 +1522,26 @@ function rendreIU() {
       `<button class="iu-retablir iu-ajout" type="button" data-iuplus="cab">+ Ajouter un câble</button>` : "") +
     `</div>`; }).join("") +
     (Object.keys(M).length ? `<button class="iu-retablir" type="button" id="iuRetablir">↺ Rétablir les lignes</button>` : "");
+  const ligne = (lab, champ, attrs = "") => `<div class="iu-ligne"${attrs}><span class="fixe">${esc(lab)}</span>${champ}</div>`;
+  const pile = (lab, champ) => `<div class="iu-ligne pile"><span class="fixe">${esc(lab)}</span><div class="iu-rang">${champ}</div></div>`;
+  const dems = ["gcblo_1", ...etat.fiche.iuGcblo];
+  const gcblo = `<div class="iu-dem">` + dems.map((k, i) => pile(`${ordinal(i + 1)} demande :`,
+    iuChamp(k, "plein", "", `GCBLO ${ordinal(i + 1)} demande`, "N° de commande d’accès") +
+    (i === dems.length - 1 ? `<button class="iu-plus" type="button" data-iuplus="gc" aria-label="Ajouter une demande GCBLO" title="Ajouter une demande">+</button>` : "") +
+    (i ? iuSupAjout("gc:" + k, `la ${ordinal(i + 1)} demande`) : ""))).join("") + `</div>`;
+  const sec = (titre, corps, attrs = "", serre = false) => `<section class="iu-sec"${attrs}><h3 class="iu-sec-titre">${titre}</h3><div class="iu-corps${serre ? " serre" : ""}">${corps}</div></section>`;
+  $("infosUtiles").innerHTML = sec("IPON", ipon) +
+    sec("PV", ligne("SAVOIR :", iuChiffres("pv_savoir", "PV SAVOIR")) + ligne("La Roche :", iuChiffres("pv_roche", "PV La Roche"), ` id="iuLaRoche"`), ` id="iuSecPV"`, true) +
+    sec("GCBLO", gcblo, "", true) +
+    sec("BANBOU", pile("CMS :", iuChamp("banbou_cms", "plein", "", "BANBOU CMS", "Référence BANBOU")) +
+      pile("Dessin TIGRE :", iuChamp("banbou_tigre", "plein", "", "BANBOU Dessin TIGRE", "Référence BANBOU")), "", true);
+  iuVisibilite();
 }
 rendreIU();
-$("infosUtiles").addEventListener("input", e => { const k = e.target.dataset.iu; if (!k) return; etat.fiche.iu[k] = e.target.value; sauver(); });
+$("infosUtiles").addEventListener("input", e => { const k = e.target.dataset.iu; if (!k) return;
+  if (e.target.classList.contains("chiffres")) e.target.value = e.target.value.replace(/\D/g, "").slice(0, 10);   // N° PV : chiffres seulement
+  etat.fiche.iu[k] = e.target.value; sauver(); });
+$("f_adr").addEventListener("input", iuVisibilite);
 // en quittant le départ ou l'arrivée d'un câble ajouté (sauf pour passer de l'un à l'autre), la ligne repasse en écriture simple
 $("infosUtiles").addEventListener("focusout", e => {
   if (!e.target.classList.contains("bout")) return;
@@ -1521,8 +1560,8 @@ $("infosUtiles").addEventListener("click", e => {
   const plus = e.target.closest("[data-iuplus]");
   if (plus) {
     const sorte = plus.dataset.iuplus, id = sorte + "x" + Date.now().toString(36);
-    (sorte === "pb" ? etat.fiche.iuPB : etat.fiche.iuCables).push(id); sauver(); rendreIU();
-    document.querySelector(`[data-iu="${sorte === "pb" ? id : id + "_de"}"]`)?.focus();
+    (sorte === "pb" ? etat.fiche.iuPB : sorte === "gc" ? etat.fiche.iuGcblo : etat.fiche.iuCables).push(id); sauver(); rendreIU();
+    document.querySelector(`[data-iu="${sorte === "cab" ? id + "_de" : id}"]`)?.focus();
     return;
   }
   const cab = e.target.closest("[data-iucab]");
@@ -1532,9 +1571,11 @@ $("infosUtiles").addEventListener("click", e => {
   if (aj) {
     const [sorte, id] = aj.dataset.iuajout.split(":"), cles = clesAjout(sorte, id);
     const rempli = cles.some(k => { const v = (etat.fiche.iu[k] || "").trim(); return v && !["PT", "PF", "CH/", "TR"].includes(v); });
-    if (rempli && !confirm(sorte === "pb" ? "Supprimer ce PB et ce qui y est écrit ?" : "Supprimer ce câble et ce qui y est écrit ?")) return;
+    if (rempli && !confirm(sorte === "pb" ? "Supprimer ce PB et ce qui y est écrit ?" : sorte === "gc" ? "Supprimer cette demande et son numéro ?" : "Supprimer ce câble et ce qui y est écrit ?")) return;
     cles.forEach(k => { delete etat.fiche.iu[k]; delete etat.fiche.iuMasques[k]; });
-    if (sorte === "pb") etat.fiche.iuPB = etat.fiche.iuPB.filter(x => x !== id); else etat.fiche.iuCables = etat.fiche.iuCables.filter(x => x !== id);
+    if (sorte === "pb") etat.fiche.iuPB = etat.fiche.iuPB.filter(x => x !== id);
+    else if (sorte === "gc") etat.fiche.iuGcblo = etat.fiche.iuGcblo.filter(x => x !== id);
+    else etat.fiche.iuCables = etat.fiche.iuCables.filter(x => x !== id);
     sauver(); rendreIU(); return;
   }
   // rétablir ne fait que réafficher : les valeurs déjà écrites ne sont pas touchées
