@@ -81,6 +81,7 @@ header.top .sous { font-size: 13px; opacity: .85; }
 .date-mini input:not(.date-cachee) { width: 128px; border: 0; border-radius: 9px; background: var(--carte); box-shadow: var(--inset); padding: 4px 30px 4px 8px;
   font: inherit; font-size: 12.5px; font-weight: 600; font-variant-numeric: tabular-nums; outline: none; min-height: 28px; }
 .date-mini input:focus { box-shadow: var(--inset), 0 0 0 3px var(--accent-dim); }
+.ligne.barre > .date-mini input:not(.date-cachee), .ligne.barre .date-mini input:not(.date-cachee) { background: #cfcfcf; color: #6b6b6b; }   /* tâche barrée : sa date grisée */
 .date-mini input.invalide { box-shadow: var(--inset), 0 0 0 2px var(--ko); }
 .date-mini .cal { width: 22px; height: 22px; right: 3px; }
 .modop { position: relative; display: flex; align-items: center; }
@@ -1437,14 +1438,18 @@ function majPoiEtat() {
   const cRacco = $("f_racco").closest(".champ"), cAdr = $("f_adr").closest(".champ"), cEl = $("elZone"), cAe = $("champAerien");
   if (aerien && cRacco.nextElementSibling !== cAe) { cRacco.after(cAe); cAdr.after(cEl); }
   if (!aerien && cRacco.nextElementSibling !== cEl) { cRacco.after(cEl); cAdr.after(cAe); }
-  // sans « Oui » à l'aérien, les cases des sous-parties Aérien et Permission de voirie des Dates importantes passent en grisé
-  ["diGrp_aer", "diGrp_pv"].forEach(g => $(g)?.querySelectorAll("input[data-di]").forEach(c => c.classList.toggle("poi-close", !aerien)));
+  // Dates importantes grisées : sans « Oui » à l'aérien (Aérien, Permission de voirie), sans anticipation (sauf l'archivage, qui reçoit la date d'annulation),
+  // ou quand toutes les tâches d'où vient la date sont barrées
+  const sansAnt = engagee("t4_1"), aerienGrp = new Set(["diGrp_aer", "diGrp_pv"].flatMap(g => [...($(g)?.querySelectorAll("input[data-di]") || [])].map(c => c.dataset.di)));
+  DATES_IMP.forEach(([k]) => {
+    const srcs = Object.keys(LIENS_DI).filter(t => LIENS_DI[t] === k && NOEUDS[t]);
+    const gris = (aerienGrp.has(k) && !aerien) || (sansAnt && ["travauxAnt", "doeAnt", "paiementAnt"].includes(k)) || (srcs.length > 0 && srcs.every(t => estBarre(NOEUDS[t])));
+    $("di_" + k)?.classList.toggle("poi-close", gris);
+  });
   if (typeof iuVisibilite === "function") iuVisibilite();   // Infos utiles : la sous-partie PV aussi
   placerAides();
   [["f_ant", "etatAnt", ant], ["f_racco", "etatRacco", racco]].forEach(([c, e, t]) => { $(c).classList.toggle("poi-close", !!t); $(e).textContent = t ? " · " + t : ""; });
-  // anticipation non nécessaire : ses dates importantes passent aussi en grisé (sauf l'archivage, qui reçoit la date d'annulation)
-  const sansAnt = engagee("t4_1");
-  ["di_travauxAnt", "di_doeAnt", "di_paiementAnt"].forEach(c => $(c)?.classList.toggle("poi-close", sansAnt));
+
 }
 // la précision d'une date de la colonne de droite s'ouvre vers la gauche pour ne pas sortir de la carte
 function placerAides() {
