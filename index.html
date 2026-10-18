@@ -3,25 +3,20 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Racco D2</title>
+<title>Suivi des dossiers</title>
 <style>
 [hidden] { display: none !important; }
-/* Mise en page : écran coupé en deux — questionnaire à gauche, fiche + situation + calculette à droite. Thème « Clay » clair du dashboard. */
+/* même thème « Clay » clair que les pages des types de dossier */
 :root {
-  --fond: #efe3d6; --side: #cfe2d8; --side-text: #3f5a4c;
-  --carte: #fffaf4; --carte-2: #f3e7db; --corail: #f4c6b5;
+  --fond: #efe3d6; --carte: #fffaf4; --carte-2: #f3e7db;
   --texte: #4a4238; --muted: #6d6259; --ligne: rgba(74, 66, 56, .1);
-  --peach: #f6d5c9; --sun: #f9e9b8; --sky: #cfdcef; --mint: #d8e9dc;
-  --peach-ink: #b5563a; --sun-ink: #8a6410;  --sky-ink: #395884; --mint-ink: #2f6b4a;
-  --accent: #e8907a; --accent-fort: #f0a48f; --accent-ink: #33190f; --accent-dim: rgba(232, 144, 122, .28);
-  --led-vert: #36c26a; --led-rouge: #e2493a; --ok: #3d7f55; --ok-tint: #d9ead9; --ko: #c1523f; --ko-tint: #f6d5c9;
-  --run: #96660f; --run-tint: #f9e9b8; --none: #7d7670; --none-tint: #ebe4dc;
+  --accent: #e8907a; --accent-ink: #33190f; --accent-dim: rgba(232, 144, 122, .28);
+  --rouge: #d62d20; --trouve: #fbe7a1;
   --clay: inset 2px 2px 5px rgba(255,255,255,.9), inset -3px -3px 8px rgba(120,90,60,.14), 0 10px 22px rgba(120,90,60,.16);
   --clay-sm: inset 1px 1px 3px rgba(255,255,255,.95), inset -2px -2px 5px rgba(120,90,60,.14), 0 5px 12px rgba(120,90,60,.16);
   --inset: inset 2px 2px 6px rgba(120,90,60,.12), inset -1px -1px 3px rgba(255,255,255,.6);
   --pouss: 0 5px 0 rgba(120,90,60,.22); --pouss-bas: 0 2px 0 rgba(120,90,60,.22);
   --font: -apple-system, ui-rounded, "SF Pro Rounded", "Segoe UI", system-ui, sans-serif;
-  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   --bounce: cubic-bezier(.34, 1.56, .64, 1);
   --r-sm: 12px; --r-md: 16px; --r-lg: 22px; --r-xl: 30px;
   color-scheme: light;
@@ -29,2024 +24,338 @@
 *, *::before, *::after { box-sizing: border-box; }
 body { margin: 0; background: var(--fond); color: var(--texte); font-family: var(--font); font-size: 15px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
 button, input { font-family: inherit; font-size: inherit; color: inherit; }
-
 .page { max-width: 1500px; margin: 0 auto; padding: 18px 16px 32px; display: flex; flex-direction: column; gap: 18px; }
 
 header.top { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
-  background: #2b2b2b; color: #f5f5f5; border-radius: var(--r-xl); padding: 14px 22px; box-shadow: var(--clay-sm); }   /* barre du titre anthracite : le feu et le liseré ressortent */
+  background: #2b2b2b; color: #f5f5f5; border-radius: var(--r-xl); padding: 14px 22px; box-shadow: var(--clay-sm); }
 header.top h1 { margin: 0; font-size: 22px; font-weight: 800; letter-spacing: .02em; }
-header.top .sous { font-size: 13px; opacity: .85; }
-.actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; position: relative; }
 
-.btn { border: 0; border-radius: var(--r-md); padding: 10px 16px; font-weight: 800; font-size: 13.5px; cursor: pointer;
-  background: var(--carte-2); box-shadow: var(--clay-sm); transition: transform .18s var(--bounce); }
+.btn { border: 0; border-radius: var(--r-md); padding: 9px 15px; font-weight: 800; font-size: 13.5px; cursor: pointer;
+  background: var(--carte-2); color: var(--texte); box-shadow: var(--clay-sm); transition: transform .18s var(--bounce); }
 .btn:hover { transform: translateY(-1px); }
 .btn:active { transform: scale(.97); }
 .btn-accent { background: var(--accent); color: var(--accent-ink); box-shadow: var(--pouss); }
 .btn-accent:active { transform: translateY(3px); box-shadow: var(--pouss-bas); }
-.btn:focus-visible, .chev:focus-visible, .etape:focus-visible { outline: none; box-shadow: var(--clay-sm), 0 0 0 3px var(--accent-dim); }
+.btn:focus-visible { outline: none; box-shadow: var(--clay-sm), 0 0 0 3px var(--accent-dim); }
+.btn-mini { padding: 6px 11px; font-size: 12.5px; }
+header .btn { background: #3d3d3d; color: #f2f2f2; box-shadow: none; }
+header .btn-accent { background: var(--accent); color: var(--accent-ink); }
 
-.split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px; align-items: start; }
-@media (max-width: 900px) { .split { grid-template-columns: 1fr; } }
-.col { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+/* menu « Nouveau projet » : les 5 types de dossier */
+.menu { position: absolute; top: calc(100% + 8px); left: 0; z-index: 30; min-width: 260px; background: var(--carte); color: var(--texte); border-radius: var(--r-md);
+  box-shadow: var(--clay), 0 0 0 1px var(--ligne); padding: 6px; display: grid; gap: 2px; }
+.menu button { border: 0; background: none; text-align: left; padding: 8px 10px; border-radius: 10px; font-weight: 700; font-size: 14px; cursor: pointer; display: flex; justify-content: space-between; gap: 10px; }
+.menu button:hover:not(:disabled) { background: var(--carte-2); }
+.menu button:disabled { cursor: default; color: var(--muted); opacity: .7; }
+.menu small { font-weight: 600; font-size: 11.5px; color: var(--muted); }
 
 .card { background: var(--carte); border-radius: var(--r-lg); box-shadow: var(--clay); padding: 18px 20px; min-width: 0; }
-.card h2 { margin: 0 0 14px; font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.card h2 { margin: 0; font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+.tete { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+.tete .droite { margin-left: auto; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 
-/* ── Questionnaire ── */
-.gt { border-radius: var(--r-md); background: var(--carte-2); box-shadow: var(--inset); padding: 4px 8px 6px; }
-.gt + .gt { margin-top: 10px; }
-.gt.actif { box-shadow: var(--inset), 0 0 0 2px var(--accent); }
-.gt.fini { background: #d9efdc; box-shadow: var(--inset), 0 0 0 2px #6fb985; }   /* très grande tâche cochée : tout le bloc au vert */
-.gt.verrou .ligne.d1 { opacity: .5; }
-.cb:disabled { cursor: not-allowed; }
-.cb:disabled + .lib { cursor: default; }
-.ligne { display: flex; align-items: center; gap: 10px; padding: 7px 4px; border-radius: 10px; min-height: 40px; }
-.ligne.d1 { font-weight: 800; font-size: 16px; }
-/* une graisse et une taille par niveau : très grande, grande, moyenne, sous-tâche */
-.ligne.d2 { padding-left: 38px; font-weight: 700; font-size: 15px; }
-.ligne.d3 { padding-left: 70px; font-weight: 600; font-size: 14px; }
-.ligne.d4 { padding-left: 102px; font-weight: 400; font-size: 13px; min-height: 34px; }
-.ligne.d4 .lib { color: var(--muted); }
-.ligne.d5 { padding-left: 134px; font-weight: 400; font-size: 13px; min-height: 34px; }
-.ligne.d6 { padding-left: 166px; font-weight: 400; font-size: 13px; min-height: 34px; }
-.ligne.d5 .lib, .ligne.d6 .lib { color: var(--muted); }
-.ligne .lib { flex: 0 1 auto; min-width: 0; cursor: default; }
-.ligne.d1 .lib { cursor: pointer; text-decoration: underline; text-decoration-thickness: 1.5px; text-underline-offset: 4px; }
-.ligne.d1 .num { display: inline-block; }   /* le numéro n'est pas souligné */
-.ligne .led { margin-left: auto; }
-/* outils d'une tâche : date (calendrier) et lien vers le Modop OneDrive */
-.outils { display: flex; align-items: center; gap: 6px; flex: none; margin-right: auto; }   /* juste après le texte de la tâche */
-.date-mini { position: relative; }
-.date-mini input:not(.date-cachee) { width: 128px; border: 0; border-radius: 9px; background: var(--carte); box-shadow: var(--inset); padding: 4px 30px 4px 8px;
-  font: inherit; font-size: 12.5px; font-weight: 600; font-variant-numeric: tabular-nums; outline: none; min-height: 28px; }
-.date-mini input:focus { box-shadow: var(--inset), 0 0 0 3px var(--accent-dim); }
-.ligne.barre > .date-mini input:not(.date-cachee), .ligne.barre .date-mini input:not(.date-cachee) { background: #cfcfcf; color: #6b6b6b; }   /* tâche barrée : sa date grisée */
-.date-mini input.invalide { box-shadow: var(--inset), 0 0 0 2px var(--ko); }
-.date-mini .cal { width: 22px; height: 22px; right: 3px; }
-.modop { position: relative; display: flex; align-items: center; }
-.modop-btn { width: 28px; height: 28px; border: 0; border-radius: 9px; padding: 0; cursor: pointer; display: grid; place-items: center;
-  background: var(--carte); color: var(--muted); box-shadow: var(--clay-sm); }
-.modop-btn svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-.modop-btn, .modop-btn.vide, .modop-btn.plein { background: #f5a04b; color: #4a2508; border: 1.5px solid #c46a1c; box-shadow: var(--clay-sm); }
-.modop-btn:hover { background: #f7ae63; }
-.modop-btn.rose { background: #f59ac0; color: #5a1532; border-color: #d0578b; }
-.modop-btn.rose:hover { background: #f8b2d0; }
-.lib-petit { font-size: .8em; font-weight: 500; color: var(--muted); }
-.lien-edit { position: absolute; top: -8px; right: -8px; width: 18px; height: 18px; border: 0; border-radius: 50%; padding: 0; cursor: pointer; font-size: 10px; line-height: 18px;
-  background: var(--carte); color: var(--texte); box-shadow: var(--clay-sm); display: none; }
-.modop:hover .lien-edit { display: block; }
-/* liste de documents à cocher : icône + bulle comme celle du Nombre d'EL */
-.liste { position: relative; display: flex; align-items: center; }
-.liste-btn { height: 28px; min-width: 28px; border: 1.5px solid #5d8a5d; border-radius: 9px; padding: 0 6px; cursor: pointer; display: flex; align-items: center; gap: 4px;
-  background: #d7ead7; color: #24452a; box-shadow: var(--clay-sm); font: inherit; font-size: 11px; font-weight: 800; }
-.liste-btn:hover { background: #e3f1e3; }
-.liste-btn svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-.liste-bulle { left: 0; right: auto; width: min(320px, 80vw); font-weight: 400; font-size: 13px; }
-.liste-docs { display: grid; gap: 2px; max-height: 260px; overflow-y: auto; }
-.doc-ligne { display: flex; align-items: center; gap: 8px; padding: 4px 6px; border-radius: 8px; cursor: pointer; }
-.doc-ligne:hover { background: var(--carte-2); }
-.bulle .doc-ligne input { width: 16px; height: 16px; min-height: 0; padding: 0; border: 0; box-shadow: none; background: none; appearance: auto; -webkit-appearance: checkbox;
-  accent-color: var(--ok); flex: none; cursor: pointer; }
-.doc-ligne span { flex: 1; min-width: 0; }
-.doc-ligne input:checked + span { color: var(--muted); }
-.doc-ligne button { border: 0; background: none; color: var(--muted); cursor: pointer; font-size: 14px; padding: 0 2px; visibility: hidden; }
-.doc-ligne:hover button { visibility: visible; }
-.liste-bulle .doc-ajout { width: 100%; border: 0; border-radius: 10px; background: var(--carte-2); box-shadow: var(--inset); padding: 6px 9px; font: inherit; font-size: 13px; outline: none; }
-.lien-pop { position: fixed; width: min(360px, 90vw); background: var(--carte); border-radius: var(--r-md); box-shadow: var(--clay), 0 0 0 1px var(--ligne); padding: 10px 12px; display: grid; gap: 8px; }
-.lien-pop input { width: 100%; border: 0; border-radius: 10px; background: var(--carte-2); box-shadow: var(--inset); padding: 7px 10px; font: inherit; font-size: 13px; outline: none; }
-.lien-pop input:focus { box-shadow: var(--inset), 0 0 0 3px var(--accent-dim); }
-.lien-pop .actions { display: flex; gap: 6px; justify-content: flex-end; flex-wrap: wrap; }
-.lien-pop .ko { color: var(--ko); font-size: 12px; font-weight: 700; }
-.ligne.valide .lib { color: var(--ok); }
-.ligne.barre .lib { text-decoration: line-through; text-decoration-thickness: 2px; color: var(--muted); opacity: .75; }
-.ligne .lib { -webkit-user-select: none; user-select: none; }
-.num { font-family: var(--mono); font-size: 13px; color: var(--muted); margin-right: 4px; }
-.chev { border: 0; background: var(--carte); box-shadow: var(--clay-sm); width: 30px; height: 30px; border-radius: 10px; cursor: pointer; flex: none;
-  display: grid; place-items: center; transition: transform .2s var(--bounce); font-size: 12px; }
-.gt.ferme .chev { transform: rotate(-90deg); }
-.chev.vide { background: none; box-shadow: none; cursor: default; }
-.gt.ferme .enfants { display: none; }
-.enfants { border-left: 2px dashed var(--ligne); margin-left: 18px; }
-.cb { appearance: none; -webkit-appearance: none; width: 24px; height: 24px; flex: none; margin: 0; border-radius: 8px; cursor: pointer;
-  background: var(--carte); box-shadow: var(--inset); display: grid; place-items: center; transition: background .2s; }
-.cb::after { content: ""; width: 7px; height: 12px; border: solid var(--carte); border-width: 0 3px 3px 0; transform: rotate(45deg) translate(-1px, -1px); opacity: 0; }
-.cb:checked { background: var(--ok); box-shadow: var(--clay-sm); }
-.cb:checked::after { opacity: 1; }
-.cb.auto:checked { background: var(--mint-ink); }
-.cb:focus-visible { outline: none; box-shadow: var(--inset), 0 0 0 3px var(--accent-dim); }
-.tag { font-size: 11px; font-weight: 800; padding: 2px 9px; border-radius: 99px; white-space: nowrap; }
-.tag.ok { background: var(--ok-tint); color: var(--ok); }
-.tag.run { background: var(--run-tint); color: var(--run); }
-.tag.ko { background: var(--ko-tint); color: var(--ko); }
-.tag.none { background: var(--none-tint); color: var(--none); }
-.led { width: 12px; height: 12px; border-radius: 50%; flex: none; margin-right: 6px; }
-.led.on { background: radial-gradient(circle at 35% 35%, #c9f5d8 0 18%, var(--led-vert) 45%); box-shadow: 0 0 0 2px rgba(54,194,106,.18), 0 0 8px rgba(54,194,106,.75); }
-.led.off { background: radial-gradient(circle at 35% 35%, #ffd2cb 0 18%, var(--led-rouge) 45%); box-shadow: 0 0 0 2px rgba(226,73,58,.16), 0 0 8px rgba(226,73,58,.6); }
-.ou { font-size: 11px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: .1em; padding: 0 0 0 38px; }
+/* recherche */
+.recherche { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.recherche-champ { flex: 1; position: relative; }
+.recherche-champ svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); stroke: var(--muted); fill: none; stroke-width: 2; }
+.recherche input { width: 100%; border: 0; border-radius: var(--r-md); background: var(--carte-2); box-shadow: var(--inset); padding: 10px 12px 10px 38px; outline: none; }
+.recherche input:focus { box-shadow: var(--inset), 0 0 0 3px var(--accent-dim); }
+.recherche-res { font-size: 13px; font-weight: 700; color: var(--muted); white-space: nowrap; }
 
-/* ── Fiche dossier ── */
-.card.dossier { padding: 14px 16px; }
-.card.dossier h2 { margin-bottom: 10px; }
-.fiche { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 10px; }
-.champ { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.champ.large { grid-column: 1 / -1; }
-.champ label { font-size: 11.5px; font-weight: 800; color: var(--muted); }
-.champ input { width: 100%; border: 0; border-radius: 10px; background: var(--carte-2); box-shadow: var(--inset); padding: 6px 10px; font-size: 14px; outline: none; min-height: 32px; }
-.champ input:focus { box-shadow: var(--inset), 0 0 0 3px var(--accent-dim); }
-.champ input[type="date"] { -webkit-appearance: none; appearance: none; min-width: 0; display: block; text-align: left; }
-.champ input[type="date"]::-webkit-date-and-time-value { text-align: left; }
-/* N° de POI annulée ou archivée : case grisée (numéro non barré) et mention à côté du titre */
-.champ input.poi-close { background: #cfcfcf; color: #6b6b6b; }
-.champ[hidden] { display: none; }
-.poi-etat { color: #d62d20; font-weight: 800; }   /* « annulée » / « archivée » en rouge */
-.fiche > .champ:not(.large) { justify-content: flex-end; }   /* cases alignées même si un titre passe sur deux lignes */
-.champ input::placeholder { color: var(--muted); opacity: .7; }
-/* DLPI : saisie JJ/MM/AAAA + calendrier natif caché derrière l'icône */
-.date-champ, .el-champ { position: relative; }
-.date-champ input:not(.date-cachee) { padding-right: 34px; font-variant-numeric: tabular-nums; }
-.date-champ input.invalide { box-shadow: var(--inset), 0 0 0 2px var(--ko); }
-.cal, .note-btn { position: absolute; top: 50%; right: 5px; transform: translateY(-50%); width: 24px; height: 24px; border: 0; border-radius: 8px; padding: 0; cursor: pointer;
-  display: grid; place-items: center; background: var(--carte); color: var(--muted); box-shadow: var(--clay-sm); }
-.cal svg, .note-btn svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-.cal:hover, .note-btn:hover { color: var(--texte); }
-.date-cachee { position: absolute; right: 0; bottom: 0; width: 1px; height: 1px; opacity: 0; pointer-events: none; border: 0; padding: 0; }
-/* Nombre d'EL : bulle de commentaires et de captures */
-.el-champ input { padding-right: 34px; }
-.note-btn.plein { background: var(--accent); color: var(--accent-ink); }
-.el-zone { position: relative; }
-.bulle { position: absolute; z-index: 30; top: 100%; right: 0; margin-top: 6px; width: min(340px, 86vw); background: var(--carte); border-radius: var(--r-md);
-  box-shadow: var(--clay), 0 0 0 1px var(--ligne); padding: 10px 12px; display: grid; gap: 8px; }
-.bulle.survol { box-shadow: var(--clay), 0 0 0 2px var(--accent-dim); }
-.bulle.epinglee { box-shadow: var(--clay), 0 0 0 2px var(--accent); }   /* épinglée par un clic : reste ouverte */
-.bulle-titre { font-size: 11.5px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
-.bulle textarea { width: 100%; resize: vertical; border: 0; border-radius: 10px; background: var(--carte-2); box-shadow: var(--inset); padding: 7px 10px; font: inherit; font-size: 13.5px; outline: none; min-height: 64px; }
-.bulle textarea:focus { box-shadow: var(--inset), 0 0 0 3px var(--accent-dim); }
-.captures { display: flex; flex-wrap: wrap; gap: 6px; }
-.captures:empty { display: none; }
-.capture { position: relative; width: 72px; height: 54px; border-radius: 8px; overflow: hidden; box-shadow: var(--clay-sm); cursor: zoom-in; background: var(--carte-2); }
-.capture img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.capture button { position: absolute; top: 2px; right: 2px; width: 18px; height: 18px; border: 0; border-radius: 50%; padding: 0; cursor: pointer; font-size: 12px; line-height: 18px;
-  background: rgba(51, 25, 15, .7); color: #fff; }
-.bulle-bas { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.bulle-aide { font-size: 11.5px; color: var(--muted); }
-.bulle.depot { box-shadow: var(--clay), 0 0 0 3px var(--accent); }
-.visionneuse { position: fixed; inset: 0; z-index: 100; background: rgba(40, 30, 20, .75); display: grid; place-items: center; padding: 24px; cursor: zoom-out; }
-.visionneuse img { max-width: 100%; max-height: 100%; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,.4); }
-/* Regroupement syndic : référence + IMB en nombre libre, défilement horizontal */
-/* Regroupement syndic : la case juste à droite du titre */
-.champ.ref-ligne { flex-direction: row; align-items: center; gap: 10px; }
-.champ.ref-ligne label { flex: none; }
-.champ.ref-ligne input { width: min(220px, 55%); }
-.regroup-tete { display: flex; align-items: center; gap: 10px; margin-bottom: 2px; }
-.regroup-tete label { flex: none; }
-.regroup-tete .import { flex: none; }   /* juste à côté du titre IMB */
-.regroup { position: relative; }
-.import-msg { font-size: 12px; font-weight: 700; color: var(--ok); margin: 2px 0 4px; }
-.import-msg.ko { color: var(--ko); }
-.imb-item.info input { box-shadow: var(--inset), inset 0 -2px 0 var(--accent-dim); }
-.imb-item.actif input { box-shadow: var(--inset), 0 0 0 2px var(--accent-dim); }
-.imb-bulle { right: auto; width: min(320px, 86vw); }
-.mini-lab { font-size: 11px; font-weight: 800; color: var(--muted); margin-bottom: -4px; }
-.el-trois { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
-.el-trois > div { display: grid; gap: 6px; }
-.bulle input { width: 100%; border: 0; border-radius: 10px; background: var(--carte-2); box-shadow: var(--inset); padding: 6px 9px; font: inherit; font-size: 13.5px; outline: none; min-height: 30px; }
-.bulle input:focus { box-shadow: var(--inset), 0 0 0 3px var(--accent-dim); }
-.imb-liste { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; scroll-snap-type: x proximity; }
-.imb-item { position: relative; flex: 0 0 calc((100% - 24px - 32px) / 4); min-width: 118px; scroll-snap-align: start; }
-.imb-liste::-webkit-scrollbar { height: 6px; }
-.imb-liste::-webkit-scrollbar-thumb { background: var(--ligne); border-radius: 3px; }
-.imb-item input { font-family: var(--mono); font-size: 13px; }
-.imb-item .suppr { position: absolute; top: 50%; right: 4px; transform: translateY(-50%); width: 20px; height: 20px; border: 0; border-radius: 50%; padding: 0; cursor: pointer;
-  background: var(--none-tint); color: var(--muted); font-size: 13px; line-height: 20px; }
-.imb-plus { flex: 0 0 32px; height: 32px; align-self: center; border: 0; border-radius: 10px; cursor: pointer; font-size: 18px; font-weight: 800; color: var(--accent-ink); background: var(--accent); box-shadow: var(--clay-sm); }
-.imb-plus:active { transform: scale(.95); }
+/* tableau des projets : une ligne par projet ; Type et N° POI sur deux lignes (Racco D2 / Anticipation) */
+.tableau { overflow-x: auto; border-radius: var(--r-md); background: var(--carte-2); box-shadow: var(--inset); }
+table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+th { text-align: left; font-size: 11.5px; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); padding: 10px 10px; white-space: nowrap;
+  cursor: pointer; user-select: none; border-bottom: 1px solid var(--ligne); background: #efe2d4; position: sticky; top: 0; }
+th:hover { color: var(--texte); }
+th .fl { display: inline-block; width: 12px; color: var(--accent); }
+td { padding: 9px 10px; border-bottom: 1px solid var(--ligne); vertical-align: middle; }
+tbody tr { cursor: pointer; background: var(--carte); transition: background .12s; }
+tbody tr:hover { background: #fff3e6; }
+tbody tr.trouve { background: var(--trouve); box-shadow: inset 4px 0 0 #e0a800; }
+.sous { display: block; line-height: 1.35; white-space: nowrap; }
+.sous + .sous { border-top: 1px dashed rgba(74, 66, 56, .18); margin-top: 4px; padding-top: 4px; }
+.statut { color: var(--rouge); font-weight: 800; font-size: 12px; }
+.feu { width: 14px; height: 14px; border-radius: 50%; display: inline-block; vertical-align: middle; box-shadow: inset 0 0 0 1px rgba(0,0,0,.12); }
+.feu.rouge { background: #e2493a; } .feu.orange { background: #f29a2e; } .feu.vert { background: #36c26a; } .feu.aucun { background: #ddd3c8; }
+.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.note { max-width: 260px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.vide { padding: 26px 16px; text-align: center; color: var(--muted); font-weight: 700; }
+.vide b { display: block; color: var(--texte); font-size: 15px; margin-bottom: 4px; }
 
-.btn-mini { padding: 5px 10px; font-size: 12px; text-transform: none; letter-spacing: 0; color: var(--texte); }
-
-/* ── Une teinte par carte : orange, blanc, noir, gris (les champs prennent la teinte de leur carte) ── */
-.c-taches { --carte: #ffffff; --carte-2: #f0efed; }
-.c-dossier { --carte: #fde2c8; --carte-2: #fff4ea; --muted: #8a5a33; }
-.c-dates { --carte: #dcdcdc; --carte-2: #f3f3f3; --muted: #5a5a5a; }
-.c-utiles { --carte: #262626; --carte-2: #3b3b3b; --texte: #f2f2f2; --muted: #b8b8b8; color: var(--texte); }
-.c-comm { --carte: #fff7f0; --carte-2: #f1ebe5; }
-
-/* ── Notion d'urgence : feu tricolore dans la barre du titre ── */
-header.top { transition: box-shadow .2s; }
-header.top.urg-rouge { box-shadow: var(--clay-sm), inset 0 0 0 4px #ff4d3d, 0 0 14px rgba(255, 77, 61, .45); }
-header.top.urg-orange { box-shadow: var(--clay-sm), inset 0 0 0 4px #ff9f2e, 0 0 14px rgba(255, 159, 46, .45); }
-header.top.urg-vert { box-shadow: var(--clay-sm), inset 0 0 0 4px #3ddc76, 0 0 14px rgba(61, 220, 118, .45); }
-.urgence { display: flex; align-items: center; gap: 8px; margin-left: auto; }
-.urgence .urg-lib { font-size: 12.5px; font-weight: 800; min-width: 0; }
-.feu { display: flex; gap: 6px; padding: 5px 8px; border-radius: 999px; background: rgba(255, 255, 255, .08); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .12); }
-.feu button { width: 20px; height: 20px; border-radius: 50%; border: 0; padding: 0; cursor: pointer; opacity: .35; transition: opacity .15s, transform .15s var(--bounce); }
-.feu button:hover { opacity: .6; }
-.feu button.on { opacity: 1; transform: scale(1.12); }
-.feu .r { background: radial-gradient(circle at 35% 35%, #ffd2cb 0 18%, #e2493a 50%); }
-.feu .r.on { box-shadow: 0 0 10px rgba(226, 73, 58, .8); }
-.feu .o { background: radial-gradient(circle at 35% 35%, #ffe2bd 0 18%, #f29a2e 50%); }
-.feu .o.on { box-shadow: 0 0 10px rgba(242, 154, 46, .8); }
-.feu .v { background: radial-gradient(circle at 35% 35%, #c9f5d8 0 18%, #36c26a 50%); }
-.feu .v.on { box-shadow: 0 0 10px rgba(54, 194, 106, .8); }
-
-/* ── Fenêtre ComL : capture du logiciel (modèle commun à tous les dossiers) + champs calculés ── */
-.coml-fond { position: fixed; inset: 0; z-index: 70; background: rgba(40, 30, 20, .45); display: grid; place-items: center; padding: 16px; }
-.coml-fen { width: min(1240px, 100%); height: min(860px, 100%); background: var(--carte); border-radius: var(--r-lg); box-shadow: var(--clay), 0 20px 60px rgba(0,0,0,.3);
-  display: grid; grid-template-rows: auto minmax(0, 1fr); overflow: hidden; }
-.coml-tete { display: flex; align-items: center; gap: 8px; padding: 12px 16px; border-bottom: 1px solid var(--ligne); flex-wrap: wrap; }
-.coml-titre { flex: 1 1 260px; min-width: 0; }
-.coml-titre small { display: block; font-size: 11.5px; font-weight: 700; color: var(--muted); }
-.coml-titre b { font-size: 15px; }
-.coml-ferme { width: 30px; height: 30px; border: 0; border-radius: 50%; background: var(--carte-2); color: var(--texte); font-size: 16px; cursor: pointer; }
-.coml-corps { display: grid; grid-template-columns: minmax(0, 1fr) 340px; min-height: 0; }
-.coml-photo { position: relative; margin: 14px; border-radius: var(--r-md); background: var(--carte-2); box-shadow: var(--inset); display: grid; place-items: center; overflow: auto; min-height: 0; }
-.coml-photo.vide { border: 2px dashed rgba(74, 66, 56, .25); cursor: pointer; }
-.coml-photo.survol { box-shadow: var(--inset), 0 0 0 3px var(--accent-dim); }
-.coml-photo img { max-width: 100%; max-height: 100%; object-fit: contain; display: block; }
-.coml-vide { text-align: center; color: var(--muted); font-weight: 700; font-size: 13.5px; line-height: 1.5; padding: 20px; }
-.coml-vide b { display: block; font-size: 15px; color: var(--texte); }
-.coml-actions-photo { position: absolute; top: 8px; right: 8px; display: flex; gap: 6px; }
-.coml-champs { border-left: 1px solid var(--ligne); padding: 14px; overflow: auto; display: grid; align-content: start; gap: 10px; }
-.coml-champs .vide-msg { color: var(--muted); font-size: 13px; font-weight: 600; line-height: 1.45; }
-.coml-champ { display: grid; gap: 3px; }
-.coml-champ label { font-size: 12px; font-weight: 800; }
-.coml-rang { display: flex; gap: 5px; align-items: center; }
-.coml-rang input { flex: 1; min-width: 0; border: 0; border-radius: 8px; background: var(--carte-2); box-shadow: var(--inset); padding: 6px 9px; font: inherit; font-size: 13px; outline: none; }
-.coml-rang input:focus { box-shadow: var(--inset), 0 0 0 3px var(--accent-dim); }
-.coml-rang input.manuel { background: #f9e9b8; }   /* calcul remplacé à la main */
-.coml-rang button { flex: none; width: 28px; height: 28px; border: 0; border-radius: 8px; background: var(--carte-2); color: var(--texte); cursor: pointer; font-size: 13px; }
-.coml-rang button:hover { background: var(--corail); }
-.coml-note { padding: 10px 12px; border-radius: var(--r-sm); background: var(--sun); color: var(--sun-ink); font-weight: 800; font-size: 13.5px; line-height: 1.4; }
-.coml-aide { font-size: 11px; color: var(--muted); font-weight: 600; }
-@media (max-width: 820px) { .coml-corps { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(260px, 1fr) auto; } .coml-champs { border-left: 0; border-top: 1px solid var(--ligne); } }
-.lien-pop { z-index: 80; }
-
-/* ── Dates importantes : sous-parties de couleur, dates comme la DLPI ── */
-/* les grandes parties s'écartent pour que le bas de la carte arrive au niveau du bas des Infos utiles */
-.dates-imp { display: flex; flex-direction: column; gap: 12px; justify-content: space-between; flex: 1; }
-.c-dates { display: flex; flex-direction: column; }
-.dates-imp > .champ { display: none; }   /* la DLPI, le temps d'être rangée dans Générale */
-.di-grp { --di: var(--muted); }
-.di-grp[hidden] { display: none; }
-.di-titre { margin: 0 0 6px; font-size: 12px; font-weight: 800; letter-spacing: .4px; text-transform: uppercase; color: var(--di);
-  padding-left: 8px; border-left: 4px solid var(--di); line-height: 1.2; }
-.di-sous { margin-left: 10px; margin-top: 8px; }
-.di-sous .di-titre { font-size: 11px; text-transform: none; letter-spacing: 0; border-left-width: 3px; }
-.di-gcblo > .di-titre { margin-bottom: 0; }
-/* les dates les unes sous les autres : le titre à gauche, la case date à droite */
-.di-liste { display: grid; grid-template-columns: minmax(0, 1fr); gap: 5px; }
-.dates-imp .di-liste .champ { flex-direction: row; align-items: center; gap: 8px; }
-.dates-imp .di-liste .champ > label { flex: 1 1 auto; min-width: 0; line-height: 1.2; }
-.dates-imp .di-liste .champ > .date-champ { flex: 0 0 122px; }
-.dates-imp .di-liste .champ input:not(.date-cachee) { min-height: 28px; padding-block: 3px; font-size: 13px; }
-/* chaque grande partie dans un encadré de sa couleur, en plus clair (titre et dates compris) */
-.di-grp { background: color-mix(in srgb, var(--di) 13%, #fff); border: 1px solid color-mix(in srgb, var(--di) 28%, transparent); border-radius: var(--r-sm); padding: 8px 10px 10px; }
-.di-gcblo { background: color-mix(in srgb, var(--di) 7%, #fff); }
-.di-grp .di-liste .champ input:not(.date-cachee):not(.poi-close) { background: rgba(255, 255, 255, .85); }
-.di-sous { margin-left: 0; margin-top: 8px; padding: 6px 8px 8px; }
-.di-gen { --di: #b08a12; } .di-racco { --di: #4f8a3a; } .di-ant { --di: #b23a2e; }
-.di-gcblo { --di: var(--texte); } .di-sout { --di: #3b78b0; } .di-aer { --di: #7a3f86; } .di-pv { --di: #c46a1c; }
-.dates-imp .champ { justify-content: flex-end; position: relative; }   /* cases alignées même si un titre passe sur deux lignes */
-/* astérisque à côté du titre : la précision s'ouvre au survol de l'astérisque ou du titre */
-.dates-imp .avec-aide { cursor: help; align-self: flex-start; }
-.dates-imp label.serre { font-size: 10.5px; letter-spacing: -.2px; white-space: nowrap; }   /* les titres longs tiennent sur une ligne */
-.dates-imp .ast { color: #c46a1c; font-size: 13px; font-weight: 800; margin-left: 2px; }
-.di-aide { display: none; position: absolute; z-index: 25; left: 0; bottom: calc(100% + 4px); width: max-content; max-width: 230px; padding: 7px 10px; border-radius: 10px;
-  background: #2b2b2b; color: #f2f2f2; font-size: 12px; font-weight: 600; line-height: 1.35; box-shadow: var(--clay); pointer-events: none; }
-.dates-imp .avec-aide:hover + .di-aide { display: block; }
-.dates-imp .champ.a-droite .di-aide { left: auto; right: 0; }
-
-/* ── Bas de la colonne droite : Documents POI + Infos utiles (étroit) | Commentaires (large) ── */
-/* Dates importantes (étroite, à gauche) et Infos utiles à côté, qui commencent à la même hauteur */
-.haut-droite { display: grid; grid-template-columns: minmax(0, 1.63fr) minmax(0, 1fr);   /* Infos utiles réduite d'un tiers au profit des dates */ gap: 18px; align-items: stretch; }
-@media (max-width: 700px) { .haut-droite { grid-template-columns: 1fr; } }
-.bas-droite { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; align-items: start; }
-.cote { display: grid; gap: 18px; min-width: 0; }
-
-/* Documents POI : grande tuile lien OneDrive */
-.docs { position: relative; }
-.docs-tuile { width: 100%; min-height: 70px; border: 1.5px solid #c46a1c; border-radius: var(--r-lg); background: #f5a04b; color: #4a2508; cursor: pointer;
-  display: flex; align-items: center; gap: 14px; padding: 10px 16px; font: inherit; font-size: 16px; font-weight: 800; box-shadow: var(--clay); text-align: left; }
-.docs-tuile:hover { background: #f7ae63; }
-.docs-tuile svg { flex: none; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-.docs-tuile small { display: block; font-size: 11.5px; font-weight: 700; opacity: .8; }
-.docs .lien-edit { top: -6px; right: -6px; width: 24px; height: 24px; font-size: 12px; line-height: 24px; }
-.docs:hover .lien-edit { display: block; }
-.notes-tuile { background: #f6e7a8; border-color: #c9a93a; color: #4a3b08; }
-.notes-tuile:hover { background: #f9eebf; }
-.suivi-tuile { background: #2b2b2b; border-color: #000; color: #f2f2f2; }
-.suivi-tuile:hover { background: #3a3a3a; }
-
-/* Infos utiles : rubriques en gras, sous-lignes à puce, champs à remplir */
-/* sous-parties plus aérées ; elles s'écartent pour descendre jusqu'au bas de la carte (au niveau des Dates importantes) */
-.iu { display: flex; flex-direction: column; flex: 1; }
-.iu-sec, .iu-it { display: contents; }
-.iu-sec[hidden], .iu-it[hidden] { display: none; }
-.iu-esp { display: block; flex: var(--e) 0 calc(var(--e) * 1px); }
-.c-utiles { display: flex; flex-direction: column; }
-.iu-rub { display: grid; grid-template-columns: minmax(0, 1fr); gap: 4px; }   /* les champs rétrécissent au lieu de déborder */
-.iu-tete { display: flex; align-items: center; gap: 6px; font-weight: 800; font-size: 14px; }
-.iu-tete::before { content: ""; width: 7px; height: 7px; border-radius: 50%; border: 1.5px solid var(--texte); flex: none; }
-.iu-ligne { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; padding-left: 18px; font-size: 13px; position: relative; }
-.iu-ligne::before { content: ""; position: absolute; left: 6px; top: 12px; width: 5px; height: 5px; border-radius: 50%; background: var(--texte); }
-.iu input { border: 0; border-radius: 8px; background: var(--carte-2); box-shadow: var(--inset); padding: 4px 8px; font: inherit; font-size: 13px; outline: none; min-height: 26px; min-width: 0; }
-.iu input:focus { box-shadow: var(--inset), 0 0 0 3px var(--accent-dim); }
-.iu .plein { flex: 1 1 90px; width: 90px; }
-.iu .court { flex: 0 1 64px; width: 64px; }
-.iu-ligne { flex-wrap: nowrap; }
-.iu .fixe { white-space: nowrap; }
-.iu-tete input { flex: 1; font-weight: 600; }
-.iu-sup { flex: none; margin-left: auto; width: 20px; height: 20px; border: 0; border-radius: 50%; padding: 0; background: var(--carte-2); color: var(--muted); cursor: pointer;
-  font-size: 13px; line-height: 20px; visibility: hidden; }
-.iu-tete:hover > .iu-sup, .iu-ligne:hover > .iu-sup, .iu-ligne:hover .iu-rang > .iu-sup, .iu-sup:focus-visible { visibility: visible; }
-.iu-sup:hover { background: var(--ko); color: #fff; }
-.iu-retablir { justify-self: start; border: 0; background: none; padding: 2px 0; color: var(--muted); font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
-.iu-retablir:hover { color: var(--texte); text-decoration: underline; }
-.iu-plus { flex: none; width: 22px; height: 22px; border: 0; border-radius: 50%; padding: 0; background: #f5a04b; color: #4a2508; cursor: pointer; font-size: 15px; font-weight: 800; line-height: 22px; }
-.iu-plus:hover { background: #f7ae63; }
-.iu-plus + .iu-sup { margin-left: 0; }
-.iu-ajout { padding-left: 18px; }
-.iu .bout { flex: 1 1 0; width: 0; padding: 4px 6px; }
-.iu .tr { flex: 0 1 60px; width: 60px; }
-.iu-cab { cursor: text; }
-/* sous-parties : IPON, PV, GCBLO, BANBOU */
-.iu-ligne[hidden] { display: none; }
-.iu-sec-titre { margin: 0; padding-left: 8px; border-left: 4px solid #f5a04b; font-size: 14.5px; font-weight: 800; letter-spacing: .4px; text-transform: uppercase; color: #f5c48f; line-height: 1.2; }
-/* titre au-dessus du champ (GCBLO, BANBOU) : le texte gris du champ se lit en entier */
-.iu-ligne.pile { flex-direction: column; align-items: stretch; gap: 3px; }
-.iu-rang { display: flex; align-items: center; gap: 5px; }
-.iu-rang .plein { flex: 1 1 auto; width: auto; }
-.iu-dem { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 6px 10px; }   /* les demandes GCBLO : en dessous ou à côté selon la place, la plus ancienne en haut */
-
-/* Commentaires : le commentaire, les captures et les fichiers de la tâche dont on a cliqué le texte */
-.card.commentaires { display: grid; gap: 10px; min-height: 307px; align-content: start; }
-.memo-vide { font-size: 12.5px; color: var(--muted); padding: 6px; }
-.note-fichiers { display: flex; flex-wrap: wrap; gap: 6px; }
-.note-fichiers:empty { display: none; }
-.fichier { display: flex; align-items: center; gap: 6px; max-width: 100%; padding: 4px 6px 4px 10px; border-radius: 9px; background: var(--carte-2); box-shadow: var(--inset); font-size: 12.5px; }
-.fichier a { color: inherit; font-weight: 700; text-decoration: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
-.fichier a:hover { text-decoration: underline; }
-.fichier button { border: 0; background: none; color: var(--muted); cursor: pointer; font-size: 14px; padding: 0 2px; }
-.note-detail { display: grid; gap: 8px; }
-.note-detail[hidden] { display: none; }
-.note-aide { font-size: 12.5px; color: var(--muted); }
-.note-titre { font-size: 15px; font-weight: 800; }
-.note-fait { font-size: 12px; font-weight: 700; color: var(--ok); }
-.note-fait { display: flex; align-items: center; gap: 6px; margin-top: 3px; }
-.note-fait[hidden] { display: none; }
-.note-fait { white-space: nowrap; }
-.note-fait .date-mini input:not(.date-cachee) { width: 120px; padding-right: 28px; }
-/* tâche commentée : petite bulle bleue après son texte (bleu pour ne pas la confondre avec le Modop orange) */
-.note-ind { display: inline-grid; place-items: center; width: 20px; height: 18px; margin-left: 6px; vertical-align: -3px; border-radius: 6px; background: #3b6fd6; color: #fff; cursor: pointer; }
-.note-ind svg { fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linejoin: round; }
-/* zone du commentaire : texte et captures mélangés (⌘V insère la capture à l'endroit du curseur) */
-.note-zone-cadre { position: relative; }
-.note-zone { width: 100%; border-radius: 12px; background: var(--carte-2); box-shadow: var(--inset); padding: 9px 12px; font-size: 14px; outline: none; min-height: 140px; max-height: 520px; overflow-y: auto; white-space: pre-wrap; overflow-wrap: anywhere; }
-.note-zone:focus { box-shadow: var(--inset), 0 0 0 3px var(--accent-dim); }
-.note-zone:empty::before { content: attr(data-placeholder); color: var(--muted); opacity: .7; pointer-events: none; }
-.note-zone img { display: block; max-width: 100%; margin: 6px 0; border-radius: 8px; box-shadow: var(--clay-sm); cursor: zoom-in; }
-.note-img-suppr { position: absolute; width: 20px; height: 20px; border: 0; border-radius: 50%; padding: 0; cursor: pointer; font-size: 13px; line-height: 20px; background: rgba(40, 30, 20, .7); color: #fff; }
-.note-img-suppr[hidden] { display: none; }
-.note-detail.depot { outline: 3px dashed var(--accent); outline-offset: 4px; border-radius: 12px; }
-.ligne.choisie .lib { text-decoration: underline; text-decoration-color: var(--accent); text-underline-offset: 3px; text-decoration-thickness: 2px; }
-.ligne .lib[data-note] { cursor: pointer; }
-
-/* ── Grand écran : la colonne droite tient dans la hauteur et reste visible ── */
-@media (min-width: 1150px) {
-  .page { padding-block: 12px 20px; gap: 12px; }
-  header.top { padding: 10px 20px; }
-  .split { gap: 12px; }
-  .col.droite { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px); display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; align-content: start;
-    max-height: calc(100vh - 24px); overflow-y: auto; }
-  .col.droite .card { padding: 12px 14px; }
-  .col.droite .card h2 { margin-bottom: 8px; }
-  .fiche { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px 8px; }
-  .champ.adr { grid-column: span 3; }
-  .fiche.avec-aerien .champ.adr { grid-column: span 2; }   /* N° POI aérien affiché : l'adresse lui laisse une case */   /* l'adresse prend la largeur des trois cases du dessus, le N° PC reste à droite */
-  .champ input { min-height: 30px; padding: 5px 9px; }
-  .haut-droite, .bas-droite, .cote { gap: 12px; }
-}
-/* écrans d'ordinateur peu hauts (portables 13") */
-@media (min-width: 1150px) and (max-height: 860px) {
-  header.top { padding: 6px 18px; }
-  header.top h1 { font-size: 18px; }
-}
-@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; } }
+/* statistiques */
+.periode { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; color: var(--muted); }
+.date-champ { position: relative; }
+.date-champ input:not(.date-cachee) { width: 124px; border: 0; border-radius: 10px; background: var(--carte-2); box-shadow: var(--inset); padding: 6px 30px 6px 9px; outline: none; font-size: 13px; font-variant-numeric: tabular-nums; }
+.date-champ input.invalide { box-shadow: var(--inset), 0 0 0 2px var(--rouge); }
+.cal { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); width: 22px; height: 22px; border: 0; border-radius: 7px; background: none; padding: 0; cursor: pointer; color: var(--muted); }
+.cal svg { fill: none; stroke: currentColor; stroke-width: 1.8; }
+.date-cachee { position: absolute; inset: 0; opacity: 0; pointer-events: none; width: 100%; }
+.stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 760px) { .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.stat { border-radius: var(--r-md); padding: 12px 14px; background: var(--carte-2); box-shadow: var(--inset); }
+.stat h3 { margin: 0 0 6px; font-size: 13px; font-weight: 800; }
+.stat .ligne { display: flex; justify-content: space-between; font-size: 13.5px; }
+.stat .ligne b { font-size: 18px; font-variant-numeric: tabular-nums; }
+.stat.cours { background: #e4f1e6; } .stat.arch { background: #e7eaf3; } .stat.annul { background: #f6dfd9; } .stat.total { background: #f9edc9; }
 </style>
 </head>
 <body>
 <div class="page">
-  <header class="top" id="entete">
-    <h1>Racco D2</h1>
-    <div class="urgence">
-      <span class="urg-lib" id="urgLib"></span>
-      <div class="feu" role="group" aria-label="Notion d'urgence du dossier">
-        <button type="button" class="r" data-urg="rouge" title="Urgent" aria-label="Urgent"></button>
-        <button type="button" class="o" data-urg="orange" title="Pas urgent, je peux avancer" aria-label="Pas urgent, je peux avancer"></button>
-        <button type="button" class="v" data-urg="vert" title="En attente de documents" aria-label="En attente de documents"></button>
-      </div>
+  <header class="top">
+    <h1>Suivi des dossiers</h1>
+    <div class="actions">
+      <button class="btn btn-accent" id="nouveau" type="button" aria-haspopup="true" aria-expanded="false">+ Nouveau projet</button>
+      <div class="menu" id="menuTypes" hidden role="menu"></div>
+      <button class="btn" id="exporter" type="button" title="Enregistrer tous les projets dans un fichier">Exporter</button>
+      <label class="btn" for="importFichier" title="Remplacer les données par une sauvegarde">Importer</label>
+      <input type="file" id="importFichier" accept=".json,application/json" hidden>
     </div>
   </header>
 
-  <div class="split">
-    <!-- Gauche : questionnaire -->
-    <section class="col">
-      <div class="card c-taches">
-        <h2>Tâches <span class="tag none" id="compteur">0 / 7</span></h2>
-        <div id="arbre"></div>
-      </div>
-    </section>
+  <div class="card">
+    <div class="tete"><h2 id="titreVue">Dossiers en cours</h2>
+      <div class="droite"><button class="btn btn-mini" id="retourEnCours" type="button" hidden>← Dossiers en cours</button></div></div>
+    <div class="recherche">
+      <div class="recherche-champ"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
+        <input id="recherche" type="search" placeholder="Rechercher dans tous les projets : adresse, N° POI, commentaire, note…" autocomplete="off" aria-label="Rechercher"></div>
+      <span class="recherche-res" id="rechercheRes"></span>
+    </div>
+    <div class="tableau"><table><thead id="tete"></thead><tbody id="corps"></tbody></table></div>
+  </div>
 
-    <!-- Droite : fiche, situation, calculette -->
-    <section class="col droite">
-      <div class="card dossier c-dossier">
-        <h2>Infos du dossier</h2>
-        <div class="fiche">
-          <div class="champ"><label for="f_cab">Cabinet conseil</label><input id="f_cab" data-f="cab" placeholder="Nom du cabinet"></div>
-          <div class="champ"><label for="f_ant">N° POI anticipation<span class="poi-etat" id="etatAnt"></span></label><input id="f_ant" data-f="ant" placeholder="POI anticipation"></div>
-          <div class="champ"><label for="f_racco">N° POI Racco D2<span class="poi-etat" id="etatRacco"></span></label><input id="f_racco" data-f="racco" placeholder="POI Racco D2"></div>
-          <div class="champ el-zone" id="elZone"><label for="f_el">Nombre d'EL</label>
-            <div class="el-champ">
-              <input id="f_el" data-f="el" inputmode="numeric" placeholder="0" autocomplete="off">
-              <button class="note-btn" id="noteBtn" type="button" aria-label="Commentaires et captures du nombre d'EL" aria-expanded="false" title="Commentaires"><svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M5 5h14a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-7l-4 3v-3H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z"/></svg></button>
-            </div>
-            <div class="bulle" id="bulle" hidden>
-              <div class="bulle-titre">Commentaires · Nombre d'EL</div>
-              <textarea id="noteTexte" rows="3" placeholder="Écris un commentaire…"></textarea>
-              <div class="captures" id="captures"></div>
-              <div class="bulle-bas">
-                <label class="btn btn-mini" for="noteFichier">Ajouter une capture</label>
-                <input type="file" id="noteFichier" accept="image/*" multiple hidden>
-                <span class="bulle-aide">ou colle (⌘V) / glisse une image ici</span>
-              </div>
-            </div>
-          </div>
-          <div class="champ large adr"><label for="f_adr">Adresse</label><input id="f_adr" data-f="adr" placeholder="Adresse de l'immeuble"></div>
-          <div class="champ" id="champAerien" hidden><label for="f_aerien">N° POI aérien</label><input id="f_aerien" data-f="aerien" placeholder="POI aérien"></div>
-          <div class="champ"><label for="f_pc">N° PC</label><input id="f_pc" data-f="pc" placeholder="N° PC"></div>
-          <div class="champ large ref-ligne"><label for="f_ref">Regroupement syndic</label><input id="f_ref" data-f="ref" placeholder="Regroupement syndic"></div>
-          <div class="champ large regroup" id="regroupZone">
-            <div class="regroup-tete"><label for="imb0">IMB</label>
-              <label class="btn btn-mini import" for="imbFichier" title="Importer l'export Excel des IMB (.xls, .xlsx ou .csv)">Importer Excel</label>
-              <input type="file" id="imbFichier" accept=".xls,.xlsx,.csv" hidden></div>
-            <div class="import-msg" id="importMsg" hidden></div>
-            <div class="imb-liste" id="imbListe"></div>
-            <div class="bulle imb-bulle" id="imbBulle" hidden>
-              <div class="bulle-titre" id="imbBulleTitre">IMB</div>
-              <label class="mini-lab" for="imbAdr">Adresse</label>
-              <textarea id="imbAdr" data-info="adr" rows="2" placeholder="Adresse de l'IMB"></textarea>
-              <div class="el-trois">
-                <div><label class="mini-lab" for="imbEl">EL total</label><input id="imbEl" data-info="el" inputmode="numeric" placeholder="0"></div>
-                <div><label class="mini-lab" for="imbElR">EL particuliers</label><input id="imbElR" data-info="elR" inputmode="numeric" placeholder="0"></div>
-                <div><label class="mini-lab" for="imbElP">EL pro</label><input id="imbElP" data-info="elP" inputmode="numeric" placeholder="0"></div>
-              </div>
-              <label class="mini-lab" for="imbNote">Commentaire</label>
-              <textarea id="imbNote" data-info="note" rows="2" placeholder="Écris un commentaire…"></textarea>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="haut-droite">
-      <div class="card c-dates">
-        <h2>Dates importantes</h2>
-        <div class="dates-imp" id="datesImp">
-          <div class="champ"><label for="f_dlpi" class="avec-aide">DLPI<sup class="ast" aria-hidden="true">*</sup></label><span class="di-aide" id="aide_dlpi" role="tooltip">Date indiquée dans l'AS (à rentrer manuellement).</span>
-            <div class="date-champ">
-              <input id="f_dlpi" aria-describedby="aide_dlpi" placeholder="JJ/MM/AAAA" inputmode="numeric" maxlength="10" autocomplete="off">
-              <button class="cal" id="calDlpi" type="button" aria-label="Choisir la DLPI dans le calendrier" title="Calendrier"><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg></button>
-              <input type="date" class="date-cachee" id="f_dlpi_cal" tabindex="-1" aria-hidden="true">
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="card c-utiles">
-        <h2>Infos utiles</h2>
-        <div class="iu" id="infosUtiles"></div>
-      </div>
-      </div>
-
-      <div class="bas-droite">
-        <div class="cote">
-          <div class="card commentaires c-comm">
-            <h2>Commentaires</h2>
-            <div class="note-aide" id="noteAide">Clique sur le texte d'une tâche pour y écrire un commentaire et ajouter des captures ou des fichiers.</div>
-            <div class="note-detail" id="noteDetail" hidden>
-              <div><div class="note-titre" id="noteTitre"></div><div class="note-fait" id="noteFait" hidden>Fait le <span class="date-mini date-champ"><input id="noteFaitDate" placeholder="JJ/MM/AAAA" inputmode="numeric" maxlength="10" autocomplete="off" aria-label="Date « Fait le »"><button class="cal" id="noteFaitCal" type="button" aria-label="Choisir la date « Fait le » dans le calendrier" title="Calendrier"><svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg></button><input type="date" class="date-cachee" id="noteFaitPick" tabindex="-1" aria-hidden="true"></span></div></div>
-              <div class="note-zone-cadre"><div class="note-zone" id="noteTache" contenteditable="true" role="textbox" aria-multiline="true" data-placeholder="Écris ton commentaire… (⌘V pour coller une capture à l'endroit du curseur)"></div><button type="button" class="note-img-suppr" id="noteImgSuppr" aria-label="Retirer cette capture" title="Retirer" hidden>×</button></div>
-              <div class="captures" id="noteCaptures"></div>
-              <div class="note-fichiers" id="noteFichiers"></div>
-              <div class="bulle-bas">
-                <label class="btn btn-mini" for="noteTacheFichier">Ajouter une capture ou un fichier</label>
-                <input type="file" id="noteTacheFichier" multiple hidden>
-                <span class="bulle-aide">elles se rangent en dessous ; ⌘V dans le texte la met à l'endroit du curseur</span>
-              </div>
-            </div>
-          </div>
-          <div class="docs">
-            <button class="docs-tuile notes-tuile" id="notesTuile" type="button"><svg viewBox="0 0 24 24" width="40" height="40" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4M9 11h7M9 15h7M9 19h4"/></svg><span>Notes<small id="notesEtat"></small></span></button>
-            <button class="lien-edit" id="notesEdit" type="button" aria-label="Changer ou retirer le lien des notes" title="Changer ou retirer le lien" hidden>✎</button>
-          </div>
-          <div class="docs">
-            <button class="docs-tuile" id="docsTuile" type="button"><svg viewBox="0 0 24 24" width="40" height="40" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span>Documents POI<small id="docsEtat"></small></span></button>
-            <button class="lien-edit" id="docsEdit" type="button" aria-label="Changer ou retirer le lien des documents" title="Changer ou retirer le lien" hidden>✎</button>
-          </div>
-          <div class="docs">
-            <button class="docs-tuile suivi-tuile" id="suiviTuile" type="button"><svg viewBox="0 0 24 24" width="40" height="40" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span>Suivi des dossiers<small id="suiviEtat">Tableau de suivi de tous les dossiers</small></span></button>
-          </div>
-        </div>
-      </div>
-    </section>
+  <div class="card">
+    <div class="tete"><h2>Statistiques</h2>
+      <div class="periode">du <span class="date-champ"><input id="du" placeholder="JJ/MM/AAAA" inputmode="numeric" maxlength="10" autocomplete="off" aria-label="Date de début"><button class="cal" type="button" data-cal="du" aria-label="Calendrier"><svg viewBox="0 0 24 24" width="14" height="14"><rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg></button><input type="date" class="date-cachee" data-pick="du" tabindex="-1" aria-hidden="true"></span>
+        au <span class="date-champ"><input id="au" placeholder="JJ/MM/AAAA" inputmode="numeric" maxlength="10" autocomplete="off" aria-label="Date de fin"><button class="cal" type="button" data-cal="au" aria-label="Calendrier"><svg viewBox="0 0 24 24" width="14" height="14"><rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg></button><input type="date" class="date-cachee" data-pick="au" tabindex="-1" aria-hidden="true"></span></div>
+      <div class="droite"><button class="btn btn-mini" id="voirArchives" type="button">Voir les archivés / annulés</button></div></div>
+    <div class="stats" id="stats"></div>
   </div>
 </div>
 
-<script>
-/* ═══ Tâches : les 7 grandes étapes et leurs tâches (4 niveaux au plus) ═══
-   mode "tout" : validé quand toutes les sous-tâches sont faites (une tâche barrée ne bloque pas)
-   mode "un" + choix : une seule option à cocher, les autres sont barrées automatiquement (contraste) */
-const TACHES = [
-  { id: "t1", lib: "Réception de la POI", mode: "tout", kids: [
-    { id: "t1_1", lib: "Classer les docs GEDAFFAIRE" },
-    { id: "t1_2", lib: "Mettre un Geosignet dans GEORESO" },
-    { id: "t1_3", lib: "Regarder s’il y a de l’aérien", mode: "un", choix: true, kids: [
-      { id: "t1_3_1", lib: "Oui" },
-      { id: "t1_3_2", lib: "Non" } ] },
-    { id: "t1_4", lib: "Regarder place au PA" },
-    { id: "t1_5", lib: "Mettre un ComL + passer la POI à l’état 5" } ] },
-  { id: "t2", lib: "Réception APD", mode: "tout", kids: [
-    { id: "t2_1", lib: "Vérifier la conformité de l’APD", mode: "tout", kids: [
-      { id: "t2_1_1", lib: "APD non conforme", mode: "tout", kids: [
-        { id: "t2_1_1_1", lib: "Mettre ComL + modifier DRE/DLR" },
-        { id: "t2_1_1_2", lib: "Faire un mail GED à ZZZ Amaris OSA : Bonjour, APD non conforme (indiquer les docs manquants)" } ] },
-      { id: "t2_1_2", lib: "APD conforme", mode: "tout", kids: [
-        { id: "t2_1_2_1", lib: "Mettre ComL + modifier DRE/DLR" },
-        { id: "t2_1_2_2", lib: "Faire un mail GED à ZZZ Amaris OSA : Bonjour, APD conforme." } ] } ] } ] },
-  { id: "t3", lib: "Traiter la pré-étude", mode: "tout", kids: [
-    { id: "t3_1", lib: "Repasser la POI à l’état 1" },
-    { id: "t3_7", lib: "Déterminer le type de commande GCBLO", mode: "un", choix: true, kids: [
-      { id: "t3_7_1", lib: "SIMPLE" },
-      { id: "t3_7_2", lib: "COMPLEXE" } ] },
-    { id: "t3_5", lib: "Traiter l’aérien (sur la POI d’anticipation)", mode: "tout", kids: [
-      { id: "t3_5_3", lib: "Faire DT (au cas où il y a des remplacements ou implantation de poteau)" },
-      { id: "t3_5_1", lib: "Faire SEPALE" },
-      { id: "t3_5_4", lib: "Monter le dossier relevé de poteaux", mode: "tout", kids: [
-        { id: "t3_5_4_1", lib: "Faire un plan" },
-        { id: "t3_5_4_2", lib: "Importer mon relevé depuis SEPALE + le renommer" } ] },
-      { id: "t3_5_5", lib: "Envoyer le dossier relevé de poteaux au BO aérien" },
-      { id: "t3_5_6", lib: "Vérifier le retour du BO aérien :", petit: "annexe C6 et C7 (si remplacement d’appui nécessaire)", mode: "un", choix: true, kids: [
-        { id: "t3_5_6_1", lib: "Calcul de charge OK" },
-        { id: "t3_5_6_2", lib: "Calcul de charge NON OK" } ] } ] },
-    { id: "t3_4", lib: "Faire la demande BANBOU pour dessin TIGRE", petit: "(si j’ai tous les docs)", mode: "tout", kids: [
-      { id: "t3_4_1", lib: "Faire import PIT", petit: "(quand j’ai le retour BANBOU)" } ] },
-    { id: "t3_2", lib: "Faire CMS", mode: "tout", kids: [
-      { id: "t3_2_1", lib: "Retour CMS OK" } ] },
-    { id: "t3_3", lib: "Faire resa au PA", mode: "tout", kids: [
-      { id: "t3_3_1", lib: "Faire Desat PMZ" } ] },
-    { id: "t3_6", lib: "Repasser la POI à l’état 5" } ] },
-  { id: "t4", lib: "Traiter la POI d’anticipation", mode: "tout", parPetit: true, kids: [
-    { id: "t4_1", lib: "Anticipation non nécessaire", mode: "tout", kids: [
-      { id: "t4_1_1", lib: "Mettre un ComL d’annulation de la POI" } ] },
-    { id: "t4_2", lib: "Anticipation nécessaire", mode: "tout", kids: [
-      { id: "t4_2_1", lib: "Repasser la POI à l’état 1" },
-      { id: "t4_2_2", lib: "Mettre ComL + modifier DRE/DLR" },
-      { id: "t4_2_12", lib: "Pour aérien", mode: "tout", kids: [
-        { id: "t4_2_12_1", lib: "Si remplacement d’appui", mode: "tout", kids: [
-          { id: "t4_2_12_1_1", lib: "Contrôler le retour DT" },
-          { id: "t4_2_12_1_2", lib: "Faire une Permission de voirie", mode: "tout", kids: [
-            { id: "t4_2_12_1_2_1", lib: "Demande PV" },
-            { id: "t4_2_12_1_2_2", lib: "Retour PV" } ] } ] },
-        { id: "t4_2_12_2", lib: "Faire une commande d’accès GCBLO COMPLEXE" },
-        { id: "t4_2_12_3", lib: "Attendre le retour OWF", mode: "tout", kids: [
-          { id: "t4_2_12_3_1", lib: "REFUSE" },
-          { id: "t4_2_12_3_2", lib: "AUTORISE" } ] },
-        { id: "t4_2_12_1_3", lib: "ATLAS (sur la POI anticipation mais un autre Chelem)" } ] },
-      { id: "t4_2_13", lib: "Pour souterrain", mode: "tout", kids: [
-        { id: "t4_2_13_1", lib: "Faire une commande d’accès GCBLO COMPLEXE" },
-        { id: "t4_2_13_2", lib: "Attendre le retour OWF", mode: "tout", kids: [
-          { id: "t4_2_13_2_1", lib: "REFUSE" },
-          { id: "t4_2_13_2_2", lib: "AUTORISE" } ] } ] },
-      { id: "t4_2_14", lib: "Faire GEORESO + IPON (du PA jusqu’au PR/PB)" },
-      { id: "t4_2_15", lib: "Faire la FI incomplète (en expliquant dans la description travaux et dans l’itinéraire où je m’arrête)" },
-      { id: "t4_2_16", lib: "Faire la valo (du PA jusqu’au PR/PB) + commande matériel (commander le tronçon câble complet)" },
-      { id: "t4_2_17", lib: "Faire le LINE" },
-      { id: "t4_2_4", lib: "Envoyer en travaux", mode: "tout", kids: [
-        { id: "t4_2_4_1", lib: "Mettre ComL" } ] },
-      { id: "t4_2_18", lib: "Valider la tâche « lancement travaux » dans SPI" } ] } ] },
-  { id: "t4d", lib: "Réception du DOE d’anticipation", mode: "tout", parPetit: true, kids: [
-    { id: "t4d_1", lib: "Vérifier la conformité du DOE (juste des photos)", mode: "tout", kids: [
-      { id: "t4d_1_1", lib: "DOE non conforme" },
-      { id: "t4d_1_2", lib: "DOE Conforme" } ] },
-    { id: "t4d_2", lib: "Pour aérien", mode: "tout", kids: [
-      { id: "t4d_2_1", lib: "Si remplacement d’appui", mode: "tout", kids: [
-        { id: "t4d_2_1_1", lib: "Clore la Permission de voirie" } ] },
-      { id: "t4d_2_2", lib: "Envoyer DFT à OWF" },
-      { id: "t4d_2_3", lib: "Attendre le retour OWF", mode: "tout", kids: [
-        { id: "t4d_2_3_1", lib: "REFUSE" },
-        { id: "t4d_2_3_2", lib: "VALIDE" } ] } ] },
-    { id: "t4d_3", lib: "Pour souterrain", mode: "tout", kids: [
-      { id: "t4d_3_1", lib: "Envoyer DFT COMPLEXE à OWF" },
-      { id: "t4d_3_2", lib: "Attendre le retour OWF", mode: "tout", kids: [
-        { id: "t4d_3_2_1", lib: "REFUSE" },
-        { id: "t4d_3_2_2", lib: "VALIDE" } ] } ] },
-    { id: "t4d_7", lib: "Faire contraste", mode: "tout", kids: [
-      { id: "t4d_7_1", lib: "Non conforme avec reprise" },
-      { id: "t4d_7_2", lib: "Non conforme sans reprise" },
-      { id: "t4d_7_3", lib: "Conforme" } ] },
-    { id: "t4d_4", lib: "Payer attachement" },
-    { id: "t4d_5", lib: "Mettre à jour le SI", mode: "tout", kids: [
-      { id: "t4d_5_1", lib: "LINE de l’anticipation", mode: "tout", kids: [
-        { id: "t4d_5_1_1", lib: "Cliquer sur « Valider travaux »" },
-        { id: "t4d_5_1_2", lib: "Cliquer sur « Clôturer le dossier »" },
-        { id: "t4d_5_1_3", lib: "Cliquer sur « Archiver le dossier »" } ] } ] },
-    { id: "t4d_6", lib: "Archiver la POI d’anticipation dans PPR" } ] },
-  { id: "t5", lib: "Réception DOE précâblage", mode: "tout", kids: [
-    { id: "t5_1", lib: "Vérifier la conformité du DOE", mode: "tout", kids: [
-      { id: "t5_1_1", lib: "DOE non conforme", mode: "tout", kids: [
-        { id: "t5_1_1_1", lib: "Mettre ComL + modifier DRE/DLR" },
-        { id: "t5_1_1_2", lib: "Faire un mail GED à ZZZ Amaris OSA : Bonjour, DOE non conforme (indiquer les docs manquants)" } ] },
-      { id: "t5_1_2", lib: "DOE conforme", mode: "tout", kids: [
-        { id: "t5_1_2_1", lib: "Mettre ComL + modifier DRE/DLR" },
-        { id: "t5_1_2_2", lib: "Faire un mail GED à ZZZ Amaris OSA : Bonjour, DOE conforme." } ] } ] } ] },
-  { id: "t6", lib: "Finaliser l’étude", mode: "tout", kids: [
-    { id: "t6_1", lib: "Repasser la POI à l’état 1" },
-    { id: "t6_2", lib: "Faire la demande BANBOU pour dessin TIGRE", petit: "(si pas déjà faite)", mode: "tout", kids: [
-      { id: "t6_2_1", lib: "Faire import PIT", petit: "(quand j’ai le retour BANBOU)" } ] },
-    { id: "t6_3", lib: "Faire le GEORESO + IPON", mode: "tout", kids: [
-      { id: "t6_3_1", lib: "Racco D2" },
-      { id: "t6_3_2", lib: "DTER (PDO ou DTIO)" } ] },
-    { id: "t6_4", lib: "Faire la valo + commande matériel" },
-    { id: "t6_5", lib: "Faire la FI" },
-    { id: "t6_6", lib: "Faire le LINE" },
-    { id: "t6_7", lib: "Envoyer en travaux", mode: "tout", kids: [
-      { id: "t6_7_1", lib: "Mettre ComL" } ] },
-    { id: "t6_8", lib: "Valider tâche « Lancement travaux » dans SPI" },
-    { id: "t6_9", lib: "Demander la MAD anticipée", petit: "(si POI à l’état DMS)" } ] },
-  { id: "t7", lib: "Réception du DOE Racco D2", mode: "tout", kids: [
-    { id: "t7_1", lib: "Vérifier la conformité du DOE" },
-    { id: "t7_2", lib: "Faire contraste", mode: "tout", kids: [
-      { id: "t7_2_1", lib: "Non conforme avec reprise" },
-      { id: "t7_2_2", lib: "Non conforme sans reprise" },
-      { id: "t7_2_3", lib: "Conforme" } ] },
-    { id: "t7_3", lib: "Payer attachement" },
-    { id: "t7_4", lib: "Mettre à jour le SI", mode: "tout", kids: [
-      { id: "t7_4_1", lib: "IPON", mode: "tout", kids: [
-        { id: "t7_4_1_1", lib: "Récoler tous les projets" },
-        { id: "t7_4_1_2", lib: "Vérifier si les dates remontent bien dans IPON" } ] },
-      { id: "t7_4_2", lib: "GEORESO", mode: "tout", kids: [
-        { id: "t7_4_2_1", lib: "Récoler le projet" } ] },
-      { id: "t7_4_3", lib: "SPI", mode: "tout", kids: [
-        { id: "t7_4_3_1", lib: "Valider la tâche « Insertion & Vérification DOE »" },
-        { id: "t7_4_3_2", lib: "Déposer le DOE au format zip que je retrouve dans LINE (si MAD anticipé on a validé les taches avant de le déposer)" } ] },
-      { id: "t7_4_4", lib: "LINE", mode: "tout", kids: [
-        { id: "t7_4_4_1", lib: "Cliquer sur « Valider travaux »" },
-        { id: "t7_4_4_2", lib: "Cliquer sur « Clôturer le dossier »" },
-        { id: "t7_4_4_3", lib: "Cliquer sur « Archiver le dossier »" } ] },
-      { id: "t7_4_5", lib: "OPTIMUM", mode: "tout", kids: [
-        { id: "t7_4_5_1", lib: "Aller voir si les dates sont bonnes (le lendemain du récolement)" } ] } ] },
-    { id: "t7_5", lib: "Demander la MAD au PBLO" },
-    { id: "t7_6", lib: "Archiver la POI dans PPR" } ] }
-];
-
-const CLE = "racco-d2-v1";
-let etat = { coches: {}, barres: {}, dates: {}, liens: {}, memo: {}, fiche: {}, fermes: {}, listes: {}, faitLe: {}, sel: null };
-try { const s = JSON.parse(localStorage.getItem(CLE) || "null"); if (s && typeof s === "object") ["coches", "barres", "dates", "liens", "memo", "fiche", "fermes", "listes", "faitLe", "coml"].forEach(k => { if (s[k] && typeof s[k] === "object") etat[k] = s[k]; }), etat.sel = typeof s.sel === "string" ? s.sel : null; } catch (e) {}
-const sauver = () => { try { localStorage.setItem(CLE, JSON.stringify(etat)); } catch (e) {} };
-// remise à zéro complète des tests (10 octobre 2026) : tout ce qui a été saisi est effacé (tâches, dates, infos du dossier, IMB,
-// Infos utiles, commentaires, captures, liens OneDrive, urgence) ; seule la mise en page (tâches repliées) est gardée
-if (!etat.fiche.raz4) {
-  etat = { coches: {}, barres: {}, dates: {}, liens: {}, memo: {}, fiche: { raz4: true, raz5: true }, fermes: etat.fermes, listes: {}, faitLe: {}, sel: null };
-  ["racco-d2-captures", "racco-d2-notes-captures", "racco-d2-notes-fichiers", "racco-d2-notes-images"].forEach(k => { try { localStorage.removeItem(k); } catch (e) {} });
-  sauver();
-}
-// le Modop de « Faire une Permission de voirie » passe sur « Demande PV » et « Retour PV » (modifiables ensuite séparément)
-if (etat.liens.t4_2_12_1_2) {
-  ["t4_2_12_1_2_1", "t4_2_12_1_2_2"].forEach(id => { if (!etat.liens[id]) etat.liens[id] = etat.liens.t4_2_12_1_2; });
-  delete etat.liens.t4_2_12_1_2; sauver();
-}
-// nouvelle remise à zéro pour les tests (18 octobre 2026) : le dossier repart de zéro (tâches, dates, infos du dossier, Dates importantes,
-// Infos utiles, commentaires et leurs captures, saisies des fenêtres ComL) ; on garde les liens (Modop, OneDrive), la mise en page,
-// les documents des listes (décochés) et les captures des fenêtres ComL (rangées à part)
-if (!etat.fiche.raz5) {
-  const listes = Object.fromEntries(Object.entries(etat.listes || {}).map(([id, L]) => [id, (Array.isArray(L) ? L : []).map(d => ({ ...d, c: false }))]));
-  etat = { coches: {}, barres: {}, dates: {}, liens: etat.liens || {}, memo: {}, fiche: { raz4: true, raz5: true }, fermes: etat.fermes || {}, listes, faitLe: {}, sel: null, coml: {} };
-  ["racco-d2-captures", "racco-d2-notes-captures", "racco-d2-notes-fichiers", "racco-d2-notes-images"].forEach(k => { try { localStorage.removeItem(k); } catch (e) {} });
-  sauver();
-}
-
-/* index parent / nœuds */
-const NOEUDS = {}, PARENT = {};
-(function idx(list, p) { list.forEach(n => { NOEUDS[n.id] = n; PARENT[n.id] = p; if (n.kids) idx(n.kids, n); }); })(TACHES, null);
-const desc = n => (n.kids || []).flatMap(k => [k, ...desc(k)]);
-const anc = n => { const a = []; let p = PARENT[n.id]; while (p) { a.push(p); p = PARENT[p.id]; } return a; };
-
-Object.keys(etat.coches).forEach(id => { if (!NOEUDS[id]) delete etat.coches[id]; });   // tâches qui n'existent plus
-
-/* tâche barrée (double-clic sur sa case) : reste visible, barrée et grisée */
-const estBarre = n => !!etat.barres[n.id];
-// une tâche n'est faite que si elle est cochée, à la main… ou pour une très grande tâche, quand tout le reste est fait
-function valide(n) { return !!etat.coches[n.id]; }
-// très grande tâche : cochée automatiquement (« auto ») dès que toutes ses tâches et sous-tâches non barrées sont cochées,
-// décochée si l'une d'elles ne l'est plus ; une coche faite à la main n'est jamais retirée
-// … et seulement si toutes les dates des tâches non barrées (la très grande tâche comprise) sont renseignées
-const datesOk = t => [t, ...desc(t)].filter(d => AVEC_DATE.has(d.id) && !estBarre(d)).every(d => etat.dates[d.id]);
-const fini = t => valide(t) && datesOk(t);   // bloc et voyant au vert
-// tâche cochée automatiquement quand une autre est cochée (ET datée si elle a une date) : « APD / DOE conforme » → « Vérifier la conformité … »
-const AUTO_SI = { t2_1: "t2_1_2", t5_1: "t5_1_2", t4d_1: "t4d_1_2", t4_2_12_3: "t4_2_12_3_2", t4_2_13_2: "t4_2_13_2_2",
-  t4d_2_3: "t4d_2_3_2", t4d_3_2: "t4d_3_2_2",   // … AUTORISE / VALIDE daté → « Attendre le retour OWF »
-  t4d_7: ["t4d_7_3", "t4d_7_2"], t7_2: ["t7_2_3", "t7_2_2"] };   // contraste : Conforme ou Non conforme sans reprise → « Faire contraste »
-function majFaitLe() {
-  const j = versIso(new Date());
-  Object.keys(etat.coches).forEach(id => { if (!etat.faitLe[id]) etat.faitLe[id] = j; });
-  Object.keys(etat.faitLe).forEach(id => { if (!etat.coches[id]) delete etat.faitLe[id]; });
-}
-// tâches cochées automatiquement quand toutes leurs sous-tâches non barrées le sont : IPON, GEORESO, SPI, LINE, OPTIMUM,
-// puis « Mettre à jour le SI » quand ces cinq-là le sont (étape 7) ; l'ordre compte : les sous-groupes d'abord
-const AUTO_TOUTES = ["t3_5_4", "t4_2_12_1_2", "t4_2_12_1", "t4_2_12", "t4_2_13", "t4d_2_1", "t4d_2", "t4d_3", "t4d_5_1", "t4d_5", "t7_4_1", "t7_4_2", "t7_4_3", "t7_4_4", "t7_4_5", "t7_4"];
-function autoEtapes() {
-  // AUTO_SI d'abord : « Attendre le retour OWF » coché par AUTORISE compte pour « Pour souterrain »
-  Object.entries(AUTO_SI).forEach(([t, src]) => {
-    const ok = [].concat(src).some(x => etat.coches[x] && (!AVEC_DATE.has(x) || etat.dates[x]));   // une des tâches suffit
-    if (ok && !etat.coches[t]) etat.coches[t] = "auto";
-    else if (!ok && etat.coches[t] === "auto") delete etat.coches[t];
-  });
-  AUTO_TOUTES.forEach(t => {
-    const ds = NOEUDS[t].kids.filter(k => !estBarre(k)), ok = ds.length > 0 && ds.every(k => etat.coches[k.id]);
-    if (ok && !etat.coches[t]) etat.coches[t] = "auto";
-    else if (!ok && etat.coches[t] === "auto") delete etat.coches[t];
-  });
-  TACHES.forEach(t => {
-    const ds = desc(t).filter(d => !estBarre(d)), complet = ds.length > 0 && ds.every(d => etat.coches[d.id]) && datesOk(t)
-      || t.id === "t4d" && engagee("t4_1") && fini(NOEUDS.t4);   // anticipation non nécessaire : la tâche 5 (toute barrée) passe au vert avec la tâche 4
-    if (complet && !etat.coches[t.id]) etat.coches[t.id] = "auto";
-    else if (!complet && etat.coches[t.id] === "auto") delete etat.coches[t.id];
-  });
-  majFaitLe();   // date à laquelle chaque tâche a été cochée (à la main ou automatiquement) ; retirée si elle est décochée
-}
-
-// anticipation non nécessaire / nécessaire : cocher dans l'une (elle-même ou une de ses tâches) barre et décoche toute l'autre ;
-// tout décocher dans l'une débarre l'autre
-const BARRE_SI = { t4_1: ["t4_2", "t4d"], t4_2: ["t4_1", "t6_3_1"], t6_9: "t7_5", t1_3_2: ["t3_5", "t4_2_12", "t4d_2"], t3_4: "t6_2", t3_7_1: ["t4_2_13", "t4d_3"], t3_5_6_1: "t4_2_12_1_3" };   // calcul de charge OK → ATLAS barré
-// MAD anticipée demandée → plus de MAD au PBLO ; pas d'aérien → « Pour aérien » barré ; BANBOU fait en pré-étude → plus à faire en fin d'étude ;
-// commande GCBLO SIMPLE en pré-étude → « Pour souterrain » des tâches 4 et 5 barré
-// contraste (_1 avec reprise, _2 sans reprise, _3 conforme) :
-// « Conforme » barre « sans reprise », et « avec reprise » seulement s'il n'a pas été coché (la reprise a eu lieu) ;
-// « sans reprise » barre « Conforme » et « avec reprise » ; « avec reprise » barre « sans reprise »
-const CONTRASTE = {};
-["t4d_7", "t7_2"].forEach(c => CONTRASTE[c] = {
-  [c + "_3"]: () => [c + "_2", ...(etat.coches[c + "_1"] ? [] : [c + "_1"])],
-  [c + "_2"]: () => [c + "_3", c + "_1"],
-  [c + "_1"]: () => [c + "_2"] });
-// conforme → non conforme barré ; cocher « non conforme » ne barre pas « conforme » (de même AUTORISE → REFUSE)
-const CONFORME_BARRE = { t2_1_2: "t2_1_1", t5_1_2: "t5_1_1", t4_2_12_3_2: "t4_2_12_3_1", t4_2_13_2_2: "t4_2_13_2_1",
-  t4d_1_2: "t4d_1_1", t4d_2_3_2: "t4d_2_3_1", t4d_3_2_2: "t4d_3_2_1" };
-const COCHE_PARENT = new Set(["t1_3", "t3_7"]);
-const engagee = id => [NOEUDS[id], ...desc(NOEUDS[id])].some(x => etat.coches[x.id]);
-function basculer(n, on) {
-  if (verrouillee(n)) { rendu(); return; }
-  if (COML_DRE_DLR.includes(n.id)) reporterDreDlr(n.id, on);
-  const avant = Object.fromEntries(Object.keys(BARRE_SI).map(id => [id, engagee(id)])), complexeAvant = !!etat.coches.t3_7_2;
-  if (on) {
-    etat.coches[n.id] = true;   // seule la tâche cochée : ses sous-tâches se cochent à la main
-    // branches au choix : cocher dans une branche efface les autres
-    [n, ...anc(n)].forEach(x => {
-      const p = PARENT[x.id];
-      if (p && p.mode === "un") p.kids.filter(k => k !== x).forEach(k => { delete etat.coches[k.id]; desc(k).forEach(d => delete etat.coches[d.id]); });
-    });
-    // choix exclusif (aérien Oui / Non) : l'option choisie barre les autres (avec leurs sous-tâches)
-    const p = PARENT[n.id];
-    if (p && p.choix) { p.kids.forEach(k => [k, ...desc(k)].forEach(x => { if (k === n) delete etat.barres[x.id]; else etat.barres[x.id] = true; })); }
-    // aérien Oui / Non, type GCBLO SIMPLE / COMPLEXE : cocher une option coche vraiment la tâche au-dessus (date dans Commentaires)
-    if (p && COCHE_PARENT.has(p.id)) etat.coches[p.id] = true;
-  } else {
-    delete etat.coches[n.id];
-    const p = PARENT[n.id];
-    if (p && p.choix) p.kids.forEach(k => [k, ...desc(k)].forEach(x => delete etat.barres[x.id]));
-    if (p && COCHE_PARENT.has(p.id)) delete etat.coches[p.id];   // décocher l'option décoche aussi la tâche au-dessus
-  }
-  // commande GCBLO COMPLEXE en pré-étude : « Anticipation nécessaire » se coche toute seule (la règle d'anticipation raye alors « non nécessaire »)
-  // seulement au moment où COMPLEXE change : cocher ensuite « non nécessaire » garde le dernier mot
-  if (!!etat.coches.t3_7_2 !== complexeAvant) {
-    if (etat.coches.t3_7_2 && !etat.coches.t4_2) etat.coches.t4_2 = "auto";
-    else if (!etat.coches.t3_7_2 && etat.coches.t4_2 === "auto") delete etat.coches.t4_2;
-  }
-  // deux passages : une règle peut en déclencher une autre (COMPLEXE → nécessaire → « non nécessaire » décochée → tâche 5 débarrée)
-  for (let passe = 0; passe < 2; passe++) Object.entries(BARRE_SI).forEach(([si, cible]) => {
-    const maintenant = engagee(si); if (maintenant === avant[si]) return;
-    const branche = id => [NOEUDS[id], ...desc(NOEUDS[id])], cibles = [].concat(cible);   // une ou plusieurs tâches barrées
-    if (maintenant) {
-      // débarre la branche seulement si elle avait été barrée par la règle (sinon on garderait les barres du contraste, etc.)
-      if (etat.barres[si]) branche(si).forEach(x => delete etat.barres[x.id]);
-      cibles.forEach(c => branche(c).forEach(x => { etat.barres[x.id] = true; delete etat.coches[x.id]; }));
-    } else cibles.forEach(c => { if (!engagee(c)) branche(c).forEach(x => delete etat.barres[x.id]); });
-  });
-  // une règle toujours active garde ses barres (ex. : SIMPLE coché en tâche 5 alors qu'on décoche SIMPLE en tâche 4)
-  Object.entries(BARRE_SI).forEach(([si, cible]) => { if (engagee(si)) [].concat(cible).forEach(c => [NOEUDS[c], ...desc(NOEUDS[c])].forEach(x => etat.barres[x.id] = true)); });
-  // le choix (contraste, conforme / non conforme) passe après : la règle d'anticipation ne doit pas effacer ses barres
-  Object.values(NOEUDS).forEach(p => { const k = p.choix && p.kids.find(o => etat.coches[o.id]);
-    if (k) p.kids.forEach(o => { if (o !== k) [o, ...desc(o)].forEach(x => etat.barres[x.id] = true); }); });
-  const pc = PARENT[n.id];
-  if (on && pc && pc.choix) pc.kids.forEach(k => [k, ...desc(k)].forEach(x => { if (k === n) delete etat.barres[x.id]; else etat.barres[x.id] = true; }));
-  // contraste : les barres découlent des options cochées
-  const gc = pc && CONTRASTE[pc.id];
-  if (gc) { const aBarrer = new Set(Object.keys(gc).filter(id => etat.coches[id]).flatMap(id => gc[id]()));
-    pc.kids.forEach(k => { if (aBarrer.has(k.id)) etat.barres[k.id] = true; else delete etat.barres[k.id]; }); }
-  // APD / DOE conforme : barre « non conforme » et ses sous-tâches (dans ce sens seulement) ; décocher les débarre.
-  // Un « non conforme » daté a bien eu lieu : il n'est jamais barré
-  const nc = CONFORME_BARRE[n.id];
-  if (nc && !etat.dates[nc]) [NOEUDS[nc], ...desc(NOEUDS[nc])].forEach(x => { if (on) etat.barres[x.id] = true; else delete etat.barres[x.id]; });
-  autoEtapes();
-  sauver(); rendu();
-}
-
-/* ═══ Résultats : 5 informations selon les cases ═══ */
-const manquants = n => (n.kids || []).flatMap(k => estBarre(k) || valide(k) ? [] : k.kids ? manquants(k) : [k.lib]);
-const feuillesActives = n => (n.kids || []).flatMap(k => estBarre(k) ? [] : k.kids ? feuillesActives(k) : [k]);
-const fiche = k => (etat.fiche[k] || "").trim();
-function delaiDLPI() {
-  if (!fiche("dlpi")) return "DLPI non renseignée";
-  const j = Math.round((new Date(fiche("dlpi") + "T00:00") - new Date(new Date().toDateString())) / 864e5);
-  return j > 0 ? `J-${j} avant la DLPI` : j === 0 ? "DLPI aujourd'hui" : `DLPI dépassée de ${-j} j`;
-}
-function resultat(t) {
-  const cab = fiche("cab") || "Cabinet conseil", D = delaiDLPI();
-  const qui = n => n.resp === "cab" ? cab : (n.resp || "Moi");
-  if (verrouillee(t)) { const p = TACHES.indexOf(t); return { tag: "none", txt: "Verrouillée", statut: "Pas encore accessible", decision: "—", action: `Valider d'abord l'étape ${p} · ${TACHES[p - 1].lib}`, resp: "—", delai: D }; }
-  if (t.mode === "un") {
-    // première branche = issue favorable, seconde = blocage
-    const [a, b] = t.kids;
-    if (valide(a)) return { tag: "ok", txt: a.court, statut: a.court, decision: "Accepté", action: t.apres, resp: "Moi", delai: D };
-    if (valide(b)) return { tag: "ko", txt: b.court, statut: b.court, decision: "Suspendu", action: b.attente, resp: qui(b), delai: D };
-    const enA = a.kids.some(valide), enB = b.kids.some(valide);
-    if (etat.coches[t.id] && !enA && !enB) return { tag: "ok", txt: "Validée", statut: "Validée sans précision", decision: "À préciser", action: `Indiquer « ${a.court} » ou « ${b.court} »`, resp: "Moi", delai: D };
-    if (enA) return { tag: "run", txt: "En cours", statut: `Vers « ${a.court} »`, decision: "En cours", action: manquants(a), resp: "Moi", delai: D };
-    if (enB) return { tag: "run", txt: "En cours", statut: `Vers « ${b.court} »`, decision: "En cours", action: manquants(b), resp: "Moi", delai: D };
-    return { tag: "none", txt: "À contrôler", statut: "Pas encore contrôlé", decision: "—", action: `Choisir « ${a.court} » ou « ${b.court} »`, resp: "Moi", delai: D };
-  }
-  if (valide(t)) return { tag: "ok", txt: "Validée", statut: t.okStatut || "Étape validée", decision: t.okDecision || "—", action: t.apres || "Passer à l'étape suivante", resp: "Moi", delai: D };
-  const m = manquants(t), fa = feuillesActives(t), total = fa.length, fait = fa.filter(valide).length;
-  if (fait > 0 || t.enCours) return { tag: "run", txt: t.enCours || "En cours", statut: `${t.lib} : ${fait}/${total}`, decision: t.attente || "En cours", action: m, resp: qui(t), delai: D };
-  return { tag: "none", txt: "À faire", statut: "Pas commencée", decision: "—", action: m, resp: qui(t), delai: D };
-}
-
-/* ═══ Outils des tâches : date (comme la DLPI) et lien vers le Modop sur OneDrive ═══ */
-// « Vérifier la conformité » (étapes 2, 5 et 7) : une liste de documents à cocher, propre à chaque tâche
-const AVEC_LISTE = new Set(["t2_1", "t5_1", "t7_1"]);
-const ICO_LISTE = `<svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M3.5 6l1.2 1.2L7 5M3.5 12l1.2 1.2L7 11M3.5 18l1.2 1.2L7 17"/></svg>`;
-const AVEC_DATE = new Set(["t1", "t2", "t5", "t2_1_1", "t2_1_2", "t3_5_5", "t3_5_6", "t4_1_1", "t4_2_2", "t4_2_12_1_2_1", "t4_2_12_1_2_2", "t4_2_12_1_3", "t4_2_12_2", "t4_2_12_3_2", "t4_2_13_1", "t4_2_13_2_2", "t4_2_4", "t4d", "t4d_2_1_1", "t4d_2_2", "t4d_2_3_2", "t4d_3_1", "t4d_3_2_2", "t4d_4", "t4d_6", "t5_1_1", "t5_1_2", "t6_7", "t6_9", "t7", "t7_3", "t7_5", "t7_6"]);
-const AVEC_MODOP = new Set(["t1_5", "t2_1_1_1", "t2_1_2_1", "t3_5_1", "t3_2", "t3_3", "t3_3_1", "t3_4", "t3_4_1", "t4_1_1", "t4_2_2", "t4_2_12", "t4_2_12_1_1", "t4_2_12_1_2_1", "t4_2_12_1_2_2", "t4_2_12_2", "t4_2_14", "t4_2_16", "t4_2_17", "t4_2_13_1", "t4_2_4_1",
-  "t4_2_15", "t4_2_18", "t4d_2", "t4d_2_1_1", "t4d_2_2", "t4d_3_1", "t4d_7", "t4d_5", "t5_1_1_1", "t5_1_2_1", "t6_1", "t6_2", "t6_2_1", "t6_3", "t6_4", "t6_5", "t6_6", "t6_7_1", "t6_8",
-  "t6_9", "t7_1", "t7_2", "t7_3", "t7_4_1_2", "t7_4_2_1", "t7_4_3_1", "t7_4_3_2", "t7_4_5_1", "t7_5"]);
-// Modop en rose
-const MODOP_ROSE = new Set(["t3_2", "t4_2_15", "t6_5"]);
-const MODOP_DOUBLE = new Set(["t4_2_15", "t6_5", "t3_3_1"]);   // un logo rose et un logo orange, chacun avec son lien
-const ICO_CAL = '<svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>';
-const ICO_DOC = '<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M7 3h7l5 5v11a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg>';
-function outilsHTML(n) {
-  let h = "";
-  if (AVEC_DATE.has(n.id)) h += `<span class="date-mini date-champ"><input data-date="${n.id}" id="dt_${n.id}" value="${isoVersFr(etat.dates[n.id])}" placeholder="JJ/MM/AAAA" inputmode="numeric" maxlength="10" autocomplete="off" aria-label="Date · ${esc(n.lib)}">` +
-    `<button class="cal" type="button" data-calbtn="${n.id}" aria-label="Choisir la date dans le calendrier" title="Calendrier">${ICO_CAL}</button>` +
-    `<input type="date" class="date-cachee" data-calpick="${n.id}" tabindex="-1" aria-hidden="true"></span>`;
-  const modop = (cle, rose) => { const l = etat.liens[cle];
-    return `<span class="modop"><button class="modop-btn ${l ? "plein" : "vide"}${rose ? " rose" : ""}" type="button" data-lien="${cle}" aria-label="${l ? "Ouvrir le Modop" : "Ajouter le lien du Modop"}" title="${l ? "Ouvrir le Modop" : "Ajouter le lien OneDrive du Modop"}">${ICO_DOC}</button>` +
-      (l ? `<button class="lien-edit" type="button" data-lienedit="${cle}" aria-label="Changer ou retirer le lien" title="Changer ou retirer le lien">✎</button>` : "") + `</span>`; };
-  // deux logos : le rose toujours devant l'orange
-  if (AVEC_MODOP.has(n.id)) h += !MODOP_DOUBLE.has(n.id) ? modop(n.id, MODOP_ROSE.has(n.id))
-    : MODOP_ROSE.has(n.id) ? modop(n.id, true) + modop(n.id + "~modop", false) : modop(n.id + "~rose", true) + modop(n.id, false);
-  if (AVEC_LISTE.has(n.id)) {
-    const L = etat.listes[n.id] || [], faits = L.filter(d => d.c).length;
-    h += `<span class="liste" data-liste="${n.id}"><button class="liste-btn" type="button" data-listebtn="${n.id}" aria-label="Liste de documents" title="Liste de documents">${ICO_LISTE}` +
-      (L.length ? `<span class="liste-compte">${faits}/${L.length}</span>` : "") + `</button>${listeOuverte === n.id ? listeBulleHTML(n.id) : ""}</span>`;
-  }
-  return h ? `<span class="outils">${h}</span>` : "";
-}
-
-/* ═══ Rendu ═══ */
+<script type="module">
+/* ═══ Mémoire commune à toutes les pages (IndexedDB « kultivaprix ») ═══
+   projets : [{ id, type, cree }] ; p:<id>:resume : résumé écrit par la page du type de dossier ; commun:* : liens Modop et mise en page */
 const $ = id => document.getElementById(id);
-const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const base = await new Promise((ok, ko) => { const r = indexedDB.open("kultivaprix", 1); r.onupgradeneeded = () => r.result.createObjectStore("kv"); r.onsuccess = () => ok(r.result); r.onerror = () => ko(r.error); });
+const kvGet = k => new Promise((ok, ko) => { const r = base.transaction("kv").objectStore("kv").get(k); r.onsuccess = () => ok(r.result); r.onerror = () => ko(r.error); });
+const kvPut = (k, v) => new Promise((ok, ko) => { const t = base.transaction("kv", "readwrite"); if (v === undefined) t.objectStore("kv").delete(k); else t.objectStore("kv").put(v, k); t.oncomplete = ok; t.onerror = () => ko(t.error); });
+const kvTout = () => new Promise((ok, ko) => { const o = {}, r = base.transaction("kv").objectStore("kv").openCursor();
+  r.onsuccess = () => { const c = r.result; if (c) { o[c.key] = c.value; c.continue(); } else ok(o); }; r.onerror = () => ko(r.error); });
 
-// texte d'une tâche : parenthèses en petit dans les grandes tâches marquées parPetit
-// anticipation faite (« Anticipation nécessaire » engagée) : certaines tâches de « Finaliser l'étude » changent de texte
-const VARIANTE_ANT = {
-  t6_5: { lib: "Finir la FI", petit: "(préciser que le câble est déjà posé)" },
-  t6_4: { petit: "(pas de câble à commander) (ne pas recompter les articles anticipations)" } };
-const texte = n => VARIANTE_ANT[n.id] && engagee("t4_2") ? { ...n, ...VARIANTE_ANT[n.id] } : n;
-function libHTML(n) {
-  let h = esc(n.lib);
-  if ([n, ...anc(n)].some(x => x.parPetit)) h = h.replace(/\([^)]*\)/g, m => `<small class="lib-petit">${m}</small>`);
-  return h;
-}
-function ligneHTML(n, d, num) {
-  // une tâche barrée n'apparaît pas cochée juste parce que toutes ses sous-tâches sont barrées
-  const v = valide(n) && !(estBarre(n) && !etat.coches[n.id]), auto = v && !etat.coches[n.id];
-  let h = `<div class="ligne d${d}${v ? " valide" : ""}${estBarre(n) ? " barre" : ""}${n.id === noteChoisie ? " choisie" : ""}">`;
-  if (d === 1) h += n.kids ? `<button class="chev" type="button" data-chev="${n.id}" aria-label="Réduire ou déplier" aria-expanded="${!etat.fermes[n.id]}">▼</button>` : `<span class="chev vide" aria-hidden="true"></span>`;
-  h += `<input type="checkbox" class="cb${auto ? " auto" : ""}" id="cb_${n.id}" data-cb="${n.id}"${v ? " checked" : ""}${verrouillee(n) ? " disabled" : ""} aria-label="${esc(n.lib)}">`;
-  // le texte ne coche pas : seule la case coche ; un clic sur le texte affiche le commentaire de la tâche
-  h += `<span class="lib" data-note="${n.id}">${d === 1 ? `<span class="num">${num}</span>` : ""}${libHTML(texte(n))}${texte(n).petit ? ` <small class="lib-petit">${esc(texte(n).petit)}</small>` : ""}${aCommentaire(n.id) ? IND_NOTE(n.id) : ""}</span>`;
-  h += outilsHTML(n);
-  if (d === 1) { const r = resultat(n), ok = r.tag === "ok" && datesOk(n); h += `<span class="led ${ok ? "on" : "off"}" role="img" aria-label="${esc(r.txt)}" title="${esc(r.txt)}"></span>`; }
-  h += `</div>`;
-  if (n.kids) {
-    const inner = n.kids.map((k, i) => (n.mode === "un" && !n.choix && i > 0 ? `<div class="ou">ou</div>` : "") + ligneHTML(k, d + 1)).join("");
-    h += d === 1 ? `<div class="enfants">${inner}</div>` : inner;
+// les 5 types de dossier (seul Racco D2 a sa page pour l'instant)
+const TYPES = [
+  { id: "racco-d2", nom: "Racco D2", page: "racco-d2.html" },
+  { id: "loc-par", nom: "Localisation de PAR" },
+  { id: "crea-par", nom: "Création du PAR" },
+  { id: "pim", nom: "PIM (Petite opération immobilière)" },
+  { id: "echec-prod", nom: "Échec de prod" }];
+const typeDe = id => TYPES.find(t => t.id === id) || { id, nom: id };
+
+/* reprise des anciennes données (un seul dossier Racco D2, avant le suivi) : elles deviennent le projet n°1 */
+async function reprendreAnciennes() {
+  let ancien = null; try { ancien = localStorage.getItem("racco-d2-v1"); } catch (e) {}
+  if (!ancien) { await kvPut("projets", []); return false; }
+  let e = {}; try { e = JSON.parse(ancien) || {}; } catch (err) {}
+  const propres = {}, partages = {};
+  Object.entries(e.liens || {}).forEach(([k, v]) => { (["docsPOI", "notes"].includes(k) ? propres : partages)[k] = v; });
+  const fermes = e.fermes || {}; e.liens = propres; delete e.fermes;
+  await kvPut("p:p1:racco-d2-v1", JSON.stringify(e));
+  for (const k of ["racco-d2-captures", "racco-d2-notes-captures", "racco-d2-notes-fichiers", "racco-d2-notes-images"]) {
+    let v = null; try { v = localStorage.getItem(k); } catch (err) {}
+    if (v != null) await kvPut("p:p1:" + k, v);
   }
-  return h;
+  await kvPut("commun:liens", JSON.stringify(partages));
+  await kvPut("commun:fermes", JSON.stringify(fermes));
+  await kvPut("projets", [{ id: "p1", type: "racco-d2", cree: Date.now() }]);
+  return true;
+}
+if ((await kvGet("projets")) === undefined && await reprendreAnciennes()) {
+  location.replace("racco-d2.html?p=p1&retour=1");   // la page Racco D2 écrit le résumé du projet puis revient ici
+  await new Promise(() => {});
 }
 
-/* une tâche est acquise quand elle est validée sans être bloquante (non conforme = suspendu) */
-const acquise = t => !verrouillee(t) && valide(t) && resultat(t).tag !== "ko";
-/* plus de verrouillage : toutes les étapes restent accessibles */
-const racine = n => { let r = n; while (PARENT[r.id]) r = PARENT[r.id]; return r; };
-function verrouillee(n) { return false; }
-function etapeCourante() { return TACHES.find(t => !acquise(t)) || null; }
-
-function rendu() {
-  const focus = document.activeElement && document.activeElement.id;
-  const sel = etapeCourante();
-  $("arbre").innerHTML = TACHES.map((t, i) =>
-    `<div class="gt${etat.fermes[t.id] || verrouillee(t) ? " ferme" : ""}${verrouillee(t) ? " verrou" : ""}${t === sel ? " actif" : ""}${fini(t) ? " fini" : ""}">${ligneHTML(t, 1, i + 1)}</div>`).join("");
-
-  const nbOk = TACHES.filter(acquise).length;
-  $("compteur").textContent = `${nbOk} / ${TACHES.length}`;
-  $("compteur").className = "tag " + (nbOk === TACHES.length ? "ok" : nbOk ? "run" : "none");
-
-  majPoiEtat(); majNoteFait();
-  if (focus && $(focus) && document.activeElement !== $(focus)) {
-    const c = $(focus); c.focus();
-    if (c.setSelectionRange && c.type === "text") c.setSelectionRange(c.value.length, c.value.length);   // curseur à la fin
-  }
+/* ═══ Données affichées ═══ */
+let projets = [], resumes = {};
+async function charger() {
+  projets = (await kvGet("projets")) || [];
+  resumes = {};
+  for (const p of projets) { try { resumes[p.id] = JSON.parse((await kvGet(`p:${p.id}:resume`)) || "null"); } catch (e) { resumes[p.id] = null; } }
 }
-
-/* clic : coche ou décoche ; double-clic : barre ou débarre la tâche (les deux clics sont annulés) */
-let dernierClic = { id: null, t: 0 };
-document.addEventListener("change", e => {
-  const id = e.target.dataset.cb; if (!id) return;
-  const t = Date.now();
-  if (dernierClic.id === id && t - dernierClic.t < 450) {
-    etat.coches = dernierClic.coches; etat.barres = dernierClic.barres;
-    if (dernierClic.di) { etat.fiche.di = dernierClic.di; etat.fiche.dreDlrAvant = dernierClic.mem; rafraichirDatesImp(); }
-    // la tâche et toutes ses sous-tâches sont barrées, ou débarrées, ensemble
-    const barrer = !etat.barres[id];
-    [NOEUDS[id], ...desc(NOEUDS[id])].forEach(x => { if (barrer) etat.barres[x.id] = true; else delete etat.barres[x.id]; });
-    autoEtapes();
-    dernierClic = { id: null, t: 0 };
-    sauver(); rendu(); return;
-  }
-  dernierClic = { id, t, coches: { ...etat.coches }, barres: { ...etat.barres }, di: { ...etat.fiche.di }, mem: JSON.parse(JSON.stringify(etat.fiche.dreDlrAvant || {})) };
-  basculer(NOEUDS[id], e.target.checked);
-});
-document.addEventListener("click", e => {
-  const c = e.target.closest("[data-chev]");
-  if (c) { const id = c.dataset.chev; etat.fermes[id] = !etat.fermes[id]; sauver(); rendu(); return; }
-  const n = e.target.closest("[data-note]");
-  if (n) afficherNote(n.dataset.note);
-});
-
-/* fiche */
-document.querySelectorAll("[data-f]").forEach(inp => {
-  inp.value = etat.fiche[inp.dataset.f] || "";
-  inp.addEventListener("input", () => {
-    if (inp.id === "f_el") inp.value = inp.value.replace(/\D/g, "");   // Nombre d'EL : chiffres seulement
-    etat.fiche[inp.dataset.f] = inp.value; sauver(); rendu();
-  });
-});
-
-/* ═══ Dates des tâches : même saisie que la DLPI ═══ */
-// une date saisie peut compléter (ou défaire) une très grande tâche
-function majApresDate() {
-  // une date mise sur un « non conforme » déjà barré par le « conforme » le débarre
-  Object.values(CONFORME_BARRE).forEach(nc => { if (etat.dates[nc] && etat.barres[nc]) [NOEUDS[nc], ...desc(NOEUDS[nc])].forEach(x => delete etat.barres[x.id]); });
-  autoEtapes(); sauver(); rendu(); }
-const formaterDate = v => { const ch = v.replace(/\D/g, "").slice(0, 8); return ch.length > 4 ? `${ch.slice(0, 2)}/${ch.slice(2, 4)}/${ch.slice(4)}` : ch.length > 2 ? `${ch.slice(0, 2)}/${ch.slice(2)}` : ch; };
-$("arbre").addEventListener("input", e => {
-  const id = e.target.dataset.date; if (!id) return;
-  e.target.value = formaterDate(e.target.value);
-  const iso = frVersIso(e.target.value), vide = !e.target.value;
-  e.target.classList.toggle("invalide", e.target.value.length === 10 && !iso);
-  if (iso) etat.dates[id] = iso; else if (vide) delete etat.dates[id];
-  if (iso || vide) { sauver(); reporterDate(id); majApresDate(); }
-});
-$("arbre").addEventListener("focusout", e => {
-  const id = e.target.dataset.date; if (!id) return;
-  if (!frVersIso(e.target.value)) { e.target.value = isoVersFr(etat.dates[id]); e.target.classList.remove("invalide"); }
-});
-$("arbre").addEventListener("click", e => {
-  const b = e.target.closest("[data-calbtn]"); if (!b) return;
-  const pick = b.parentElement.querySelector("[data-calpick]");
-  pick.value = etat.dates[b.dataset.calbtn] || versIso(new Date());
-  try { pick.showPicker(); } catch (err) { pick.focus(); pick.click(); }
-});
-$("arbre").addEventListener("change", e => {
-  const id = e.target.dataset.calpick; if (!id || !e.target.value) return;
-  etat.dates[id] = e.target.value; sauver(); reporterDate(id); majApresDate();
-  const champ = $("dt_" + id); if (champ) { champ.value = isoVersFr(e.target.value); champ.classList.remove("invalide"); }
-});
-
-/* ═══ Liste de documents des tâches « Vérifier la conformité » : s'ouvre au survol, reste ouverte après un clic ═══ */
-let listeOuverte = null, listeEpinglee = false, listeMinuterie = null;
-function listeBulleHTML(id) {
-  const L = etat.listes[id] || [];
-  return `<div class="bulle liste-bulle${listeEpinglee ? " epinglee" : ""}" data-listebulle="${id}"><div class="bulle-titre">Liste de documents</div>` +
-    (L.length ? `<div class="liste-docs">${L.map((d, i) => `<label class="doc-ligne"><input type="checkbox" data-doc="${i}"${d.c ? " checked" : ""}><span>${esc(d.t)}</span>` +
-      `<button type="button" data-docsup="${i}" aria-label="Retirer ${esc(d.t)}" title="Retirer">×</button></label>`).join("")}</div>`
-      : `<div class="memo-vide">Aucun document pour l'instant.</div>`) +
-    `<input class="doc-ajout" data-docajout placeholder="Ajouter un document puis Entrée" autocomplete="off"></div>`;
-}
-function majListe(focusAjout) {   // redessine seulement la bulle et le compteur, sans toucher au reste des tâches
-  const z = listeOuverte && document.querySelector(`[data-liste="${listeOuverte}"]`); if (!z) return;
-  const L = etat.listes[listeOuverte] || [], b = z.querySelector(".liste-btn");
-  b.querySelector(".liste-compte")?.remove();
-  if (L.length) b.insertAdjacentHTML("beforeend", `<span class="liste-compte">${L.filter(d => d.c).length}/${L.length}</span>`);
-  z.querySelector(".liste-bulle")?.remove(); z.insertAdjacentHTML("beforeend", listeBulleHTML(listeOuverte));
-  if (focusAjout) z.querySelector("[data-docajout]").focus();
-}
-function ouvrirListe(id) {
-  clearTimeout(listeMinuterie);
-  if (listeOuverte === id) return;
-  fermerListe(); listeOuverte = id; majListe();
-}
-function fermerListe() {
-  clearTimeout(listeMinuterie);
-  const z = listeOuverte && document.querySelector(`[data-liste="${listeOuverte}"]`);
-  z?.querySelector(".liste-bulle")?.remove();
-  listeOuverte = null; listeEpinglee = false;
-}
-function epinglerListe(id) { ouvrirListe(id); listeEpinglee = true; document.querySelector(`[data-listebulle="${id}"]`)?.classList.add("epinglee"); }
-$("arbre").addEventListener("mouseover", e => { const z = e.target.closest("[data-liste]"); if (z) ouvrirListe(z.dataset.liste); });
-$("arbre").addEventListener("mouseout", e => {
-  const z = e.target.closest("[data-liste]"); if (!z || z.contains(e.relatedTarget) || listeEpinglee) return;
-  listeMinuterie = setTimeout(fermerListe, 300);
-});
-$("arbre").addEventListener("pointerdown", e => { const z = e.target.closest("[data-liste]"); if (z && !e.target.closest("[data-listebtn]")) epinglerListe(z.dataset.liste); });
-$("arbre").addEventListener("click", e => {
-  const b = e.target.closest("[data-listebtn]");
-  if (b) { const id = b.dataset.listebtn; if (listeOuverte === id && listeEpinglee) fermerListe(); else epinglerListe(id); return; }
-  const sup = e.target.closest("[data-docsup]");
-  if (sup && listeOuverte) { e.preventDefault(); etat.listes[listeOuverte].splice(+sup.dataset.docsup, 1); sauver(); majListe(); }
-});
-$("arbre").addEventListener("change", e => {
-  const c = e.target.closest("[data-doc]"); if (!c || !listeOuverte) return;
-  etat.listes[listeOuverte][+c.dataset.doc].c = c.checked; sauver(); majListe();
-});
-$("arbre").addEventListener("keydown", e => {
-  const a = e.target.closest("[data-docajout]"); if (!a || e.key !== "Enter" || !listeOuverte) return;
-  const t = a.value.trim(); if (!t) return;
-  (etat.listes[listeOuverte] = etat.listes[listeOuverte] || []).push({ t, c: false }); sauver(); majListe(true);
-});
-document.addEventListener("pointerdown", e => { if (listeOuverte && !e.target.closest?.("[data-liste]")) fermerListe(); });
-document.addEventListener("keydown", e => { if (e.key === "Escape" && listeOuverte) fermerListe(); });
-
-/* ═══ Liens Modop (OneDrive), un par tâche : clic = ouvrir ; sans lien = coller le lien ; ✎ = changer ou retirer ═══ */
-let lienPop = null;
-function fermerLienPop() { if (lienPop) { lienPop.remove(); lienPop = null; } }
-function ouvrirLienPop(id, ancre, titre) {
-  fermerLienPop();
-  const actuel = etat.liens[id] || "";
-  titre = titre || `Lien du Modop · ${NOEUDS[id.split("~")[0]].lib}`;
-  lienPop = document.createElement("div");
-  lienPop.className = "lien-pop";
-  lienPop.innerHTML = `<div class="bulle-titre">${esc(titre)}</div>
-    <input type="url" id="lienSaisie" placeholder="Colle le lien OneDrive (clic droit › Copier le lien)" value="${esc(actuel)}">
-    <div class="ko" id="lienErreur" hidden>Le lien doit commencer par https://</div>
-    <div class="actions">${actuel ? '<button class="btn btn-mini" type="button" data-pop="retirer">Retirer le lien</button>' : ""}
-      <button class="btn btn-mini" type="button" data-pop="annuler">Annuler</button>
-      <button class="btn btn-mini btn-accent" type="button" data-pop="ok">Enregistrer</button></div>`;
-  document.body.appendChild(lienPop);
-  const r = ancre.getBoundingClientRect(), w = lienPop.offsetWidth, hh = lienPop.offsetHeight;
-  lienPop.style.left = Math.max(8, Math.min(r.right - w, innerWidth - w - 8)) + "px";
-  lienPop.style.top = (r.bottom + 6 + hh > innerHeight ? Math.max(8, r.top - hh - 6) : r.bottom + 6) + "px";
-  const saisie = lienPop.querySelector("#lienSaisie");
-  saisie.focus(); saisie.select();
-  const enregistrer = () => {
-    const v = saisie.value.trim();
-    if (!/^https?:\/\//i.test(v)) { lienPop.querySelector("#lienErreur").hidden = false; return; }
-    etat.liens[id] = v; sauver(); fermerLienPop(); rendu(); majDocs();
-  };
-  saisie.addEventListener("keydown", e => { if (e.key === "Enter") enregistrer(); });
-  lienPop.addEventListener("click", e => {
-    const a = e.target.closest("[data-pop]")?.dataset.pop;
-    if (a === "ok") enregistrer();
-    else if (a === "annuler") fermerLienPop();
-    else if (a === "retirer") { delete etat.liens[id]; sauver(); fermerLienPop(); rendu(); majDocs(); }
-  });
-}
-$("arbre").addEventListener("click", e => {
-  const ed = e.target.closest("[data-lienedit]");
-  if (ed) { ouvrirLienPop(ed.dataset.lienedit, ed); return; }
-  const b = e.target.closest("[data-lien]"); if (!b) return;
-  if (COML.includes(b.dataset.lien)) { ouvrirComl(b.dataset.lien); return; }
-  const l = etat.liens[b.dataset.lien];
-  if (l) window.open(l, "_blank", "noopener"); else ouvrirLienPop(b.dataset.lien, b);
-});
-document.addEventListener("pointerdown", e => { if (lienPop && !lienPop.contains(e.target) && !e.target.closest("[data-lien],[data-lienedit],#docsTuile,#docsEdit,#notesTuile,#notesEdit")) fermerLienPop(); });
-document.addEventListener("keydown", e => { if (e.key === "Escape" && lienPop) fermerLienPop(); });
-
-/* ═══ DLPI : JJ/MM/AAAA au clavier, ou calendrier ; enregistrée en AAAA-MM-JJ ═══ */
-const dlpi = $("f_dlpi"), dlpiCal = $("f_dlpi_cal");
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const isoVersFr = iso => { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || ""); return m ? `${m[3]}/${m[2]}/${m[1]}` : ""; };
-function frVersIso(fr) {
-  const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(fr); if (!m) return null;
-  const d = new Date(+m[3], +m[2] - 1, +m[1]);
-  return d.getDate() === +m[1] && d.getMonth() === +m[2] - 1 ? `${m[3]}-${m[2]}-${m[1]}` : null;
-}
-function poserDlpi(iso) { etat.fiche.dlpi = iso; dlpi.value = isoVersFr(iso); dlpi.classList.remove("invalide"); sauver(); rendu(); }
-dlpi.value = isoVersFr(etat.fiche.dlpi);
-dlpi.addEventListener("input", () => {
-  // barres ajoutées toutes seules : 08102026 → 08/10/2026
-  const ch = dlpi.value.replace(/\D/g, "").slice(0, 8);
-  dlpi.value = ch.length > 4 ? `${ch.slice(0, 2)}/${ch.slice(2, 4)}/${ch.slice(4)}` : ch.length > 2 ? `${ch.slice(0, 2)}/${ch.slice(2)}` : ch;
-  const iso = frVersIso(dlpi.value);
-  dlpi.classList.toggle("invalide", ch.length === 8 && !iso);
-  if (iso || ch.length === 0) { etat.fiche.dlpi = iso || ""; sauver(); rendu(); }
-});
-dlpi.addEventListener("blur", () => { if (!frVersIso(dlpi.value)) { dlpi.value = isoVersFr(etat.fiche.dlpi); dlpi.classList.remove("invalide"); } });
-$("calDlpi").onclick = () => {
-  dlpiCal.value = etat.fiche.dlpi || versIso(new Date());
-  try { dlpiCal.showPicker(); } catch (e) { dlpiCal.focus(); dlpiCal.click(); }
-};
-dlpiCal.addEventListener("change", () => { if (dlpiCal.value) poserDlpi(dlpiCal.value); });
+const frVersIso = fr => { const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(fr || ""); if (!m) return null; const d = new Date(+m[3], +m[2] - 1, +m[1]);
+  return d.getDate() === +m[1] && d.getMonth() === +m[2] - 1 ? `${m[3]}-${m[2]}-${m[1]}` : null; };
+const formaterDate = v => { const ch = v.replace(/\D/g, "").slice(0, 8); return ch.length > 4 ? `${ch.slice(0, 2)}/${ch.slice(2, 4)}/${ch.slice(4)}` : ch.length > 2 ? `${ch.slice(0, 2)}/${ch.slice(2)}` : ch; };
+const norm = s => String(s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+const ORDRE_FEU = { rouge: 0, orange: 1, vert: 2 };
 
-/* ═══ Regroupement syndic : autant d'IMB que voulu, défilement horizontal ═══
-   chaque IMB : { imb, adr, el, elR, elP, note } ; adresse, EL et commentaire dans une bulle au survol */
-const imbVide = (imb = "") => ({ imb, adr: "", el: "", elR: "", elP: "", note: "" });
-if (!Array.isArray(etat.fiche.imbs)) {
-  // anciens dossiers : les 4 cases IMB fixes deviennent la liste
-  etat.fiche.imbs = [1, 2, 3, 4].map(i => etat.fiche["imb" + i] || "");
-  [1, 2, 3, 4].forEach(i => delete etat.fiche["imb" + i]);
+// un projet = une ligne ; ses POI : la principale (Racco D2) et les autres si leur numéro est rempli
+function ligneProjet(p) {
+  const r = resumes[p.id] || {}, t = typeDe(p.type);
+  const pois = (r.pois && r.pois.length ? r.pois : [{ type: t.nom, num: "", principale: true, statut: "en cours" }])
+    .filter(x => x.principale || (x.num || "").trim());
+  return { id: p.id, type: p.type, page: t.page, r, pois, principale: pois.find(x => x.principale) || pois[0] };
 }
-etat.fiche.imbs = etat.fiche.imbs.map(x => typeof x === "string" ? imbVide(x) : Object.assign(imbVide(), x));
-while (etat.fiche.imbs.length < 4) etat.fiche.imbs.push(imbVide());
-const aInfo = o => !!(o.adr || o.el || o.elR || o.elP || o.note);
-function rendreImbs(focusIndex) {
-  const L = etat.fiche.imbs, liste = $("imbListe");
-  liste.innerHTML = L.map((o, i) =>
-    `<div class="imb-item${aInfo(o) ? " info" : ""}${i === imbOuvert ? " actif" : ""}" data-item="${i}"><input id="imb${i}" data-imb="${i}" value="${esc(o.imb)}" placeholder="IMB/…" aria-label="IMB ${i + 1}" autocomplete="off">` +
-    (L.length > 4 && !o.imb.trim() && !aInfo(o) ? `<button class="suppr" type="button" data-suppr="${i}" aria-label="Supprimer la case IMB ${i + 1}" title="Supprimer">×</button>` : "") +
-    `</div>`).join("") + `<button class="imb-plus" type="button" id="imbPlus" aria-label="Ajouter un IMB" title="Ajouter un IMB">+</button>`;
-  if (focusIndex != null) { const f = $("imb" + focusIndex); f.focus(); f.scrollIntoView({ block: "nearest", inline: "nearest" }); }
-}
-$("imbListe").addEventListener("input", e => {
-  const i = e.target.dataset.imb; if (i == null) return;
-  const o = etat.fiche.imbs[i], avant = o.imb.trim();
-  o.imb = e.target.value; sauver();
-  if (+i === imbOuvert) $("imbBulleTitre").textContent = o.imb.trim() || `IMB ${+i + 1}`;
-  if (etat.fiche.imbs.length > 4 && !avant !== !o.imb.trim()) rendreImbs(+i);   // affiche ou retire la croix
-});
-$("imbListe").addEventListener("click", e => {
-  if (e.target.closest("#imbPlus")) { fermerImb(); etat.fiche.imbs.push(imbVide()); sauver(); rendreImbs(etat.fiche.imbs.length - 1); return; }
-  const s = e.target.closest("[data-suppr]");
-  if (s) { fermerImb(); etat.fiche.imbs.splice(+s.dataset.suppr, 1); sauver(); rendreImbs(); }
-});
+const enCours = x => !x.statut || x.statut === "en cours";
 
-/* bulle d'un IMB : s'ouvre au survol, se ferme quand la souris quitte la case et la bulle (ou avec Échap) */
-let imbOuvert = null;
-const imbBulle = $("imbBulle");
-function ouvrirImb(i) {
-  const item = document.querySelector(`[data-item="${i}"]`); if (!item) return;
-  if (imbBulle.contains(document.activeElement)) document.activeElement.blur();   // ce qui est tapé reste sur l'IMB précédent
-  imbOuvert = i;
-  const o = etat.fiche.imbs[i];
-  $("imbBulleTitre").textContent = o.imb.trim() || `IMB ${i + 1}`;
-  imbBulle.querySelectorAll("[data-info]").forEach(c => c.value = o[c.dataset.info] || "");
-  imbBulle.hidden = false;
-  // sous la case survolée, sans sortir de la carte
-  const zone = $("regroupZone").getBoundingClientRect(), r = item.getBoundingClientRect();
-  const larg = imbBulle.offsetWidth;
-  imbBulle.style.left = Math.max(0, Math.min(r.left - zone.left, zone.width - larg)) + "px";
-  imbBulle.style.top = (r.bottom - zone.top) + "px";
-  document.querySelectorAll(".imb-item.actif").forEach(x => x.classList.remove("actif"));
-  item.classList.add("actif");
+/* ═══ Tableau : tri par feu au départ, puis par n'importe quelle colonne (un 2e clic inverse) ═══ */
+const COLS = [
+  { k: "feu", lib: "Feu", val: L => ORDRE_FEU[L.r.urgence] ?? 9 },
+  { k: "type", lib: "Type", val: L => norm(L.pois.map(x => x.type).join(" ")) },
+  { k: "poi", lib: "N° POI", val: L => norm(L.pois[0]?.num) },
+  { k: "cab", lib: "Cabinet conseil", val: L => norm(L.r.cabinet) },
+  { k: "adr", lib: "Adresse", val: L => norm(L.r.adresse) },
+  { k: "el", lib: "Nb EL", val: L => L.r.el === "" || L.r.el == null ? "" : +L.r.el },
+  { k: "dlpi", lib: "DLPI", val: L => L.r.dlpi || "" },
+  { k: "dre", lib: "DRE", val: L => L.r.dre || "" },
+  { k: "dlr", lib: "DLR", val: L => L.r.dlr || "" },
+  { k: "note", lib: "Note", val: L => norm(L.r.note) }];
+let tri = { k: "feu", sens: 1 }, vue = "cours";
+function comparer(a, b) {
+  const c = COLS.find(x => x.k === tri.k), va = c.val(a), vb = c.val(b);
+  const videA = va === "" || va == null, videB = vb === "" || vb == null;
+  if (videA !== videB) return videA ? 1 : -1;   // les cases vides toujours en bas
+  if (!videA && va !== vb) return (va < vb ? -1 : 1) * tri.sens;
+  // à égalité : la DRE la plus proche, puis l'adresse
+  return (a.r.dre || "9999").localeCompare(b.r.dre || "9999") || norm(a.r.adresse).localeCompare(norm(b.r.adresse));
 }
-function fermerImb() {
-  if (imbOuvert == null) return;
-  imbOuvert = null; imbBulle.hidden = true;
-  if (imbBulle.contains(document.activeElement)) document.activeElement.blur();
-  rendreImbs();
+function lignesVue() {
+  const L = projets.map(ligneProjet);
+  if (vue === "cours") return L.filter(x => enCours(x.principale));
+  // archivés / annulés : seulement les POI qui le sont
+  return L.map(x => ({ ...x, pois: x.pois.filter(po => !enCours(po)) })).filter(x => x.pois.length);
 }
-$("imbListe").addEventListener("mouseover", e => {
-  const item = e.target.closest("[data-item]"); if (!item) return;
-  const i = +item.dataset.item;
-  if (i !== imbOuvert) ouvrirImb(i);
+function rendreTableau() {
+  $("titreVue").textContent = vue === "cours" ? "Dossiers en cours" : "Dossiers archivés et annulés";
+  $("retourEnCours").hidden = vue === "cours";
+  $("voirArchives").hidden = vue !== "cours";
+  $("tete").innerHTML = `<tr>${COLS.map(c => `<th data-tri="${c.k}" aria-sort="${tri.k === c.k ? (tri.sens > 0 ? "ascending" : "descending") : "none"}">${esc(c.lib)} <span class="fl">${tri.k === c.k ? (tri.sens > 0 ? "▲" : "▼") : ""}</span></th>`).join("")}</tr>`;
+  const L = lignesVue().sort(comparer);
+  if (!L.length) {
+    $("corps").innerHTML = `<tr><td colspan="${COLS.length}" class="vide">${vue === "cours"
+      ? (projets.length ? "<b>Aucun dossier en cours</b>Tous tes projets sont archivés ou annulés." : "<b>Crée ton premier projet</b>Clique sur « + Nouveau projet » en haut à droite.")
+      : "<b>Aucun dossier archivé ou annulé</b>Ils apparaîtront ici dès qu'une POI sera archivée ou annulée."}</td></tr>`;
+    majRecherche(); return;
+  }
+  $("corps").innerHTML = L.map(x => {
+    const r = x.r, statut = po => enCours(po) ? "" : ` <span class="statut">${esc(po.statut)}${po.date && vue !== "cours" ? " le " + isoVersFr(po.date) : ""}</span>`;
+    return `<tr data-projet="${x.id}" tabindex="0" title="Ouvrir ce projet">
+      <td><span class="feu ${r.urgence || "aucun"}" title="${esc(r.urgence ? { rouge: "Urgent", orange: "Pas urgent, je peux avancer", vert: "En attente de documents" }[r.urgence] : "Pas de feu")}"></span></td>
+      <td>${x.pois.map(po => `<span class="sous">${esc(po.type)}</span>`).join("")}</td>
+      <td>${x.pois.map(po => `<span class="sous num">${esc(po.num || "—")}${statut(po)}</span>`).join("")}</td>
+      <td>${esc(r.cabinet)}</td><td>${esc(r.adresse)}</td><td class="num">${esc(r.el)}</td>
+      <td class="num">${isoVersFr(r.dlpi)}</td><td class="num">${isoVersFr(r.dre)}</td><td class="num">${isoVersFr(r.dlr)}</td>
+      <td class="note" title="${esc(r.note)}">${esc(r.note)}</td></tr>`; }).join("");
+  majRecherche();
+}
+$("tete").addEventListener("click", e => {
+  const th = e.target.closest("[data-tri]"); if (!th) return;
+  tri = tri.k === th.dataset.tri ? { k: tri.k, sens: -tri.sens } : { k: th.dataset.tri, sens: 1 };
+  rendreTableau();
 });
-// petit délai pour passer de la case à la bulle sans qu'elle se ferme
-let imbMinuterie = null;
-const dansImb = el => el && (imbBulle.contains(el) || el.closest?.(".imb-item"));
-document.addEventListener("mouseover", e => {
-  if (imbOuvert == null) return;
-  if (dansImb(e.target)) { clearTimeout(imbMinuterie); imbMinuterie = null; }
-  else if (!imbMinuterie) imbMinuterie = setTimeout(() => { imbMinuterie = null; fermerImb(); }, 300);
-});
-document.addEventListener("mouseout", e => { if (imbOuvert != null && !e.relatedTarget && !imbMinuterie) imbMinuterie = setTimeout(() => { imbMinuterie = null; fermerImb(); }, 300); });
-imbBulle.addEventListener("input", e => {
-  const c = e.target.dataset.info; if (!c || imbOuvert == null) return;
-  if (c !== "adr" && c !== "note") e.target.value = e.target.value.replace(/\D/g, "");
-  etat.fiche.imbs[imbOuvert][c] = e.target.value; sauver();
-  document.querySelector(`[data-item="${imbOuvert}"]`)?.classList.toggle("info", aInfo(etat.fiche.imbs[imbOuvert]));
-});
-document.addEventListener("pointerdown", e => { if (imbOuvert != null && !imbBulle.contains(e.target) && !e.target.closest(".imb-item")) fermerImb(); });
-document.addEventListener("keydown", e => { if (e.key === "Escape" && imbOuvert != null) fermerImb(); });
-$("imbListe").addEventListener("scroll", () => { if (imbOuvert != null && !imbBulle.contains(document.activeElement)) fermerImb(); });
-rendreImbs();
+const ouvrir = tr => { const p = projets.find(x => x.id === tr.dataset.projet), t = p && typeDe(p.type); if (t?.page) location.href = `${t.page}?p=${encodeURIComponent(p.id)}`; };
+$("corps").addEventListener("click", e => { const tr = e.target.closest("[data-projet]"); if (tr) ouvrir(tr); });
+$("corps").addEventListener("keydown", e => { const tr = e.target.closest("[data-projet]"); if (tr && e.key === "Enter") ouvrir(tr); });
+$("voirArchives").onclick = () => { vue = "archives"; rendreTableau(); $("titreVue").scrollIntoView({ behavior: "smooth", block: "start" }); };
+$("retourEnCours").onclick = () => { vue = "cours"; rendreTableau(); };
 
-/* ═══ Import de l'export Excel des IMB (une ligne par IMB, un seul regroupement par fichier) ═══
-   colonnes : A Dossier (IMB), D Code Regroupement Syndic, W..AD adresse, AU / AV / AW logements (total, R = particuliers, P = pro) */
-const SHEETJS = "https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js";
-function chargerSheetJS() {
-  if (window.XLSX) return Promise.resolve();
-  return new Promise((ok, ko) => { const sc = document.createElement("script"); sc.src = SHEETJS; sc.onload = ok; sc.onerror = () => ko(new Error("lecteur Excel introuvable (connexion internet ?)")); document.head.appendChild(sc); });
-}
-const COL = { imb: 0, regroup: 3, num: 22, cplt: 23, voie: 24, adresse: 25, bat: 26, esc: 27, cp: 28, loc: 29, el: 46, elR: 47, elP: 48 };
-const txt = v => (v == null ? "" : String(v)).trim();
-const nombre = v => { const t = txt(v).replace(",", "."); return t === "" || isNaN(+t) ? t.replace(/\D/g, "") : String(Math.round(+t)); };
-function adresseLigne(r) {
-  const rue = [txt(r[COL.num]), txt(r[COL.cplt]), txt(r[COL.voie])].filter(Boolean).join(" ");
-  const ad = txt(r[COL.adresse]);
-  const parts = [];
-  if (rue) parts.push(rue);
-  if (ad && (!rue || !ad.toLowerCase().includes(rue.toLowerCase()))) parts.push(ad);
-  if (txt(r[COL.bat])) parts.push("Bât. " + txt(r[COL.bat]));
-  if (txt(r[COL.esc])) parts.push("Esc. " + txt(r[COL.esc]));
-  const ville = [txt(r[COL.cp]), txt(r[COL.loc])].filter(Boolean).join(" ");
-  if (ville) parts.push(ville);
-  return parts.join(", ");
-}
-function messageImport(t, ko) { const m = $("importMsg"); m.textContent = t; m.classList.toggle("ko", !!ko); m.hidden = false; clearTimeout(m._t); m._t = setTimeout(() => m.hidden = true, 6000); }
-$("imbFichier").addEventListener("change", async e => {
-  const f = e.target.files[0]; e.target.value = ""; if (!f) return;
-  try {
-    await chargerSheetJS();
-    const wb = XLSX.read(await f.arrayBuffer(), { type: "array" });
-    const lignes = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, defval: "", raw: true });
-    // la ligne d'en-tête est celle dont la colonne A vaut « Dossier »
-    const h = lignes.findIndex(r => txt(r[0]).toLowerCase() === "dossier");
-    if (h < 0) throw new Error("colonne « Dossier » introuvable");
-    const data = lignes.slice(h + 1).filter(r => txt(r[COL.imb]));
-    if (!data.length) throw new Error("aucun IMB dans le fichier");
-    const actuels = etat.fiche.imbs.filter(o => o.imb.trim());
-    if (actuels.length && !confirm(`Remplacer les ${actuels.length} IMB actuels par les ${data.length} du fichier ?`)) return;
-    const notes = Object.fromEntries(etat.fiche.imbs.filter(o => o.imb.trim() && o.note).map(o => [o.imb.trim(), o.note]));
-    fermerImb();
-    etat.fiche.imbs = data.map(r => ({ imb: txt(r[COL.imb]), adr: adresseLigne(r), el: nombre(r[COL.el]), elR: nombre(r[COL.elR]), elP: nombre(r[COL.elP]),
-      note: notes[txt(r[COL.imb])] || "" }));   // un commentaire déjà écrit sur le même IMB est gardé
-    while (etat.fiche.imbs.length < 4) etat.fiche.imbs.push(imbVide());
-    const code = data.map(r => txt(r[COL.regroup])).find(Boolean);
-    if (code) { etat.fiche.ref = code; $("f_ref").value = code; }
-    sauver(); rendreImbs(); rendu();
-    messageImport(`${data.length} IMB importés${code ? " · regroupement " + code : ""}`);
-  } catch (err) { messageImport("Import impossible : " + err.message, true); }
-});
-
-/* ═══ Nombre d'EL : bulle de commentaires et de captures, ouverte au survol ═══ */
-const CAPCLE = "racco-d2-captures";          // captures à part : l'état principal reste léger
-let captures = [];
-try { const c = JSON.parse(localStorage.getItem(CAPCLE) || "[]"); if (Array.isArray(c)) captures = c.filter(x => typeof x === "string"); } catch (e) {}
-const bulle = $("bulle"), elZone = $("elZone"), noteBtn = $("noteBtn"), noteTexte = $("noteTexte");
-noteTexte.value = etat.fiche.elNote || "";
-// la bulle s'ouvre au survol et se ferme quand la souris quitte la case Nombre d'EL ;
-// un clic sur 💬 (ou dans la bulle) l'épingle : elle reste ouverte jusqu'au clic ailleurs (ou Échap),
-// ce qui permet d'aller chercher une capture dans une autre fenêtre et de la glisser dedans
-let epinglee = false, elMinuterie = null;
-function majNoteBtn() { noteBtn.classList.toggle("plein", !!(noteTexte.value.trim() || captures.length)); }
-function ouvrir() { clearTimeout(elMinuterie); bulle.hidden = false; noteBtn.setAttribute("aria-expanded", "true"); }
-function epingler() { ouvrir(); epinglee = true; bulle.classList.add("epinglee"); }
-function fermer() { clearTimeout(elMinuterie); noteTexte.blur(); bulle.hidden = true; epinglee = false; bulle.classList.remove("epinglee"); noteBtn.setAttribute("aria-expanded", "false"); }
-elZone.addEventListener("mouseenter", ouvrir);
-elZone.addEventListener("mouseleave", () => { if (!epinglee && !bulle.hidden) elMinuterie = setTimeout(fermer, 300); });
-noteBtn.onclick = () => { if (epinglee) fermer(); else epingler(); };
-bulle.addEventListener("pointerdown", epingler);
-document.addEventListener("pointerdown", e => { if (!bulle.hidden && !elZone.contains(e.target) && !e.target.closest(".visionneuse")) fermer(); });
-document.addEventListener("keydown", e => { if (e.key === "Escape" && !bulle.hidden && !document.querySelector(".visionneuse")) fermer(); });
-noteTexte.addEventListener("input", () => { etat.fiche.elNote = noteTexte.value; sauver(); majNoteBtn(); });
-
-function rendreCaptures() {
-  $("captures").innerHTML = captures.map((src, i) =>
-    `<div class="capture" data-voir="${i}"><img src="${src}" alt="Capture ${i + 1}"><button type="button" data-ret="${i}" aria-label="Retirer la capture ${i + 1}" title="Retirer">×</button></div>`).join("");
-  majNoteBtn();
-}
-function sauverCaptures() {
-  try { localStorage.setItem(CAPCLE, JSON.stringify(captures)); return true; } catch (e) { return false; }
-}
-// réduit l'image (1400 px max, JPEG) pour tenir dans la mémoire du navigateur
-function reduire(fichier, max = 1400, q = 0.72) {
-  return new Promise((ok, ko) => {
-    const lect = new FileReader();
-    lect.onload = () => {
-      const img = new Image();
-      img.onload = () => {
-        const k = Math.min(1, max / Math.max(img.width, img.height));
-        const cv = document.createElement("canvas"); cv.width = Math.round(img.width * k); cv.height = Math.round(img.height * k);
-        cv.getContext("2d").drawImage(img, 0, 0, cv.width, cv.height);
-        ok(cv.toDataURL("image/jpeg", q));
-      };
-      img.onerror = ko; img.src = lect.result;
-    };
-    lect.onerror = ko; lect.readAsDataURL(fichier);
+/* ═══ Recherche : cherche dans tout le contenu de chaque projet et surligne les lignes trouvées ═══ */
+function majRecherche() {
+  const q = norm($("recherche").value.trim());
+  let n = 0, premier = null;
+  document.querySelectorAll("#corps tr[data-projet]").forEach(tr => {
+    const r = resumes[tr.dataset.projet] || {};
+    const sources = [...(r.recherche || []), ...(r.pois || []).map(po => ({ lieu: "Type", texte: po.type }))];
+    const lieux = q.length >= 2 ? [...new Set(sources.filter(s => norm(s.texte).includes(q)).map(s => s.lieu))] : [];
+    tr.classList.toggle("trouve", lieux.length > 0);
+    tr.title = lieux.length ? `Trouvé dans : ${lieux.join(", ")}` : "Ouvrir ce projet";
+    if (lieux.length) { n++; premier = premier || tr; }
   });
+  $("rechercheRes").textContent = q.length >= 2 ? (n ? `${n} projet${n > 1 ? "s" : ""} trouvé${n > 1 ? "s" : ""}` : "Aucun projet trouvé") : "";
+  return premier;
 }
-async function ajouterCaptures(fichiers) {
-  for (const f of fichiers) {
-    if (!f.type.startsWith("image/")) continue;
-    try { captures.push(await reduire(f)); } catch (e) { continue; }
-    if (!sauverCaptures()) { captures.pop(); sauverCaptures(); alert("Plus de place pour d'autres captures : retires-en une avant d'en ajouter."); break; }
-  }
-  rendreCaptures();
-}
-$("noteFichier").addEventListener("change", e => { ajouterCaptures([...e.target.files]); e.target.value = ""; });
-bulle.addEventListener("paste", e => {
-  const imgs = [...(e.clipboardData?.files || [])].filter(f => f.type.startsWith("image/"));
-  if (imgs.length) { e.preventDefault(); ajouterCaptures(imgs); }
-});
-bulle.addEventListener("dragover", e => { e.preventDefault(); bulle.classList.add("depot"); });
-bulle.addEventListener("dragleave", () => bulle.classList.remove("depot"));
-bulle.addEventListener("drop", e => { e.preventDefault(); bulle.classList.remove("depot"); ajouterCaptures([...e.dataTransfer.files]); });
-$("captures").addEventListener("click", e => {
-  const r = e.target.closest("[data-ret]");
-  if (r) { captures.splice(+r.dataset.ret, 1); sauverCaptures(); rendreCaptures(); return; }
-  const v = e.target.closest("[data-voir]");
-  if (v) {
-    const vis = document.createElement("div"); vis.className = "visionneuse";
-    vis.innerHTML = `<img src="${captures[+v.dataset.voir]}" alt="Capture agrandie">`;
-    vis.onclick = () => vis.remove(); document.body.appendChild(vis);
-  }
-});
-rendreCaptures();
+$("recherche").addEventListener("input", () => { const p = majRecherche(); p?.scrollIntoView({ block: "nearest", behavior: "smooth" }); });
 
-const pad = n => String(n).padStart(2, "0");
-const versIso = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-
-/* ═══ Notion d'urgence : feu tricolore (rouge urgent, orange pas urgent, vert en attente de documents) ═══ */
-const URG = { rouge: "Urgent", orange: "Pas urgent, je peux avancer", vert: "En attente de documents" };
-function majUrgence() {
-  const u = etat.fiche.urgence || "";
-  document.querySelectorAll("[data-urg]").forEach(b => { b.classList.toggle("on", b.dataset.urg === u); b.setAttribute("aria-pressed", String(b.dataset.urg === u)); });
-  $("entete").classList.remove("urg-rouge", "urg-orange", "urg-vert");
-  if (u) $("entete").classList.add("urg-" + u);
-  $("urgLib").textContent = URG[u] || "";
+/* ═══ Statistiques : nombre de POI et d'EL ; les EL sont liés au projet (comptés avec sa POI principale) ═══
+   période du … au … : en cours = reçue avant la fin et pas encore archivée/annulée à la fin ; archivés / annulés = pendant la période */
+function categorie(po, recu, d1, d2) {
+  if (enCours(po)) return !d2 || !recu || recu <= d2 ? "cours" : null;
+  const cat = po.statut === "annulée" ? "annul" : "arch", dt = po.date || "";
+  if (!d1 && !d2) return cat;
+  if (dt && (!d1 || dt >= d1) && (!d2 || dt <= d2)) return cat;
+  if (dt && d2 && dt > d2 && (!recu || recu <= d2)) return "cours";   // archivée après la période : encore en cours pendant
+  return null;
 }
-document.querySelector(".feu").addEventListener("click", e => {
-  const b = e.target.closest("[data-urg]"); if (!b) return;
-  etat.fiche.urgence = etat.fiche.urgence === b.dataset.urg ? "" : b.dataset.urg;   // re-cliquer éteint
-  sauver(); majUrgence();
+function rendreStats() {
+  const d1 = frVersIso($("du").value) || "", d2 = frVersIso($("au").value) || "";
+  const S = { cours: { poi: 0, el: 0 }, arch: { poi: 0, el: 0 }, annul: { poi: 0, el: 0 } };
+  projets.map(ligneProjet).forEach(x => x.pois.forEach(po => {
+    const c = categorie(po, x.r.recu || "", d1, d2); if (!c) return;
+    S[c].poi++; if (po.principale) S[c].el += parseInt(x.r.el, 10) || 0;
+  }));
+  const T = { poi: S.cours.poi + S.arch.poi + S.annul.poi, el: S.cours.el + S.arch.el + S.annul.el };
+  const bloc = (cls, titre, o) => `<div class="stat ${cls}"><h3>${titre}</h3><div class="ligne"><span>Nombre de POI</span><b>${o.poi}</b></div><div class="ligne"><span>Nombre d'EL</span><b>${o.el}</b></div></div>`;
+  $("stats").innerHTML = bloc("cours", "En cours", S.cours) + bloc("arch", "Archivés", S.arch) + bloc("annul", "Annulés", S.annul) + bloc("total", "Total", T);
+}
+// période gardée d'une visite à l'autre sur ce navigateur
+try { const p = JSON.parse(localStorage.getItem("kultivaprix-suivi-periode") || "{}"); $("du").value = p.du || ""; $("au").value = p.au || ""; } catch (e) {}
+const garderPeriode = () => { try { localStorage.setItem("kultivaprix-suivi-periode", JSON.stringify({ du: $("du").value, au: $("au").value })); } catch (e) {} };
+["du", "au"].forEach(id => {
+  const c = $(id);
+  c.addEventListener("input", () => { c.value = formaterDate(c.value); c.classList.toggle("invalide", c.value.length === 10 && !frVersIso(c.value)); if (!c.value || frVersIso(c.value)) { garderPeriode(); rendreStats(); } });
 });
-
-/* ═══ Dates importantes : saisie comme la DLPI, rangées en sous-parties ═══ */
-// Générale, Racco D2, Anticipation, GCBLO (Souterrain, Aérien), Permission de voirie ; la DLPI vient en 2e, après Réception POI
-// une seule date MAD : elle devient « MAD anticipée » quand elle vient de la tâche de MAD anticipée
-const GROUPES_DI = [
-  { id: "gen", titre: "Générale", dates: [["poi", "Réception POI"], ["dre", "DRE"], ["dlr", "DLR"], ["mad", "MAD"]] },
-  { id: "racco", titre: "Racco D2", dates: [["apd", "Réception APD conforme"], ["doePre", "Réception DOE précâblage conforme"], ["travaux", "Envoi en travaux D2"],
-    ["doeRacco", "Réception DOE Racco D2"], ["paiement", "Paiement attachement D2"], ["archRacco", "Archivage POI Racco D2"]] },
-  { id: "ant", titre: "Anticipation", dates: [["travauxAnt", "Envoi en travaux anticipation"], ["doeAnt", "Réception DOE Anticipation"],
-    ["paiementAnt", "Paiement attachement anticipation"], ["archAnt", "Archivage POI anticipation"]] },
-  { id: "gcblo", titre: "GCBLO", dates: [] },
-  { id: "sout", titre: "Souterrain", sous: true, dates: [["cmdSout", "Demande commande d’accès souterrain"], ["retCmdSout", "Retour OK commande d’accès souterrain"],
-    ["dftSout", "Envoi DFT souterrain"], ["retDftSout", "Retour OK DFT souterrain"]] },
-  { id: "aer", titre: "Aérien", sous: true, dates: [["releveBo", "Envoi relevé poteau au BO aérien"], ["sepale", "Retour BO aérien"],
-    ["cmdAer", "Demande commande d’accès aérien"], ["retCmdAer", "Retour OK commande d’accès aérien"], ["atlas", "ATLAS"],
-    ["dftAer", "Envoi DFT aérien"], ["retDftAer", "Retour OK DFT aérien"]] },
-  { id: "pv", titre: "Permission de voirie", dates: [["pvDemande", "Demande PV"], ["pvRetour", "Retour PV"], ["pvCloture", "Clôture PV"]] }];
-const DATES_IMP = GROUPES_DI.flatMap(g => g.dates);
-// précisions au survol de l'astérisque ou du titre (pas pour les envois en travaux, le paiement ni les archivages ; celle de la DLPI est dans le HTML)
-const AIDE_DI = {
-  poi: "Date à laquelle la POI a été intégrée à mon portefeuille.",
-  dre: "Date à entrer manuellement selon l'état d'avancement du dossier.",
-  dlr: "Date à entrer manuellement selon l'état d'avancement du dossier.",
-  apd: "Date de réception de l'APD <u>conforme</u>.",
-  doeAnt: "Date de réception du DOE anticipation <u>conforme</u>.",
-  doePre: "Date de réception du DOE précâblage <u>conforme</u>.",
-  doeRacco: "Date de réception du DOE Racco D2 <u>conforme</u>.",
-  mad: "Date à laquelle j'ai fait la demande de MAD.",
-};
-const SERRE = new Set();   // (les titres longs passent maintenant sur deux lignes, à gauche de leur case)
-if (!etat.fiche.di || typeof etat.fiche.di !== "object") etat.fiche.di = {};
-if (!etat.fiche.diSrc || typeof etat.fiche.diSrc !== "object") etat.fiche.diSrc = {};   // tâche d'où vient chaque date reliée
-if (etat.fiche.di.madAnt) {   // ancienne date « MAD anticipée » : reprise dans la date MAD
-  if (!etat.fiche.di.mad) { etat.fiche.di.mad = etat.fiche.di.madAnt; etat.fiche.diSrc.mad = "t6_9"; }
-  delete etat.fiche.di.madAnt;
-}
-// dates des tâches reportées toutes seules dans les Dates importantes (la case reste modifiable à la main)
-const LIENS_DI = { t1: "poi", t2_1_2: "apd", t4_1_1: "archAnt", t4_2_4: "travauxAnt", t4d: "doeAnt", t4d_4: "paiementAnt", t4d_6: "archAnt", t5_1_2: "doePre", t6_9: "mad", t7: "doeRacco", t7_3: "paiement",
-  t7_5: "mad", t7_6: "archRacco",
-  t4_2_13_1: "cmdSout", t4_2_13_2_2: "retCmdSout", t4d_3_1: "dftSout", t4d_3_2_2: "retDftSout",
-  t3_5_5: "releveBo", t3_5_6: "sepale", t4_2_12_2: "cmdAer", t4_2_12_3_2: "retCmdAer", t4_2_12_1_3: "atlas", t4d_2_2: "dftAer", t4d_2_3_2: "retDftAer",
-  t4_2_12_1_2_1: "pvDemande", t4_2_12_1_2_2: "pvRetour", t4d_2_1_1: "pvCloture" };
-// titre d'une date selon la tâche d'où elle vient (sinon le titre normal)
-const TITRE_SRC = { mad: { t6_9: "MAD anticipée" }, archAnt: { t4_1_1: "Annulation POI anticipation" } };
-function reporterDate(id) {
-  const k = LIENS_DI[id]; if (!k) return;
-  // date effacée : l'autre tâche reliée à la même date (MAD / MAD anticipée) reprend la main si elle a une date
-  const src = etat.dates[id] ? id : Object.keys(LIENS_DI).find(t => t !== id && LIENS_DI[t] === k && etat.dates[t]);
-  if (src) { etat.fiche.di[k] = etat.dates[src]; etat.fiche.diSrc[k] = src; } else { delete etat.fiche.di[k]; delete etat.fiche.diSrc[k]; }
-  sauver();
-  const c = $("di_" + k); if (c) { c.value = isoVersFr(etat.fiche.di[k]); c.classList.remove("invalide"); }
-  majTitres(); majPoiEtat();
-}
-Object.keys(LIENS_DI).forEach(id => { if (etat.dates[id]) { etat.fiche.di[LIENS_DI[id]] = etat.dates[id]; etat.fiche.diSrc[LIENS_DI[id]] = id; } });
-// POI annulée ou archivée (date d'archivage/annulation remplie, ou tâche correspondante cochée) : son numéro passe en grisé
-function majPoiEtat() {
-  const di = etat.fiche.di || {}, src = etat.fiche.diSrc || {}, fait = id => NOEUDS[id] && valide(NOEUDS[id]);
-  const ant = fait("t4_1_1") || src.archAnt === "t4_1_1" ? "annulée" : di.archAnt || fait("t4d_6") ? "archivée" : "";
-  const racco = di.archRacco || fait("t7_6") ? "archivée" : "";
-  // aérien : la case N° POI aérien n'apparaît que si « Oui » est coché
-  // avec « Oui », N° POI aérien prend la place du Nombre d'EL, qui passe entre l'adresse et le N° PC
-  const aerien = fait("t1_3_1");
-  $("champAerien").hidden = !aerien; document.querySelector(".fiche").classList.toggle("avec-aerien", aerien);
-  const cRacco = $("f_racco").closest(".champ"), cAdr = $("f_adr").closest(".champ"), cEl = $("elZone"), cAe = $("champAerien");
-  if (aerien && cRacco.nextElementSibling !== cAe) { cRacco.after(cAe); cAdr.after(cEl); }
-  if (!aerien && cRacco.nextElementSibling !== cEl) { cRacco.after(cEl); cAdr.after(cAe); }
-  // Dates importantes grisées : sans « Oui » à l'aérien (Aérien, Permission de voirie), sans anticipation (sauf l'archivage, qui reçoit la date d'annulation),
-  // ou quand toutes les tâches d'où vient la date sont barrées
-  const sansAnt = engagee("t4_1"), aerienGrp = new Set(["diGrp_aer", "diGrp_pv"].flatMap(g => [...($(g)?.querySelectorAll("input[data-di]") || [])].map(c => c.dataset.di)));
-  DATES_IMP.forEach(([k]) => {
-    const srcs = Object.keys(LIENS_DI).filter(t => LIENS_DI[t] === k && NOEUDS[t]);
-    const gris = (aerienGrp.has(k) && !aerien) || (sansAnt && ["travauxAnt", "doeAnt", "paiementAnt"].includes(k)) || (srcs.length > 0 && srcs.every(t => estBarre(NOEUDS[t])));
-    $("di_" + k)?.classList.toggle("poi-close", gris);
-  });
-  if (typeof iuVisibilite === "function") iuVisibilite();   // Infos utiles : la sous-partie PV aussi
-  placerAides();
-  [["f_ant", "etatAnt", ant], ["f_racco", "etatRacco", racco]].forEach(([c, e, t]) => { $(c).classList.toggle("poi-close", !!t); $(e).textContent = t ? " · " + t : ""; });
-
-}
-// la précision d'une date de la colonne de droite s'ouvre vers la gauche pour ne pas sortir de la carte
-function placerAides() {
-  const z = $("datesImp"); if (!z) return;
-  const droite = z.getBoundingClientRect().right;
-  z.querySelectorAll(".champ").forEach(c => c.classList.toggle("a-droite", c.getBoundingClientRect().right > droite - 20));
-}
-window.addEventListener("resize", placerAides);
-function majTitres() {
-  Object.entries(TITRE_SRC).forEach(([k, t]) => {
-    const lib = t[etat.fiche.diSrc[k]] || DATES_IMP.find(d => d[0] === k)[1];
-    $("di_" + k).closest(".champ").querySelector(".di-lib").textContent = lib;
-  });
-  $("aide_mad").textContent = `Date à laquelle j'ai fait la demande de ${$("di_mad").closest(".champ").querySelector(".di-lib").textContent}.`;
-}
-const champDI = ([k, lib]) => `<div class="champ">` +
-  (AIDE_DI[k] ? `<label for="di_${k}" class="avec-aide${SERRE.has(k) ? " serre" : ""}"><span class="di-lib">${esc(lib)}</span><sup class="ast" aria-hidden="true">*</sup></label><span class="di-aide" id="aide_${k}" role="tooltip">${AIDE_DI[k]}</span>`
-    : `<label for="di_${k}"${SERRE.has(k) ? ` class="serre"` : ""}><span class="di-lib">${esc(lib)}</span></label>`) + `<div class="date-champ">` +
-  `<input id="di_${k}" data-di="${k}"${AIDE_DI[k] ? ` aria-describedby="aide_${k}"` : ""} value="${isoVersFr(etat.fiche.di[k])}" placeholder="JJ/MM/AAAA" inputmode="numeric" maxlength="10" autocomplete="off">` +
-  `<button class="cal" type="button" data-dical="${k}" aria-label="Choisir la date « ${esc(lib)} » dans le calendrier" title="Calendrier">${ICO_CAL}</button>` +
-  `<input type="date" class="date-cachee" data-dipick="${k}" tabindex="-1" aria-hidden="true"></div></div>`;
-// Souterrain et Aérien sont rangés dans la section GCBLO (l'espace entre grandes parties ne les sépare pas de leur titre)
-GROUPES_DI.forEach(g => {
-  const html = `<section class="di-grp di-${g.id}${g.sous ? " di-sous" : ""}" id="diGrp_${g.id}">` +
-    `<h3 class="di-titre">${esc(g.titre)}</h3>` + (g.dates.length ? `<div class="di-liste">${g.dates.map(champDI).join("")}</div>` : "") + `</section>`;
-  (g.sous ? $("datesImp").lastElementChild : $("datesImp")).insertAdjacentHTML("beforeend", html);
-});
-$("di_poi").closest(".champ").after($("f_dlpi").closest(".champ"));   // la DLPI en 2e, juste après Réception POI
-majTitres();
-$("datesImp").addEventListener("input", e => {
-  const k = e.target.dataset.di; if (!k) return;
-  e.target.value = formaterDate(e.target.value);
-  const iso = frVersIso(e.target.value), vide = !e.target.value;
-  e.target.classList.toggle("invalide", e.target.value.length === 10 && !iso);
-  if (iso) etat.fiche.di[k] = iso; else if (vide) delete etat.fiche.di[k];
-  if (iso || vide) { if (TITRE_SRC[k]) { delete etat.fiche.diSrc[k]; majTitres(); } sauver(); majPoiEtat(); }   // saisie à la main : titre normal
-});
-$("datesImp").addEventListener("focusout", e => {
-  const k = e.target.dataset.di; if (!k) return;
-  if (!frVersIso(e.target.value)) { e.target.value = isoVersFr(etat.fiche.di[k]); e.target.classList.remove("invalide"); }
-});
-$("datesImp").addEventListener("click", e => {
-  const b = e.target.closest("[data-dical]"); if (!b) return;
-  const pick = b.parentElement.querySelector("[data-dipick]");
-  pick.value = etat.fiche.di[b.dataset.dical] || versIso(new Date());
-  try { pick.showPicker(); } catch (err) { pick.focus(); pick.click(); }
-});
-$("datesImp").addEventListener("change", e => {
-  const k = e.target.dataset.dipick; if (!k || !e.target.value) return;
-  etat.fiche.di[k] = e.target.value;
-  if (TITRE_SRC[k]) { delete etat.fiche.diSrc[k]; majTitres(); }
-  sauver(); majPoiEtat();
-  const c = $("di_" + k); c.value = isoVersFr(e.target.value); c.classList.remove("invalide");
-});
-
-/* ═══ Documents POI : grande tuile vers le dossier OneDrive ═══ */
-function majDocs() {
-  if (typeof majComlLien === "function") majComlLien();
-  const l = etat.liens.docsPOI;
-  $("docsEtat").textContent = l ? "Ouvrir le dossier OneDrive" : "Ajouter le lien OneDrive";
-  $("docsEdit").hidden = !l;
-  const n = etat.liens.notes;
-  $("notesEtat").textContent = n ? "Ouvrir les notes OneDrive" : "Ajouter le lien OneDrive";
-  $("notesEdit").hidden = !n;
-}
-// Notes : même fonctionnement que Documents POI, vers le fichier de notes sur OneDrive
-$("notesTuile").onclick = () => { const l = etat.liens.notes; if (l) window.open(l, "_blank", "noopener"); else ouvrirLienPop("notes", $("notesTuile"), "Lien OneDrive · Notes"); };
-$("notesEdit").onclick = () => ouvrirLienPop("notes", $("notesEdit"), "Lien OneDrive · Notes");
-$("docsTuile").onclick = () => { const l = etat.liens.docsPOI; if (l) window.open(l, "_blank", "noopener"); else ouvrirLienPop("docsPOI", $("docsTuile"), "Lien du dossier OneDrive · Documents POI"); };
-$("docsEdit").onclick = () => ouvrirLienPop("docsPOI", $("docsEdit"), "Lien du dossier OneDrive · Documents POI");
-// Suivi des dossiers : le tableau de tous les dossiers n'existe pas encore
-$("suiviTuile").onclick = () => { const m = $("suiviEtat"); m.textContent = "Tableau de suivi à venir"; clearTimeout(m._t); m._t = setTimeout(() => m.textContent = "Tableau de suivi de tous les dossiers", 2500); };
-
-/* ═══ Infos utiles : texte noir fixe après « : », champ prérempli sinon ═══ */
-const IU = [
-  { t: "PMZ", k: "pmz", l: [{ pre: "PT", k: "pmz_pt" }, { pre: "PF", k: "pmz_pf" }, { pre: "AR/", k: "pmz_ar" }, { lab: "FI reg :", k: "pmz_fireg" }] },
-  { t: "PA", k: "pa", l: [{ pre: "PT", k: "pa_pt" }, { pre: "PF", k: "pa_pf" }, { pre: "CH/", k: "pa_ch", type: "pa_type" }, { lab: "PA reg :", k: "pa_reg" }] },
-  { t: "PR/BPI", k: "bpi", l: [{ pre: "PT", k: "bpi_pt" }, { pre: "CH/", k: "bpi_ch", type: "bpi_type" }] },
-  { t: "PB", k: "pb", l: [{ pre: "PT", k: "pb_pt" }, { pre: "PF", k: "pb_pf" }, { pre: "CH/", k: "pb_ch", type: "pb_type" }] },
-  { t: "PAR", l: [{ pre: "CH/", k: "par_ch", type: "par_type" }, { lab: "Appui :", k: "par_appui" }] },
-  { t: "Câbles", k: "cab", aide: "ID Référentiel", l: [{ lab: "PMZ – PA :", pre: "TR", k: "cab_pmz_pa" }, { lab: "PA – PR/BPI :", pre: "TR", k: "cab_pa_bpi" }, { lab: "PR/BPI – PB :", pre: "TR", k: "cab_bpi_pb" }, { lab: "PA – PB :", pre: "TR", k: "cab_pa_pb" }] },
-];
-if (!etat.fiche.iu || typeof etat.fiche.iu !== "object") etat.fiche.iu = {};
-const iuVal = (k, defaut = "") => esc(etat.fiche.iu[k] ?? defaut);
-const iuChamp = (k, cls, defaut, lib, aide = "") => `<input class="${cls}" data-iu="${k}" value="${iuVal(k, defaut)}"${aide ? ` placeholder="${esc(aide)}"` : ""} aria-label="${esc(lib)}" autocomplete="off">`;
-// lignes retirées pour ce dossier : « r:PMZ » pour une rubrique entière, la clé du champ pour une ligne ; ce qui est écrit est gardé
-if (!etat.fiche.iuMasques || typeof etat.fiche.iuMasques !== "object") etat.fiche.iuMasques = {};
-// PB et câbles ajoutés à la main : une liste d'identifiants par dossier, leurs valeurs vont dans etat.fiche.iu
-if (!Array.isArray(etat.fiche.iuPB)) etat.fiche.iuPB = [];
-if (!Array.isArray(etat.fiche.iuCables)) etat.fiche.iuCables = [];
-// demandes GCBLO ajoutées avec le « + » (la 1re demande est gcblo_1)
-if (!Array.isArray(etat.fiche.iuGcblo)) etat.fiche.iuGcblo = [];
-const ordinal = i => i === 1 ? "1ère" : i + "ème";
-// La Roche : la case n'apparaît que si l'adresse parle de La Roche(-sur-Yon) ou du code postal 85000
-const aLaRoche = () => /la[\s-]*roche|\b85000\b/.test((etat.fiche.adr || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase());
-const iuChiffres = (k, lib) => `<input class="plein chiffres" data-iu="${k}" value="${iuVal(k)}" inputmode="numeric" maxlength="10" placeholder="10 chiffres max" aria-label="${esc(lib)}" autocomplete="off">`;
-function iuVisibilite() {
-  const ae = typeof NOEUDS !== "undefined" && NOEUDS.t1_3_1 && valide(NOEUDS.t1_3_1);
-  if ($("iuSecPV")) $("iuSecPV").hidden = !ae;
-  if ($("iuLaRoche")) $("iuLaRoche").hidden = !aLaRoche();
-  // « Faire CMS » barré (pré-étude) : la ligne CMS de BANBOU disparaît (ce qui y est écrit est gardé)
-  if ($("iuCms")) $("iuCms").hidden = typeof NOEUDS !== "undefined" && !!NOEUDS.t3_2 && estBarre(NOEUDS.t3_2);
-}
-const pbAjoute = id => ({ t: "PB", k: id, ajout: "pb:" + id, l: [{ pre: "PT", k: id + "_pt" }, { pre: "PF", k: id + "_pf" }, { pre: "CH/", k: id + "_ch", type: id + "_type" }] });
-const clesAjout = (sorte, id) => sorte === "gc" ? [id] : sorte === "pb" ? [id, id + "_pt", id + "_pf", id + "_ch", id + "_type"] : [id + "_de", id + "_a", id + "_tr"];
-const iuSup = (cle, lib) => `<button class="iu-sup" type="button" data-iusup="${cle}" aria-label="Retirer ${esc(lib)}" title="Retirer">×</button>`;
-const iuSupAjout = (cle, lib) => `<button class="iu-sup" type="button" data-iuajout="${cle}" aria-label="Supprimer ${esc(lib)}" title="Supprimer">×</button>`;
-const cabEdition = new Set();   // câbles ajoutés dont on modifie le départ ou l'arrivée
-function rendreIU() {
-  const M = etat.fiche.iuMasques;
-  // le PB d'origine puis les PB ajoutés ; dès qu'il y en a plusieurs : PB1, PB2, PB3…
-  const rubs = IU.flatMap(r => r.t === "PB" ? [r, ...etat.fiche.iuPB.map(pbAjoute)] : [r]).filter(r => !(r.ajout ? false : M["r:" + r.t]));
-  const pbs = rubs.filter(r => r.t === "PB");
-  const nom = r => r.t === "PB" && pbs.length > 1 ? "PB" + (pbs.indexOf(r) + 1) : r.t;
-  const ipon = rubs.map(r => { const n = nom(r); return `<div class="iu-rub"><div class="iu-tete"><span class="fixe">${esc(n)} :</span>${r.k ? iuChamp(r.k, "plein", "", `${n} · ${r.aide || "ID Référentiel PT"}`, r.aide || "ID Référentiel PT") : ""}` +
-    (r.t === "PB" && r === pbs[pbs.length - 1] ? `<button class="iu-plus" type="button" data-iuplus="pb" aria-label="Ajouter un PB" title="Ajouter un PB">+</button>` : "") +
-    (r.ajout ? iuSupAjout(r.ajout, n) : iuSup("r:" + r.t, n)) + `</div>` +
-    r.l.filter(x => !M[x.k]).map(x => `<div class="iu-ligne">` +
-      (x.lab ? `<span class="fixe">${esc(x.lab)}</span>` : "") +
-      iuChamp(x.k, "plein", x.pre ? x.pre + (x.pre.endsWith("/") ? "" : " ") : "", `${n} ${x.lab || x.pre}`) +
-      (x.type ? `<span class="fixe">(Type :</span>${iuChamp(x.type, "court", "", `${n} type`)}<span class="fixe">)</span>` : "") +
-      iuSup(x.k, `${n} ${x.lab || x.pre}`) + `</div>`).join("") +
-    (r.t === "Câbles" ? etat.fiche.iuCables.map(id => { const de = (etat.fiche.iu[id + "_de"] || "").trim(), a = (etat.fiche.iu[id + "_a"] || "").trim();
-      const fige = de && a && !cabEdition.has(id);
-      return `<div class="iu-ligne">` +
-      // départ et arrivée remplis : écrits comme les autres câbles ; un clic dessus les rend modifiables
-      (fige ? `<span class="fixe iu-cab" data-iucab="${id}" title="Cliquer pour modifier">${esc(de)} – ${esc(a)} :</span>` :
-      iuChamp(id + "_de", "bout", "", "Câble · départ", "départ") + `<span class="fixe">–</span>` + iuChamp(id + "_a", "bout", "", "Câble · arrivée", "arrivée") +
-      `<span class="fixe">:</span>`) + iuChamp(id + "_tr", fige ? "plein" : "tr", "TR ", "Câble · TR") + iuSupAjout("cab:" + id, "ce câble") + `</div>`; }).join("") +
-      `<button class="iu-retablir iu-ajout" type="button" data-iuplus="cab">+ Ajouter un câble</button>` : "") +
-    `</div>`; }).concat(Object.keys(M).length ? [`<button class="iu-retablir" type="button" id="iuRetablir">↺ Rétablir les lignes</button>`] : []);
-  const ligne = (lab, champ) => `<div class="iu-ligne"><span class="fixe">${esc(lab)}</span>${champ}</div>`;
-  const pile = (lab, champ) => `<div class="iu-ligne pile"><span class="fixe">${esc(lab)}</span><div class="iu-rang">${champ}</div></div>`;
-  const dems = ["gcblo_1", ...etat.fiche.iuGcblo];
-  const gcblo = `<div class="iu-dem">` + dems.map((k, i) => pile(`${ordinal(i + 1)} demande :`,
-    iuChamp(k, "plein", "", `GCBLO ${ordinal(i + 1)} demande`, "N° de commande d’accès") +
-    (i === dems.length - 1 ? `<button class="iu-plus" type="button" data-iuplus="gc" aria-label="Ajouter une demande GCBLO" title="Ajouter une demande">+</button>` : "") +
-    (i ? iuSupAjout("gc:" + k, `la ${ordinal(i + 1)} demande`) : ""))).join("") + `</div>`;
-  // espaces : titre de la carte → IPON, titre → 1re rubrique, entre rubriques, entre sous-parties ;
-  // ils grandissent tous dans la même proportion pour que le contenu descende jusqu'au bas de la carte
-  const ESP = { haut: 16, titre: 14, rub: 24, ligne: 8, sec: 30 };   // ligne : entre CMS et Dessin TIGRE, entre SAVOIR et La Roche
-  const esp = w => `<i class="iu-esp" style="--e:${w}" aria-hidden="true"></i>`;
-  const item = w => ([html, id], i) => `<div class="iu-it"${id ? ` id="${id}"` : ""}>${i ? esp(w) : ""}${html}</div>`;
-  const sec = (titre, items, attrs = "", premier = false, w = ESP.ligne) => `<section class="iu-sec"${attrs}>${esp(premier ? ESP.haut : ESP.sec)}<h3 class="iu-sec-titre">${titre}</h3>${esp(ESP.titre)}${items.map(item(w)).join("")}</section>`;
-  $("infosUtiles").innerHTML = sec("IPON", ipon.map(h => [h]), "", true, ESP.rub) +
-    sec("PV", [[ligne("SAVOIR :", iuChiffres("pv_savoir", "PV SAVOIR"))], [ligne("La Roche :", iuChiffres("pv_roche", "PV La Roche")), "iuLaRoche"]], ` id="iuSecPV"`) +
-    sec("GCBLO", [[gcblo]]) +
-    sec("BANBOU", [[pile("CMS :", iuChamp("banbou_cms", "plein", "", "BANBOU CMS", "Référence BANBOU")), "iuCms"],
-      [pile("Dessin TIGRE :", iuChamp("banbou_tigre", "plein", "", "BANBOU Dessin TIGRE", "Référence BANBOU"))]]);
-  iuVisibilite();
-}
-rendreIU();
-$("infosUtiles").addEventListener("input", e => { const k = e.target.dataset.iu; if (!k) return;
-  if (e.target.classList.contains("chiffres")) e.target.value = e.target.value.replace(/\D/g, "").slice(0, 10);   // N° PV : chiffres seulement
-  etat.fiche.iu[k] = e.target.value; sauver(); });
-$("f_adr").addEventListener("input", iuVisibilite);
-// en quittant le départ ou l'arrivée d'un câble ajouté (sauf pour passer de l'un à l'autre), la ligne repasse en écriture simple
-$("infosUtiles").addEventListener("focusout", e => {
-  if (!e.target.classList.contains("bout")) return;
-  const id = e.target.dataset.iu.replace(/_(de|a)$/, ""), vers = e.relatedTarget;
-  if (vers && vers.classList.contains("bout") && vers.dataset.iu.startsWith(id + "_")) return;
-  cabEdition.delete(id);
-  if (!(etat.fiche.iu[id + "_de"] || "").trim() || !(etat.fiche.iu[id + "_a"] || "").trim()) return;
-  const k = vers && $("infosUtiles").contains(vers) ? vers.dataset.iu : null;
-  rendreIU();
-  const c = k && document.querySelector(`[data-iu="${k}"]`);
-  if (c) { c.focus(); c.setSelectionRange(c.value.length, c.value.length); }   // curseur à la fin, après « TR »
-});
-$("infosUtiles").addEventListener("click", e => {
-  const b = e.target.closest("[data-iusup]");
-  if (b) { etat.fiche.iuMasques[b.dataset.iusup] = true; sauver(); rendreIU(); return; }
-  const plus = e.target.closest("[data-iuplus]");
-  if (plus) {
-    const sorte = plus.dataset.iuplus, id = sorte + "x" + Date.now().toString(36);
-    (sorte === "pb" ? etat.fiche.iuPB : sorte === "gc" ? etat.fiche.iuGcblo : etat.fiche.iuCables).push(id); sauver(); rendreIU();
-    document.querySelector(`[data-iu="${sorte === "cab" ? id + "_de" : id}"]`)?.focus();
-    return;
-  }
-  const cab = e.target.closest("[data-iucab]");
-  if (cab) { const id = cab.dataset.iucab; cabEdition.add(id); rendreIU(); document.querySelector(`[data-iu="${id}_de"]`)?.focus(); return; }
-  // un PB ou un câble ajouté se supprime pour de bon (confirmation s'il contient quelque chose)
-  const aj = e.target.closest("[data-iuajout]");
-  if (aj) {
-    const [sorte, id] = aj.dataset.iuajout.split(":"), cles = clesAjout(sorte, id);
-    const rempli = cles.some(k => { const v = (etat.fiche.iu[k] || "").trim(); return v && !["PT", "PF", "CH/", "TR"].includes(v); });
-    if (rempli && !confirm(sorte === "pb" ? "Supprimer ce PB et ce qui y est écrit ?" : sorte === "gc" ? "Supprimer cette demande et son numéro ?" : "Supprimer ce câble et ce qui y est écrit ?")) return;
-    cles.forEach(k => { delete etat.fiche.iu[k]; delete etat.fiche.iuMasques[k]; });
-    if (sorte === "pb") etat.fiche.iuPB = etat.fiche.iuPB.filter(x => x !== id);
-    else if (sorte === "gc") etat.fiche.iuGcblo = etat.fiche.iuGcblo.filter(x => x !== id);
-    else etat.fiche.iuCables = etat.fiche.iuCables.filter(x => x !== id);
-    sauver(); rendreIU(); return;
-  }
-  // rétablir ne fait que réafficher : les valeurs déjà écrites ne sont pas touchées
-  if (e.target.closest("#iuRetablir")) { etat.fiche.iuMasques = {}; sauver(); rendreIU(); }
-});
-
-/* ═══ Commentaires : un clic sur le texte d'une tâche ouvre son commentaire, ses captures et ses fichiers ═══
-   etat.memo[id] = { note } ; captures (images réduites) et fichiers à part, chacun sous sa clé */
-const NCAPCLE = "racco-d2-notes-captures", NFICCLE = "racco-d2-notes-fichiers";
-let notesCaptures = {}, notesFichiers = {};
-try { const c = JSON.parse(localStorage.getItem(NCAPCLE) || "{}"); if (c && typeof c === "object") notesCaptures = c; } catch (e) {}
-try { const c = JSON.parse(localStorage.getItem(NFICCLE) || "{}"); if (c && typeof c === "object") notesFichiers = c; } catch (e) {}
-const sauverNotesCaptures = () => { try { localStorage.setItem(NCAPCLE, JSON.stringify(notesCaptures)); return true; } catch (e) { return false; } };
-// captures collées dans le texte : rangées à part (le texte ne garde que leur repère data-img)
-const NIMGCLE = "racco-d2-notes-images";
-let notesImages = {};
-try { const c = JSON.parse(localStorage.getItem(NIMGCLE) || "{}"); if (c && typeof c === "object") notesImages = c; } catch (e) {}
-const sauverNotesImages = () => { try { localStorage.setItem(NIMGCLE, JSON.stringify(notesImages)); return true; } catch (e) { return false; } };
-const sauverNotesFichiers = () => { try { localStorage.setItem(NFICCLE, JSON.stringify(notesFichiers)); return true; } catch (e) { return false; } };
-let noteChoisie = null;
-// une tâche a un commentaire si elle a du texte, une capture ou un fichier
-const texteNote = m => !m ? "" : m.html != null ? (/<img/.test(m.html) ? "img" : m.html.replace(/<[^>]*>|&nbsp;/g, "").trim()) : (m.note || "").trim();
-const aCommentaire = id => !!(texteNote(etat.memo[id]) || (notesCaptures[id] || []).length || (notesFichiers[id] || []).length);
-const IND_NOTE = id => `<span class="note-ind" data-note="${id}" title="Commentaire" aria-label="Commentaire"><svg viewBox="0 0 24 24" width="12" height="12" aria-hidden="true"><path d="M5 5h14a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-7l-4 3v-3H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z"/></svg></span>`;
-// met à jour la bulle de la tâche sans redessiner toute la liste (on écrit peut-être dans le commentaire)
-function majIndNote(id) {
-  const lib = document.querySelector(`.lib[data-note="${id}"]`); if (!lib) return;
-  const ind = lib.querySelector(".note-ind");
-  if (aCommentaire(id) && !ind) lib.insertAdjacentHTML("beforeend", IND_NOTE(id));
-  if (!aCommentaire(id) && ind) ind.remove();
-}
-function majNoteFait() {
-  const j = noteChoisie && etat.faitLe[noteChoisie], champ = $("noteFaitDate");
-  $("noteFait").hidden = !j;
-  if (j && document.activeElement !== champ) { champ.value = isoVersFr(j); champ.classList.remove("invalide"); }
-}
-// « Fait le » modifiable : JJ/MM/AAAA au clavier ou calendrier
-$("noteFaitDate").addEventListener("input", e => {
-  e.target.value = formaterDate(e.target.value);
-  const iso = frVersIso(e.target.value);
-  e.target.classList.toggle("invalide", e.target.value.length === 10 && !iso);
-  if (iso && noteChoisie && etat.faitLe[noteChoisie]) { etat.faitLe[noteChoisie] = iso; sauver(); }
-});
-$("noteFaitDate").addEventListener("blur", e => { if (!frVersIso(e.target.value)) { e.target.value = isoVersFr(etat.faitLe[noteChoisie]); e.target.classList.remove("invalide"); } });
-$("noteFaitCal").onclick = () => {
-  const pick = $("noteFaitPick"); pick.value = etat.faitLe[noteChoisie] || versIso(new Date());
-  try { pick.showPicker(); } catch (err) { pick.focus(); pick.click(); }
-};
-$("noteFaitPick").addEventListener("change", e => {
-  if (!e.target.value || !noteChoisie || !etat.faitLe[noteChoisie]) return;
-  etat.faitLe[noteChoisie] = e.target.value; sauver(); majNoteFait();
-});
-function afficherNote(id) {
-  noteChoisie = id;
-  $("noteAide").hidden = true; $("noteDetail").hidden = false;
-  const tx = texte(NOEUDS[id]); $("noteTitre").textContent = tx.lib + (tx.petit ? " " + tx.petit : "");
-  const m = etat.memo[id], zone = $("noteTache");
-  zone.innerHTML = m?.html != null ? m.html : esc(m?.note || "").replace(/\n/g, "<br>");   // anciens commentaires : texte simple
-  zone.querySelectorAll("img[data-img]").forEach(im => { const src = notesImages[im.dataset.img]; if (src) im.src = src; else im.remove(); });
-  $("noteImgSuppr").hidden = true;
-  rendreNoteCaptures(); rendreNoteFichiers(); rendu();
-  document.querySelector(".commentaires").scrollIntoView({ block: "nearest", behavior: "smooth" });
-}
-// enregistre le texte (sans les images, rangées à part) et oublie les captures retirées du texte
-function sauverZone() {
-  if (!noteChoisie) return;
-  const id = noteChoisie, zone = $("noteTache"), garde = new Set();
-  const copie = zone.cloneNode(true);
-  copie.querySelectorAll("*").forEach(el => {
-    if (el.tagName === "IMG") {
-      const k = el.dataset.img; if (!k) { el.remove(); return; }
-      garde.add(k); if (!notesImages[k] && el.src.startsWith("data:")) notesImages[k] = el.src;   // capture revenue avec ⌘Z
-      el.removeAttribute("src");
-    } else [...el.attributes].forEach(a => el.removeAttribute(a.name));
-  });
-  Object.keys(notesImages).forEach(k => { if (k.startsWith(id + "~") && !garde.has(k)) delete notesImages[k]; });
-  sauverNotesImages();
-  const html = copie.innerHTML;
-  if (texteNote({ html })) etat.memo[id] = { html }; else { delete etat.memo[id]; if (!zone.querySelector("img")) zone.innerHTML = ""; }
-  sauver(); majIndNote(id);
-}
-$("noteTache").addEventListener("input", sauverZone);
-// ⌘V : une capture va à l'endroit du curseur ; le texte collé arrive sans mise en forme ; un autre fichier va dans la liste
-$("noteTache").addEventListener("paste", e => {
-  e.stopPropagation(); e.preventDefault();
-  const fs = [...(e.clipboardData?.files || [])];
-  if (!fs.length) { document.execCommand("insertText", false, e.clipboardData?.getData("text/plain") || ""); return; }
-  const sel = getSelection(), plage = sel.rangeCount ? sel.getRangeAt(0).cloneRange() : null;
-  insererImages(fs, plage);
-});
-$("noteTache").addEventListener("drop", e => {
-  const fs = [...(e.dataTransfer?.files || [])]; if (!fs.length) return;
-  e.stopPropagation(); e.preventDefault(); $("noteDetail").classList.remove("depot");
-  insererImages(fs, document.caretRangeFromPoint ? document.caretRangeFromPoint(e.clientX, e.clientY) : null);
-});
-async function insererImages(fichiers, plage) {
-  if (!noteChoisie) return;
-  const id = noteChoisie, zone = $("noteTache"), autres = [];
-  if (!plage || !zone.contains(plage.startContainer)) { plage = document.createRange(); plage.selectNodeContents(zone); plage.collapse(false); }
-  for (const f of fichiers) {
-    if (!f.type.startsWith("image/")) { autres.push(f); continue; }
-    let src; try { src = await reduire(f); } catch (e) { continue; }
-    if (noteChoisie !== id) return;
-    const k = `${id}~${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
-    notesImages[k] = src;
-    if (!sauverNotesImages()) { delete notesImages[k]; sauverNotesImages(); alert("Plus de place pour d'autres captures : retires-en une avant d'en ajouter."); break; }
-    const im = document.createElement("img"); im.src = src; im.dataset.img = k; im.alt = "Capture";
-    plage.deleteContents(); plage.insertNode(im);
-    if (!im.nextSibling) im.after(document.createElement("br"));   // une ligne après la capture pour continuer à écrire
-    plage.setStartAfter(im); plage.collapse(true);
-  }
-  zone.focus(); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(plage);
-  sauverZone();
-  if (autres.length) ajouterNoteFichiers(autres);
-}
-// clic sur une capture du texte : agrandie ; au survol, une croix pour la retirer
-let imgSurvol = null;
-$("noteTache").addEventListener("click", e => {
-  if (e.target.tagName !== "IMG") return;
-  const vis = document.createElement("div"); vis.className = "visionneuse"; vis.innerHTML = `<img src="${e.target.src}" alt="Capture agrandie">`; vis.onclick = () => vis.remove(); document.body.appendChild(vis);
-});
-$("noteTache").addEventListener("mouseover", e => {
-  if (e.target.tagName !== "IMG") { $("noteImgSuppr").hidden = true; return; }
-  imgSurvol = e.target; const b = $("noteImgSuppr"), cadre = b.parentElement.getBoundingClientRect(), ri = imgSurvol.getBoundingClientRect();
-  b.style.top = `${ri.top - cadre.top + 4}px`; b.style.left = `${ri.right - cadre.left - 24}px`; b.hidden = false;
-});
-$("noteTache").addEventListener("mouseleave", e => { if (e.relatedTarget !== $("noteImgSuppr")) $("noteImgSuppr").hidden = true; });
-$("noteTache").addEventListener("scroll", () => { $("noteImgSuppr").hidden = true; });
-$("noteImgSuppr").addEventListener("mouseleave", e => { if (e.relatedTarget !== imgSurvol) $("noteImgSuppr").hidden = true; });
-$("noteImgSuppr").addEventListener("click", () => {
-  if (imgSurvol) { if (imgSurvol.nextSibling?.nodeName === "BR" && !imgSurvol.nextSibling.nextSibling) imgSurvol.nextSibling.remove(); imgSurvol.remove(); imgSurvol = null; }
-  $("noteImgSuppr").hidden = true; sauverZone();
-});
-function rendreNoteCaptures() {
-  const L = notesCaptures[noteChoisie] || [];
-  $("noteCaptures").innerHTML = L.map((src, i) => `<div class="capture" data-nvoir="${i}"><img src="${src}" alt="Capture ${i + 1}"><button type="button" data-nret="${i}" aria-label="Retirer la capture ${i + 1}" title="Retirer">×</button></div>`).join("");
-}
-function rendreNoteFichiers() {
-  const L = notesFichiers[noteChoisie] || [];
-  $("noteFichiers").innerHTML = L.map((f, i) => `<span class="fichier"><a data-fouvrir="${i}" title="Ouvrir ${esc(f.nom)}">📄 ${esc(f.nom)}</a><button type="button" data-fret="${i}" aria-label="Retirer ${esc(f.nom)}" title="Retirer">×</button></span>`).join("");
-}
-const lireFichier = f => new Promise((ok, ko) => { const r = new FileReader(); r.onload = () => ok(r.result); r.onerror = ko; r.readAsDataURL(f); });
-// images → captures réduites ; autres fichiers (PDF, Word, Excel…) gardés tels quels, 3 Mo au plus chacun
-async function ajouterNoteFichiers(fichiers) {
-  if (!noteChoisie) return;
-  const id = noteChoisie;
-  for (const f of fichiers) {
-    if (f.type.startsWith("image/")) {
-      const L = notesCaptures[id] || (notesCaptures[id] = []);
-      try { L.push(await reduire(f)); } catch (e) { continue; }
-      if (!sauverNotesCaptures()) { L.pop(); sauverNotesCaptures(); alert("Plus de place pour d'autres captures : retires-en une avant d'en ajouter."); break; }
-    } else {
-      if (f.size > 3 * 1024 * 1024) { alert(`« ${f.name} » est trop lourd (3 Mo au plus) : mets plutôt un lien OneDrive dans le commentaire.`); continue; }
-      const L = notesFichiers[id] || (notesFichiers[id] = []);
-      try { L.push({ nom: f.name, type: f.type, data: await lireFichier(f) }); } catch (e) { continue; }
-      if (!sauverNotesFichiers()) { L.pop(); sauverNotesFichiers(); alert("Plus de place pour d'autres fichiers : retires-en un avant d'en ajouter."); break; }
-    }
-  }
-  rendreNoteCaptures(); rendreNoteFichiers(); majIndNote(id);
-}
-$("noteTacheFichier").addEventListener("change", e => { ajouterNoteFichiers([...e.target.files]); e.target.value = ""; });
-$("noteDetail").addEventListener("paste", e => { const fs = [...(e.clipboardData?.files || [])]; if (fs.length) { e.preventDefault(); ajouterNoteFichiers(fs); } });
-$("noteDetail").addEventListener("dragover", e => { e.preventDefault(); $("noteDetail").classList.add("depot"); });
-$("noteDetail").addEventListener("dragleave", () => $("noteDetail").classList.remove("depot"));
-$("noteDetail").addEventListener("drop", e => { e.preventDefault(); $("noteDetail").classList.remove("depot"); ajouterNoteFichiers([...e.dataTransfer.files]); });
-$("noteCaptures").addEventListener("click", e => {
-  const r = e.target.closest("[data-nret]");
-  if (r) { notesCaptures[noteChoisie].splice(+r.dataset.nret, 1); sauverNotesCaptures(); rendreNoteCaptures(); majIndNote(noteChoisie); return; }
-  const v = e.target.closest("[data-nvoir]");
-  if (v) { const vis = document.createElement("div"); vis.className = "visionneuse"; vis.innerHTML = `<img src="${notesCaptures[noteChoisie][+v.dataset.nvoir]}" alt="Capture agrandie">`; vis.onclick = () => vis.remove(); document.body.appendChild(vis); }
-});
-$("noteFichiers").addEventListener("click", e => {
-  const r = e.target.closest("[data-fret]");
-  if (r) { notesFichiers[noteChoisie].splice(+r.dataset.fret, 1); sauverNotesFichiers(); rendreNoteFichiers(); majIndNote(noteChoisie); return; }
-  const o = e.target.closest("[data-fouvrir]"); if (!o) return;
-  // ouverture : PDF et texte dans un nouvel onglet, les autres sont téléchargés
-  const f = notesFichiers[noteChoisie][+o.dataset.fouvrir];
-  fetch(f.data).then(r => r.blob()).then(b => {
-    const url = URL.createObjectURL(b);
-    if (/pdf|text/.test(f.type)) window.open(url, "_blank", "noopener");
-    else { const a = document.createElement("a"); a.href = url; a.download = f.nom; a.click(); }
-    setTimeout(() => URL.revokeObjectURL(url), 60000);
-  });
-});
-
-/* ═══ Grand écran : la page grossit pour remplir l'écran, sans que la colonne droite dépasse la hauteur ═══ */
-const LARGEUR_BASE = 1440;
-function ajusterEchelle() {
-  const page = document.querySelector(".page"), droite = document.querySelector(".col.droite");
-  page.style.zoom = ""; page.style.maxWidth = ""; droite.style.maxHeight = "";
-  if (innerWidth < 1150) return;
-  const parLargeur = innerWidth / LARGEUR_BASE;
-  // tout doit tenir à l'ouverture : bandeau du haut + colonne droite + marge du bas
-  const haut = droite.getBoundingClientRect().top + scrollY;
-  const parHauteur = innerHeight / (haut + droite.scrollHeight + 16);
-  const z = Math.max(1, Math.min(parLargeur, parHauteur, 2));
-  if (z <= 1.02) return;
-  page.style.zoom = z;
-  page.style.maxWidth = "none";
-  droite.style.maxHeight = `${(innerHeight - 24) / z}px`;
-}
-let attenteEchelle;
-addEventListener("resize", () => { clearTimeout(attenteEchelle); attenteEchelle = setTimeout(ajusterEchelle, 100); });
-
-majUrgence(); majDocs(); rendu(); ajusterEchelle();
-
-/* ═══ ComL : le dossier orange ouvre une grande fenêtre ═══
-   à gauche la capture du logiciel (une par tâche, la même pour tous les dossiers, gardée à part dans IndexedDB),
-   à droite les champs de la tâche : calculés depuis les Dates importantes (modifiables à la main), à remplir ou fixes */
-const COML = ["t1_5", "t2_1_1_1", "t2_1_2_1", "t4_1_1", "t4_2_2", "t4_2_4_1", "t5_1_1_1", "t5_1_2_1", "t6_7_1"];
-// champs par tâche : { k, lib, sorte: "calc" | "date" | "texte" | "fixe" | "note", calc: d => iso, aide, val } (note : simple consigne écrite)
-// d = les Dates importantes du dossier (d.dlpi, d.poi, d.dre…) et d.t les dates des tâches ; v("k") = la valeur d'un autre champ de la fenêtre ; les outils : ajJours(iso, n), ajMois(iso, n), plusTard(a, b), plusTot(a, b)
-// une date calculée ne tombe jamais un week-end ni un jour férié : elle passe au premier jour ouvré qui suit (horsFerie)
-// tâche 2 (APD non conforme et conforme : les mêmes champs)
-function COML_APD() { return [
-  { k: "recApd", lib: "Date de réception de l’APD", sorte: "calc", brut: true, calc: d => d.t.t2, aide: "La date mise à côté de « Réception APD » (grande tâche 2)" },
-  { k: "dre", lib: "DRE", sorte: "calc", calc: (d, v) => plusTard(ajJours(ajMois(d.dlpi, -2), -15), v("recApd") && ajJours(ajMois(v("recApd"), 4), 15)),
-    aide: "DLPI − 2,5 mois, mais au moins réception de l’APD + 4,5 mois" },
-  { k: "dlr", lib: "DLR", sorte: "calc", calc: (d, v) => ajMois(v("dre"), 1), aide: "DRE + 1 mois" }]; }
-// tâche 6 (DOE précâblage non conforme et conforme : les mêmes champs)
-function COML_DOE_PRE() { return [
-  { k: "recDoe", lib: "Date de réception du DOE précâblage", sorte: "calc", brut: true, calc: d => d.t.t5, aide: "La date mise à côté de « Réception DOE précâblage » (grande tâche 6)" },
-  { k: "dre", lib: "DRE", sorte: "calc", calc: (d, v) => plusTard(ajJours(ajMois(d.dlpi, -2), -15), v("recDoe") && ajJours(v("recDoe"), 15)),
-    aide: "DLPI − 2,5 mois, mais au moins réception du DOE précâblage + 15 jours" },
-  { k: "dlr", lib: "DLR", sorte: "calc", calc: (d, v) => ajMois(v("dre"), 1), aide: "DRE + 1 mois" }]; }
-const COML_CHAMPS = {
-  t1_5: [{ k: "dlpiM3", lib: "DLPI − 3 mois", sorte: "calc", calc: d => ajMois(d.dlpi, -3), aide: "Calculé depuis la DLPI" }],
-  t2_1_1_1: COML_APD(), t2_1_2_1: COML_APD(),
-  t5_1_1_1: COML_DOE_PRE(), t5_1_2_1: COML_DOE_PRE(),
-  t4_1_1: [{ k: "noteAnnul", sorte: "note", val: "On ne change pas la DRE/DLR." }],
-  t4_2_4_1: [{ k: "noteTrav", sorte: "note", val: "On ne change pas la DRE/DLR." }],
-  t6_7_1: [{ k: "noteTrav", sorte: "note", val: "On ne change pas la DRE/DLR." }],
-  t4_2_2: [
-    { k: "recApd", lib: "Date de réception de l’APD", sorte: "calc", brut: true, calc: d => d.t.t2, aide: "La date mise à côté de « Réception APD » (grande tâche 2)" },
-    { k: "dre", lib: "DRE", sorte: "calc", calc: (d, v) => ajJours(v("recApd"), 14), aide: "Date de réception de l’APD + 14 jours" },
-    { k: "dlr", lib: "DLR", sorte: "calc", calc: (d, v) => ajMois(v("dre"), 1), aide: "DRE + 1 mois" }],
-};
-const ajJours = (iso, n) => { if (!iso) return ""; const [a, m, j] = iso.split("-").map(Number); return versIso(new Date(a, m - 1, j + n)); };
-const ajMois = (iso, n) => { if (!iso) return ""; const [a, m, j] = iso.split("-").map(Number); const d = new Date(a, m - 1 + n, 1);
-  d.setDate(Math.min(j, new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate())); return versIso(d); };
-// jours fériés français : fixes + lundi de Pâques, Ascension, lundi de Pentecôte
-function feries(an) {
-  const a = an % 19, b = Math.floor(an / 100), c = an % 100, d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25), g = Math.floor((b - f + 1) / 3);
-  const h = (19 * a + b - d - g + 15) % 30, i = Math.floor(c / 4), k = c % 4, l = (32 + 2 * e + 2 * i - h - k) % 7, m = Math.floor((a + 11 * h + 22 * l) / 451);
-  const mois = Math.floor((h + l - 7 * m + 114) / 31), jour = ((h + l - 7 * m + 114) % 31) + 1, paques = versIso(new Date(an, mois - 1, jour));
-  return new Set([`${an}-01-01`, `${an}-05-01`, `${an}-05-08`, `${an}-07-14`, `${an}-08-15`, `${an}-11-01`, `${an}-11-11`, `${an}-12-25`,
-    ajJours(paques, 1), ajJours(paques, 39), ajJours(paques, 50)]);
-}
-const horsFerie = iso => {
-  if (!iso) return "";
-  for (let n = 0; n < 10; n++) { const [a, m, j] = iso.split("-").map(Number), w = new Date(a, m - 1, j).getDay();
-    if (w !== 0 && w !== 6 && !feries(a).has(iso)) return iso; iso = ajJours(iso, 1); }
-  return iso;
-};
-const plusTard = (a, b) => !a ? b || "" : !b ? a : a > b ? a : b;
-const plusTot = (a, b) => !a ? b || "" : !b ? a : a < b ? a : b;
-const datesComl = () => ({ ...(etat.fiche.di || {}), dlpi: etat.fiche.dlpi || "", t: etat.dates });
-if (!etat.coml || typeof etat.coml !== "object") etat.coml = {};   // ce qui est tapé ou remplacé à la main, par dossier
-// les captures : base IndexedDB à part (elles sont grosses et ne dépendent pas du dossier)
-let comlBase = null;
-const comlDb = () => comlBase || (comlBase = new Promise((ok, ko) => {
-  const r = indexedDB.open("racco-d2-coml", 1);
-  r.onupgradeneeded = () => r.result.createObjectStore("photos");
-  r.onsuccess = () => ok(r.result); r.onerror = () => ko(r.error);
-}));
-const comlPhoto = async (id, val) => {
-  const db = await comlDb();
-  return new Promise((ok, ko) => {
-    const t = db.transaction("photos", val === undefined ? "readonly" : "readwrite"), st = t.objectStore("photos");
-    const r = val === undefined ? st.get(id) : val === null ? st.delete(id) : st.put(val, id);
-    r.onsuccess = () => ok(r.result); r.onerror = () => ko(r.error);
-  });
-};
-// ComL cochée : sa DRE et sa DLR (calculées, ou changées à la main dans la fenêtre) passent dans les Dates importantes
-// (pas la tâche 1 : la DRE/DLR de départ se met à la main ; ni les ComL « On ne change pas la DRE/DLR »)
-const COML_DRE_DLR = ["t2_1_1_1", "t2_1_2_1", "t4_2_2", "t5_1_1_1", "t5_1_2_1"];
-// ComL décochée : la DRE/DLR d'avant revient (si elle n'a pas changé depuis, par exemple par un autre ComL)
-function reporterDreDlr(id, on) {
-  const di = etat.fiche.di, mem = etat.fiche.dreDlrAvant = etat.fiche.dreDlrAvant || {};
-  if (on) {
-    const avant = { dre: di.dre || "", dlr: di.dlr || "" }, mis = {};
-    ["dre", "dlr"].forEach(k => {
-      const c = (COML_CHAMPS[id] || []).find(x => x.k === k), iso = c && frVersIso(valComl(id, c).v);
-      if (iso) di[k] = mis[k] = iso;
-    });
-    mem[id] = { avant, mis };
-  } else if (mem[id]) {
-    const { avant, mis } = mem[id];
-    Object.keys(mis).forEach(k => { if (di[k] === mis[k]) { if (avant[k]) di[k] = avant[k]; else delete di[k]; } });
-    delete mem[id];
-  }
-  sauver(); rafraichirDatesImp();
-}
-function rafraichirDatesImp() {
-  DATES_IMP.forEach(([k]) => { const c = $("di_" + k); if (c) { c.value = isoVersFr(etat.fiche.di[k]); c.classList.remove("invalide"); } });
-}
-let comlOuvert = null;
-function ouvrirComl(id) {
-  fermerComl();
-  comlOuvert = id;
-  const n = NOEUDS[id], ch = [...anc(n)].reverse(), grande = ch[0];
-  const fond = document.createElement("div");
-  fond.className = "coml-fond"; fond.id = "comlFond";
-  fond.innerHTML = `<div class="coml-fen" role="dialog" aria-modal="true" aria-labelledby="comlTitre">
-    <div class="coml-tete"><div class="coml-titre" id="comlTitre"><small>${TACHES.indexOf(grande) + 1}. ${esc(grande.lib)}${ch.length > 1 ? " › " + ch.slice(1).map(x => esc(x.lib)).join(" › ") : ""}</small><b>${esc(n.lib)}</b></div>
-      <span id="comlLien"></span><button class="coml-ferme" type="button" data-coml="fermer" aria-label="Fermer" title="Fermer (Échap)">✕</button></div>
-    <div class="coml-corps"><div class="coml-photo" id="comlPhoto" tabindex="0"></div><div class="coml-champs" id="comlChamps"></div></div>
-    <input type="file" id="comlFichier" accept="image/*" hidden></div>`;
-  document.body.appendChild(fond);
-  majComlLien(); rendreComlChamps(); rendreComlPhoto();
-  $("comlPhoto").focus();
-}
-function fermerComl() { $("comlFond")?.remove(); comlOuvert = null; }
-function majComlLien() {
-  const z = $("comlLien"); if (!z || !comlOuvert) return;
-  const l = etat.liens[comlOuvert];
-  z.innerHTML = l ? `<button class="btn btn-mini" type="button" data-coml="modop">Ouvrir le Modop</button> <button class="btn btn-mini" type="button" data-coml="lien" title="Changer ou retirer le lien">✎</button>`
-    : `<button class="btn btn-mini" type="button" data-coml="lien">Ajouter le lien du Modop</button>`;
-}
-async function rendreComlPhoto() {
-  const z = $("comlPhoto"), id = comlOuvert; if (!z) return;
-  let src = null; try { src = await comlPhoto(id); } catch (e) {}
-  if (id !== comlOuvert) return;
-  z.classList.toggle("vide", !src);
-  z.innerHTML = src ? `<img src="${src}" alt="Capture du logiciel pour ${esc(NOEUDS[id].lib)}"><div class="coml-actions-photo"><button class="btn btn-mini" type="button" data-coml="choisir">Remplacer</button><button class="btn btn-mini" type="button" data-coml="retirer">Retirer</button></div>`
-    : `<div class="coml-vide"><b>Emplacement de la capture</b>Colle-la ici (⌘V), glisse-la dans ce cadre<br>ou clique pour la choisir.<br><small>La même capture servira pour tous les dossiers.</small></div>`;
-}
-async function poserComlPhoto(f) {
-  if (!f || !f.type.startsWith("image/") || !comlOuvert) return;
-  try { await comlPhoto(comlOuvert, await reduire(f, 2400, 0.9)); } catch (e) { alert("La capture n'a pas pu être enregistrée."); return; }
-  rendreComlPhoto();
-}
-function valComl(id, c, pile = []) {
-  const m = (etat.coml[id] || {})[c.k];
-  if (c.sorte === "fixe") return { v: c.val || "", manuel: false };
-  if (m != null) return { v: m, manuel: c.sorte === "calc" };
-  if (c.sorte !== "calc" || pile.includes(c.k)) return { v: "", manuel: false };
-  // un champ peut partir d'un autre champ de la fenêtre (tel qu'affiché, donc aussi s'il a été changé à la main)
-  const v = k => { const o = (COML_CHAMPS[id] || []).find(x => x.k === k); return o ? frVersIso(valComl(id, o, [...pile, c.k]).v) || "" : ""; };
-  const iso = c.calc(datesComl(), v) || "";
-  return { v: isoVersFr(c.brut ? iso : horsFerie(iso)), manuel: false };   // brut : date reprise telle quelle (pas décalée au jour ouvré)
-}
-function rendreComlChamps() {
-  const z = $("comlChamps"), id = comlOuvert; if (!z) return;
-  const L = COML_CHAMPS[id] || [];
-  z.innerHTML = !L.length ? `<div class="vide-msg">Les champs de cette tâche arriveront ici.<br>Donne-moi leur liste et leurs formules : les dates se calculeront toutes seules depuis les Dates importantes.</div>`
-    : L.map(c => { if (c.sorte === "note") return `<div class="coml-note">${esc(c.val)}</div>`;
-      const { v, manuel } = valComl(id, c), date = c.sorte === "calc" || c.sorte === "date";
-      return `<div class="coml-champ"><label for="coml_${c.k}">${esc(c.lib)}</label><div class="coml-rang">` +
-        `<input id="coml_${c.k}" data-comlk="${c.k}"${date ? ` data-comldate="1" placeholder="JJ/MM/AAAA" inputmode="numeric" maxlength="10"` : ""}${c.sorte === "fixe" ? " readonly" : ""} class="${manuel ? "manuel" : ""}" value="${esc(v)}" autocomplete="off">` +
-        (manuel ? `<button type="button" data-comlcalc="${c.k}" title="Revenir au calcul" aria-label="Revenir au calcul">↺</button>` : "") +
-        `<button type="button" data-comlcopie="${c.k}" title="Copier" aria-label="Copier ${esc(c.lib)}">⧉</button></div>` +
-        (c.aide ? `<div class="coml-aide">${esc(c.aide)}</div>` : "") + `</div>`; }).join("");
-}
 document.addEventListener("click", e => {
-  if (!comlOuvert) return;
-  if (e.target.id === "comlFond") { fermerComl(); return; }
-  const a = e.target.closest("[data-coml]")?.dataset.coml;
-  if (a === "fermer") return fermerComl();
-  if (a === "modop") return window.open(etat.liens[comlOuvert], "_blank", "noopener");
-  if (a === "lien") return ouvrirLienPop(comlOuvert, e.target.closest("[data-coml]"));
-  if (a === "choisir" || (!a && e.target.closest(".coml-photo.vide"))) return $("comlFichier").click();
-  if (a === "retirer") { if (confirm("Retirer cette capture ? Elle disparaîtra pour tous les dossiers.")) comlPhoto(comlOuvert, null).then(rendreComlPhoto); return; }
-  const r = e.target.closest("[data-comlcalc]");
-  if (r) { delete (etat.coml[comlOuvert] || {})[r.dataset.comlcalc]; sauver(); rendreComlChamps(); return; }
-  const cp = e.target.closest("[data-comlcopie]");
-  if (cp) { const v = $("coml_" + cp.dataset.comlcopie).value; navigator.clipboard?.writeText(v).then(() => { cp.textContent = "✓"; setTimeout(() => cp.textContent = "⧉", 1200); }); }
+  const b = e.target.closest("[data-cal]"); if (!b) return;
+  const pick = document.querySelector(`[data-pick="${b.dataset.cal}"]`);
+  pick.value = frVersIso($(b.dataset.cal).value) || new Date().toISOString().slice(0, 10);
+  try { pick.showPicker(); } catch (err) { pick.focus(); pick.click(); }
 });
-document.addEventListener("change", e => { if (e.target.id === "comlFichier") { poserComlPhoto(e.target.files[0]); e.target.value = ""; } });
-document.addEventListener("input", e => {
-  const k = e.target.dataset?.comlk; if (!k || !comlOuvert) return;
-  const c = (COML_CHAMPS[comlOuvert] || []).find(x => x.k === k); if (!c) return;
-  if (e.target.dataset.comldate) e.target.value = formaterDate(e.target.value);
-  const o = etat.coml[comlOuvert] = etat.coml[comlOuvert] || {};
-  if (e.target.value) o[k] = e.target.value; else delete o[k];
-  sauver();
-  // date complète (ou effacée) : les champs qui en dépendent se recalculent
-  if (!e.target.dataset.comldate || e.target.value.length === 10 || !e.target.value || (c.sorte === "calc" && !e.target.classList.contains("manuel"))) {
-    rendreComlChamps(); const i = $("coml_" + k); i.focus(); i.setSelectionRange(i.value.length, i.value.length); }
+document.addEventListener("change", e => {
+  const k = e.target.dataset?.pick; if (!k || !e.target.value) return;
+  $(k).value = isoVersFr(e.target.value); $(k).classList.remove("invalide"); garderPeriode(); rendreStats();
 });
-document.addEventListener("paste", e => {
-  if (!comlOuvert || e.target.closest?.("[data-comlk]")) return;
-  const f = [...(e.clipboardData?.files || [])].find(x => x.type.startsWith("image/"));
-  if (f) { e.preventDefault(); poserComlPhoto(f); }
+
+/* ═══ Nouveau projet : choix du type ═══ */
+$("menuTypes").innerHTML = TYPES.map(t => `<button type="button" role="menuitem" data-type="${t.id}"${t.page ? "" : " disabled"}>${esc(t.nom)}${t.page ? "" : "<small>à venir</small>"}</button>`).join("");
+$("nouveau").onclick = () => { const m = $("menuTypes"); m.hidden = !m.hidden; $("nouveau").setAttribute("aria-expanded", String(!m.hidden)); };
+document.addEventListener("pointerdown", e => { if (!e.target.closest("#menuTypes, #nouveau")) { $("menuTypes").hidden = true; $("nouveau").setAttribute("aria-expanded", "false"); } });
+$("menuTypes").addEventListener("click", async e => {
+  const b = e.target.closest("[data-type]"); if (!b || b.disabled) return;
+  const t = typeDe(b.dataset.type), id = "p" + Date.now().toString(36);
+  const L = (await kvGet("projets")) || [];
+  L.push({ id, type: t.id, cree: Date.now() });
+  await kvPut("projets", L);
+  location.href = `${t.page}?p=${id}`;
 });
-document.addEventListener("dragover", e => { const z = e.target.closest?.("#comlPhoto"); if (z) { e.preventDefault(); z.classList.add("survol"); } });
-document.addEventListener("dragleave", e => e.target.closest?.("#comlPhoto")?.classList.remove("survol"));
-document.addEventListener("drop", e => { const z = e.target.closest?.("#comlPhoto"); if (!z) return; e.preventDefault(); z.classList.remove("survol"); poserComlPhoto(e.dataTransfer.files[0]); });
-// Échap : ferme d'abord la bulle du lien si elle est ouverte, sinon la fenêtre
-document.addEventListener("keydown", e => { if (e.key === "Escape" && comlOuvert && !lienPop) fermerComl(); }, true);
+
+/* ═══ Sauvegarde : tous les projets (et les captures des fenêtres ComL) dans un fichier ═══ */
+const baseComl = () => new Promise((ok, ko) => { const r = indexedDB.open("racco-d2-coml", 1); r.onupgradeneeded = () => r.result.createObjectStore("photos"); r.onsuccess = () => ok(r.result); r.onerror = () => ko(r.error); });
+const comlTout = db => new Promise((ok, ko) => { const o = {}, r = db.transaction("photos").objectStore("photos").openCursor();
+  r.onsuccess = () => { const c = r.result; if (c) { o[c.key] = c.value; c.continue(); } else ok(o); }; r.onerror = () => ko(r.error); });
+$("exporter").onclick = async () => {
+  const donnees = { app: "kultivaprix", version: 1, date: new Date().toISOString(), kv: await kvTout(), coml: await comlTout(await baseComl()) };
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(donnees)], { type: "application/json" }));
+  a.download = `suivi-dossiers-sauvegarde-${new Date().toISOString().slice(0, 10)}.json`;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+};
+$("importFichier").addEventListener("change", async e => {
+  const f = e.target.files[0]; e.target.value = ""; if (!f) return;
+  let d; try { d = JSON.parse(await f.text()); } catch (err) { alert("Ce fichier n'est pas une sauvegarde valable."); return; }
+  if (!d || d.app !== "kultivaprix" || !d.kv) { alert("Ce fichier n'est pas une sauvegarde du suivi des dossiers."); return; }
+  if (!confirm(`Remplacer toutes les données actuelles par la sauvegarde du ${new Date(d.date).toLocaleDateString("fr-FR")} ?`)) return;
+  await new Promise((ok, ko) => { const t = base.transaction("kv", "readwrite"), st = t.objectStore("kv"); st.clear(); Object.entries(d.kv).forEach(([k, v]) => st.put(v, k)); t.oncomplete = ok; t.onerror = () => ko(t.error); });
+  const db = await baseComl();
+  await new Promise((ok, ko) => { const t = db.transaction("photos", "readwrite"), st = t.objectStore("photos"); st.clear(); Object.entries(d.coml || {}).forEach(([k, v]) => st.put(v, k)); t.oncomplete = ok; t.onerror = () => ko(t.error); });
+  location.reload();
+});
+
+async function tout() { await charger(); rendreTableau(); rendreStats(); }
+await tout();
+// retour sur la page par « Précédent » : les infos des projets ont pu changer
+addEventListener("pageshow", e => { if (e.persisted) tout(); });
 </script>
 </body>
 </html>
