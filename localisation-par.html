@@ -384,7 +384,7 @@ header.top.urg-vert { box-shadow: var(--clay-sm), inset 0 0 0 4px #3ddc76, 0 0 1
 .eq-ligne { flex-wrap: nowrap; }
 .eq-ligne .plein { flex: 1 1 60px; width: 60px; min-width: 0; }   /* carte étroite : le champ rétrécit au lieu de déborder */
 .iu-bloc + .iu-bloc { margin-top: 26px; }
-.iu-bloc .iu-sec-titre { margin-bottom: 4px; }
+.iu-bloc .iu-sec-titre { margin-bottom: 4px; font-size: 12px; }   /* même taille que « Générale » des Dates importantes */
 .eq-ligne select { flex: none; border: 0; border-radius: 8px; background: var(--carte-2); box-shadow: var(--inset); color: var(--texte); padding: 4px 6px; font: inherit; font-size: 12.5px; min-height: 26px; outline: none; }
 .eq-ligne select:focus { box-shadow: var(--inset), 0 0 0 3px var(--accent-dim); }
 /* sous-parties : IPON, PV, GCBLO, BANBOU */
@@ -619,7 +619,7 @@ const TACHES = [
     { id: "t2_3", lib: "Se déplacer sur le terrain, pour lever de doute et/ou confirmer mon analyse GEORESO" } ] },
   { id: "t3", lib: "Finaliser l’étude", mode: "tout", parPetit: true, kids: [
     { id: "t3_1", lib: "Faire le plan charté" },
-    { id: "t3_2", lib: "Passer mon plan charté dans l’agent PAR’FAIT via dingotoo", mode: "tout", kids: [
+    { id: "t3_2", lib: "Passer mon plan charté dans l’agent PAR’FAIT via DINOOTOO", mode: "tout", kids: [
       { id: "t3_2_1", lib: "Plan non conforme", mode: "tout", kids: [
         { id: "t3_2_1_1", lib: "Apporter les modifications" } ] },
       { id: "t3_2_2", lib: "Plan conforme" } ] },
