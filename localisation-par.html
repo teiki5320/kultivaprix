@@ -443,7 +443,7 @@ header.top.urg-vert { box-shadow: var(--clay-sm), inset 0 0 0 4px #3ddc76, 0 0 1
   .col.droite .card { padding: 12px 14px; }
   .col.droite .card h2 { margin-bottom: 8px; }
   .fiche { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px 8px; }
-  .champ.adr { grid-column: span 3; }
+  .champ.adr { grid-column: 1 / -1; }   /* N° PC à côté du Nombre d'EL : l'adresse prend toute la ligne */
   .champ input { min-height: 30px; padding: 5px 9px; }
   .haut-droite, .bas-droite, .cote { gap: 12px; }
 }
@@ -501,8 +501,8 @@ header.top.urg-vert { box-shadow: var(--clay-sm), inset 0 0 0 4px #3ddc76, 0 0 1
               </div>
             </div>
           </div>
-          <div class="champ large adr"><label for="f_adr">Adresse</label><input id="f_adr" data-f="adr" placeholder="Adresse de l'immeuble"></div>
           <div class="champ"><label for="f_pc">N° PC</label><input id="f_pc" data-f="pc" placeholder="N° PC"></div>
+          <div class="champ large adr"><label for="f_adr">Adresse</label><input id="f_adr" data-f="adr" placeholder="Adresse de l'immeuble"></div>
           <div class="champ large ref-ligne"><label for="f_ref">Regroupement syndic</label><input id="f_ref" data-f="ref" placeholder="Regroupement syndic"></div>
           <div class="champ large regroup" id="regroupZone">
             <div class="regroup-tete"><label for="imb0">IMB</label>
