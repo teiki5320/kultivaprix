@@ -97,7 +97,14 @@ tbody tr:hover { background: #fff3e6; }
 .onglet.actif { background: #2b2b2b; color: #f5f5f5; box-shadow: var(--clay-sm); }
 .onglet.actif small { color: #f5c48f; }
 .choix-type { font-size: 13px; font-weight: 600; color: var(--muted); padding: 2px 2px 4px; }
-.sous-onglets { display: flex; gap: 6px; margin-bottom: 10px; }
+.ligne-sous { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+.sous-onglets { display: flex; gap: 6px; }
+/* feux : un clic cache ou réaffiche les dossiers de cette couleur */
+.filtre-feux { display: flex; gap: 5px; }
+.ff { display: flex; align-items: center; gap: 5px; border: 0; border-radius: 999px; padding: 4px 10px 4px 6px; cursor: pointer; background: var(--carte-2); box-shadow: var(--clay-sm);
+  font-weight: 800; font-size: 12.5px; color: var(--texte); transition: opacity .15s; }
+.ff.off { opacity: .35; box-shadow: var(--inset); }
+.ff.off .feu { filter: grayscale(.6); }
 .sous-onglet { border: 0; border-radius: 999px; padding: 6px 14px; font-weight: 800; font-size: 12.5px; cursor: pointer; background: var(--carte-2); color: var(--muted); box-shadow: var(--inset); }
 .sous-onglet.actif { background: var(--accent); color: var(--accent-ink); box-shadow: var(--pouss-bas); }
 
@@ -143,14 +150,16 @@ tbody tr:hover { background: #fff3e6; }
 
   <div class="card">
     <div class="tete"><h2 id="titreVue">Dossiers en cours</h2>
-      <div class="droite"><button class="btn btn-mini" id="retourEnCours" type="button" hidden>← Dossiers en cours</button></div></div>
+      <div class="droite"><div class="filtre-feux" id="feuxTous" role="group" aria-label="Afficher ou cacher les dossiers par feu"></div>
+        <button class="btn btn-mini" id="retourEnCours" type="button" hidden>← Dossiers en cours</button></div></div>
     <div class="tableau"><table><thead id="tete"></thead><tbody id="corps"></tbody></table></div>
   </div>
 
   <div class="card">
     <div class="tete"><h2>Suivi par type de dossier</h2></div>
     <div class="onglets" id="ongletsTypes" role="tablist" aria-label="Types de dossier"></div>
-    <div class="sous-onglets" id="sousOnglets" role="tablist" aria-label="En cours ou archivés"></div>
+    <div class="ligne-sous" id="ligneSous"><div class="sous-onglets" id="sousOnglets" role="tablist" aria-label="En cours ou archivés"></div>
+      <div class="filtre-feux" id="feuxType" role="group" aria-label="Afficher ou cacher les dossiers par feu"></div></div>
     <div class="choix-type" id="choixType">Clique sur un type de dossier pour voir ses projets.</div>
     <div class="tableau" id="tableauType"><table><thead id="teteType"></thead><tbody id="corpsType"></tbody></table></div>
   </div>
@@ -248,6 +257,13 @@ const TABLEAUX = {
   tous: { tete: "tete", corps: "corps", tri: { k: "feu", sens: 1 }, vue: "cours", type: null },
   type: { tete: "teteType", corps: "corpsType", tri: { k: "feu", sens: 1 }, vue: "cours", type: null },   // aucun type choisi au départ
   rech: { tete: "teteRech", corps: "corpsRech", tri: { k: "feu", sens: 1 }, vue: "tous", type: null } };
+// feux affichés dans « Dossiers en cours » et dans le tableau du type (rouge, orange, vert, sans feu)
+const FEUX = [["rouge", "Urgent"], ["orange", "Pas urgent, je peux avancer"], ["vert", "En attente de documents"], ["aucun", "Sans feu"]];
+TABLEAUX.tous.feux = { rouge: true, orange: true, vert: true, aucun: true }; TABLEAUX.tous.barre = "feuxTous";
+TABLEAUX.type.feux = { rouge: true, orange: true, vert: true, aucun: true }; TABLEAUX.type.barre = "feuxType";
+try { const f = JSON.parse(localStorage.getItem("kultivaprix-suivi-feux") || "{}"); ["tous", "type"].forEach(t => Object.assign(TABLEAUX[t].feux, f[t] || {})); } catch (e) {}
+const garderFeux = () => { try { localStorage.setItem("kultivaprix-suivi-feux", JSON.stringify({ tous: TABLEAUX.tous.feux, type: TABLEAUX.type.feux })); } catch (e) {} };
+const couleur = x => x.r.urgence || "aucun";
 let trouves = new Map();   // projet → où le mot a été trouvé
 try { const o = JSON.parse(localStorage.getItem("kultivaprix-suivi-onglet") || "{}"); if (TYPES.some(t => t.id === o.type)) TABLEAUX.type.type = o.type; if (o.vue === "archives") TABLEAUX.type.vue = "archives"; } catch (e) {}
 const garderOnglet = () => { try { localStorage.setItem("kultivaprix-suivi-onglet", JSON.stringify({ type: TABLEAUX.type.type, vue: TABLEAUX.type.vue })); } catch (e) {} };
@@ -269,7 +285,14 @@ function lignesVue(vue, type) {
 function remplirTableau(T) {
   const { tri, vue, type } = T;
   $(T.tete).innerHTML = `<tr>${COLS.map(c => `<th data-tri="${c.k}" aria-sort="${tri.k === c.k ? (tri.sens > 0 ? "ascending" : "descending") : "none"}">${esc(c.lib)} <span class="fl">${tri.k === c.k ? (tri.sens > 0 ? "▲" : "▼") : ""}</span></th>`).join("")}</tr>`;
-  const L = lignesVue(vue, type).sort(comparer(tri));
+  let L = lignesVue(vue, type).sort(comparer(tri));
+  if (T.feux) {
+    const n = { rouge: 0, orange: 0, vert: 0, aucun: 0 }; L.forEach(x => n[couleur(x)]++);
+    $(T.barre).innerHTML = FEUX.map(([k, l]) => `<button class="ff${T.feux[k] ? "" : " off"}" type="button" data-ff="${k}" aria-pressed="${T.feux[k]}" title="${T.feux[k] ? "Cacher" : "Afficher"} : ${l}"><span class="feu ${k}"></span>${n[k]}</button>`).join("");
+    const caches = L.filter(x => !T.feux[couleur(x)]).length;
+    L = L.filter(x => T.feux[couleur(x)]);
+    if (!L.length && caches) { $(T.corps).innerHTML = `<tr><td colspan="${COLS.length}" class="vide"><b>Tous les dossiers sont cachés</b>Clique sur un feu pour les réafficher.</td></tr>`; return; }
+  }
   if (!L.length) {
     const nb = projets.filter(p => !type || p.type === type).length;
     $(T.corps).innerHTML = `<tr><td colspan="${COLS.length}" class="vide">${vue === "cours"
@@ -305,7 +328,7 @@ function rendreTableau() {
   $("sousOnglets").innerHTML = [["cours", "En cours"], ["archives", "Archivés / annulés"]].map(([v, l]) =>
     `<button class="sous-onglet${U.vue === v ? " actif" : ""}" type="button" role="tab" aria-selected="${U.vue === v}" data-sousonglet="${v}">${l} (${nb(v)})</button>`).join("");
   // aucun type choisi : ni sous-onglets ni tableau
-  $("sousOnglets").hidden = $("tableauType").hidden = !U.type;
+  $("ligneSous").hidden = $("tableauType").hidden = !U.type;
   $("choixType").hidden = !!U.type;
   if (U.type) remplirTableau(U); else $("corpsType").innerHTML = "";
   rendreRecherche();
@@ -314,9 +337,11 @@ document.addEventListener("click", e => {
   const th = e.target.closest("thead [data-tri]");
   if (th) { const T = th.closest("#teteType") ? TABLEAUX.type : th.closest("#teteRech") ? TABLEAUX.rech : TABLEAUX.tous;
     T.tri = T.tri.k === th.dataset.tri ? { k: T.tri.k, sens: -T.tri.sens } : { k: th.dataset.tri, sens: 1 }; rendreTableau(); return; }
+  const ff = e.target.closest("[data-ff]");
+  if (ff) { const T = ff.closest("#feuxType") ? TABLEAUX.type : TABLEAUX.tous; T.feux[ff.dataset.ff] = !T.feux[ff.dataset.ff]; garderFeux(); rendreTableau(); return; }
   const o = e.target.closest("[data-onglet]"); if (o) { TABLEAUX.type.type = o.dataset.onglet; garderOnglet(); rendreTableau(); return; }
   // clic ailleurs (hors des onglets, des sous-onglets et du tableau du type) : plus aucun type choisi
-  if (TABLEAUX.type.type && !e.target.closest("#ongletsTypes, #sousOnglets, #tableauType")) { TABLEAUX.type.type = null; garderOnglet(); rendreTableau(); }
+  if (TABLEAUX.type.type && !e.target.closest("#ongletsTypes, #ligneSous, #tableauType")) { TABLEAUX.type.type = null; garderOnglet(); rendreTableau(); }
   const so = e.target.closest("[data-sousonglet]"); if (so) { TABLEAUX.type.vue = so.dataset.sousonglet; garderOnglet(); rendreTableau(); return; }
   const tr = e.target.closest("tbody [data-projet]"); if (tr) ouvrir(tr);
 });
