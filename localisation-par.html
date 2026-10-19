@@ -382,7 +382,9 @@ header.top.urg-vert { box-shadow: var(--clay-sm), inset 0 0 0 4px #3ddc76, 0 0 1
 .iu-cab { cursor: text; }
 .iu-bloc { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; align-content: start; flex: none; }
 .eq-ligne { flex-wrap: nowrap; }
-.eq-ligne .plein { flex: 1 1 60px; width: 60px; min-width: 0; }   /* carte étroite : le champ rétrécit au lieu de déborder */
+.eq-ligne .iu-rang .plein { flex: 1 1 60px; width: 60px; }
+.eq-ligne .plein { flex: 1 1 60px; width: 60px; min-width: 0; }
+.eq-ligne .court { flex: 0 1 46px; width: 46px; min-width: 0; }   /* carte étroite : le champ rétrécit au lieu de déborder */
 .iu-bloc + .iu-bloc { margin-top: 26px; }
 .iu-bloc .iu-sec-titre { margin-bottom: 4px; font-size: 12px; }   /* même taille que « Générale » des Dates importantes */
 .eq-ligne select { flex: none; border: 0; border-radius: 8px; background: var(--carte-2); box-shadow: var(--inset); color: var(--texte); padding: 4px 6px; font: inherit; font-size: 12.5px; min-height: 26px; outline: none; }
@@ -1505,15 +1507,22 @@ document.addEventListener("keydown", e => { if (e.key === "Escape") fermerAnnulP
 /* ═══ Infos utiles : rien pour l'instant ═══ */
 /* ═══ Infos utiles : les équipements envisagés pour le PAR (chambre CH/…, poteau AR/…, autre) et le PAR choisi ═══ */
 function iuVisibilite() {}
-const EQ_TYPES = { ch: { lib: "Chambre", pre: "CH/" }, ar: { lib: "Poteau", pre: "AR/" }, autre: { lib: "Autre", pre: "", aide: "préciser" } };
+// comme dans Racco D2 : chambre « CH/… (Type : …) », appui « Appui : … (Type : …) », autre à préciser
+const EQ_TYPES = { ch: { lib: "Chambre", pre: "CH/", type: true }, ar: { lib: "Appui", pre: "", lab: "Appui :", type: true }, autre: { lib: "Autre", pre: "", aide: "préciser" } };
 const eqNeuf = () => ({ type: "ch", val: "CH/" });
 if (!Array.isArray(etat.fiche.equip) || !etat.fiche.equip.length) etat.fiche.equip = [eqNeuf()];
 if (!etat.fiche.parChoisi || typeof etat.fiche.parChoisi !== "object") etat.fiche.parChoisi = eqNeuf();
+// l'ancien « Poteau » préremplissait AR/ : un appui commence maintenant vide
+[...etat.fiche.equip, etat.fiche.parChoisi].forEach(o => { if (o.type === "ar" && String(o.val).trim() === "AR/") o.val = ""; });
 // une ligne : le type (liste) puis le champ, prérempli avec CH/ ou AR/
-const eqLigne = (o, cle, lib, sup) => `<div class="iu-ligne eq-ligne">` +
-  `<select data-eqtype="${cle}" aria-label="${esc(lib)} · type">${Object.entries(EQ_TYPES).map(([k, t]) => `<option value="${k}"${o.type === k ? " selected" : ""}>${t.lib}</option>`).join("")}</select>` +
-  `<input class="plein" data-eqval="${cle}" value="${esc(o.val || "")}" placeholder="${esc(EQ_TYPES[o.type]?.aide || (EQ_TYPES[o.type]?.pre || "") + "…")}" aria-label="${esc(lib)}" autocomplete="off">` +
-  (sup ? `<button class="iu-sup" type="button" data-eqsup="${cle}" aria-label="Retirer cet équipement" title="Retirer">×</button>` : "") + `</div>`;
+// sur deux lignes : le choix de l'équipement (et la croix), puis son champ et son type, sur toute la largeur de la carte
+const eqLigne = (o, cle, lib, sup) => { const T = EQ_TYPES[o.type] || EQ_TYPES.ch; return `<div class="iu-ligne eq-ligne pile"><div class="iu-rang">` +
+  `<select data-eqtype="${cle}" aria-label="${esc(lib)} · équipement">${Object.entries(EQ_TYPES).map(([k, t]) => `<option value="${k}"${o.type === k ? " selected" : ""}>${t.lib}</option>`).join("")}</select>` +
+  (sup ? `<button class="iu-sup" type="button" data-eqsup="${cle}" aria-label="Retirer cet équipement" title="Retirer">×</button>` : "") + `</div><div class="iu-rang">` +
+  (T.lab ? `<span class="fixe">${esc(T.lab)}</span>` : "") +
+  `<input class="plein" data-eqval="${cle}" value="${esc(o.val || "")}" placeholder="${esc(T.aide || (T.pre ? T.pre + "…" : ""))}" aria-label="${esc(lib)}" autocomplete="off">` +
+  (T.type ? `<span class="fixe">(Type :</span><input class="court" data-eqtyp="${cle}" value="${esc(o.typ || "")}" aria-label="${esc(lib)} · type" autocomplete="off"><span class="fixe">)</span>` : "") +
+  `</div></div>`; };
 function rendreIU() {
   const L = etat.fiche.equip;
   $("infosUtiles").innerHTML =
@@ -1526,7 +1535,7 @@ rendreIU();
 // texte trop long pour la case : il s'affiche en entier au survol
 const bulleEq = document.createElement("div"); bulleEq.className = "bulle-eq"; bulleEq.hidden = true; document.body.appendChild(bulleEq);
 $("infosUtiles").addEventListener("mouseover", e => {
-  const c = e.target.closest("[data-eqval]");
+  const c = e.target.closest("[data-eqval], [data-eqtyp]");
   if (!c || !c.value.trim() || c.scrollWidth <= c.clientWidth) { bulleEq.hidden = true; return; }
   bulleEq.textContent = c.value; bulleEq.hidden = false;
   const r = c.getBoundingClientRect(), w = bulleEq.offsetWidth;
@@ -1535,7 +1544,11 @@ $("infosUtiles").addEventListener("mouseover", e => {
 $("infosUtiles").addEventListener("mouseleave", () => { bulleEq.hidden = true; });
 $("infosUtiles").addEventListener("focusin", () => { bulleEq.hidden = true; });
 const eqObjet = cle => cle === "par" ? etat.fiche.parChoisi : etat.fiche.equip[+cle];
-$("infosUtiles").addEventListener("input", e => { const c = e.target.dataset.eqval; if (c == null) return; eqObjet(c).val = e.target.value; sauver(); });
+$("infosUtiles").addEventListener("input", e => {
+  const c = e.target.dataset.eqval, t = e.target.dataset.eqtyp;
+  if (c != null) { eqObjet(c).val = e.target.value; sauver(); }
+  if (t != null) { eqObjet(t).typ = e.target.value; sauver(); }
+});
 $("infosUtiles").addEventListener("change", e => {
   const c = e.target.dataset.eqtype; if (c == null) return;
   const o = eqObjet(c), avant = EQ_TYPES[o.type]?.pre || "";
@@ -1924,8 +1937,8 @@ function ecrireResume() {
   [["cab", "Cabinet conseil"], ["num", "N° POI"], ["adr", "Adresse"], ["pc", "N° PC"], ["ref", "Regroupement syndic"], ["elNote", "Commentaire du nombre d’EL"]].forEach(([k, l]) => aj(l, f[k]));
   (f.imbs || []).forEach(o => { aj("IMB", o.imb); aj("IMB · adresse", o.adr); aj("IMB · commentaire", o.note); });
   Object.values(f.iu || {}).forEach(v => { if (!["PT", "PF", "CH/", "AR/", "TR"].includes(String(v).trim())) aj("Infos utiles", v); });
-  (f.equip || []).forEach(o => { if (!["CH/", "AR/"].includes(String(o.val).trim())) aj("Équipement envisagé", o.val); });
-  if (f.parChoisi && !["CH/", "AR/"].includes(String(f.parChoisi.val).trim())) aj("PAR choisi", f.parChoisi.val);
+  (f.equip || []).forEach(o => { if (!["CH/", "AR/"].includes(String(o.val).trim())) aj("Équipement envisagé", o.val); aj("Équipement envisagé · type", o.typ); });
+  if (f.parChoisi) { if (!["CH/", "AR/"].includes(String(f.parChoisi.val).trim())) aj("PAR choisi", f.parChoisi.val); aj("PAR choisi · type", f.parChoisi.typ); }
   Object.entries(etat.memo || {}).forEach(([id, m]) => aj(`commentaire de « ${NOEUDS[id] ? NOEUDS[id].lib : id} »`, m.html != null ? txt(m.html) : m.note));
   aj("Note", txt(f.noteHtml));
   // la note telle qu'écrite (retours à la ligne gardés) pour la bulle du Suivi des dossiers
