@@ -282,6 +282,7 @@ header.top.urg-vert { box-shadow: var(--clay-sm), inset 0 0 0 4px #3ddc76, 0 0 1
 .coml-rang { display: flex; gap: 5px; align-items: center; }
 .coml-rang input { flex: 1; min-width: 0; border: 0; border-radius: 8px; background: var(--carte-2); box-shadow: var(--inset); padding: 6px 9px; font: inherit; font-size: 13px; outline: none; }
 .coml-rang input:focus { box-shadow: var(--inset), 0 0 0 3px var(--accent-dim); }
+.coml-rang input.invalide { box-shadow: var(--inset), 0 0 0 2px var(--ko); }
 .coml-rang input.manuel { background: #f9e9b8; }   /* calcul remplacé à la main */
 .coml-rang button { flex: none; width: 28px; height: 28px; border: 0; border-radius: 8px; background: var(--carte-2); color: var(--texte); cursor: pointer; font-size: 13px; }
 .coml-rang button:hover { background: var(--corail); }
@@ -1792,7 +1793,14 @@ const COML = ["t1_3", "t2_3_2_3", "t2_4_1_1", "t3_4_1"];
 // champs par tâche : { k, lib, sorte: "calc" | "date" | "texte" | "fixe" | "note", calc: d => iso, aide, val } (note : simple consigne écrite)
 // d = les Dates importantes du dossier (d.dlpi, d.poi, d.dre…) et d.t les dates des tâches ; v("k") = la valeur d'un autre champ de la fenêtre ; les outils : ajJours(iso, n), ajMois(iso, n), plusTard(a, b), plusTot(a, b)
 // une date calculée ne tombe jamais un week-end ni un jour férié : elle passe au premier jour ouvré qui suit (horsFerie)
-const COML_CHAMPS = {};
+// « tache » : le champ montre la date d'une tâche et l'écrit dans la tâche (sans la cocher)
+const PAS_DRE = { k: "noteDre", sorte: "note", val: "On ne change pas la DRE/DLR." };
+const COML_CHAMPS = {
+  t1_3: [{ k: "visite", lib: "Date visite terrain", sorte: "tache", tache: "t2_1", aide: "Se reporte dans la tâche « Visite terrain » (sans la cocher)" }, PAS_DRE],
+  t2_3_2_3: [PAS_DRE],
+  t2_4_1_1: [{ k: "demandePv", lib: "Date de demande PV", sorte: "tache", tache: "t2_4_1", aide: "La date de la tâche « Demande PV »" }, PAS_DRE],
+  t3_4_1: [PAS_DRE],
+};
 const ajJours = (iso, n) => { if (!iso) return ""; const [a, m, j] = iso.split("-").map(Number); return versIso(new Date(a, m - 1, j + n)); };
 const ajMois = (iso, n) => { if (!iso) return ""; const [a, m, j] = iso.split("-").map(Number); const d = new Date(a, m - 1 + n, 1);
   d.setDate(Math.min(j, new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate())); return versIso(d); };
@@ -1889,6 +1897,7 @@ async function poserComlPhoto(f) {
   rendreComlPhoto();
 }
 function valComl(id, c, pile = []) {
+  if (c.sorte === "tache") return { v: isoVersFr(etat.dates[c.tache] || ""), manuel: false };
   const m = (etat.coml[id] || {})[c.k];
   if (c.sorte === "fixe") return { v: c.val || "", manuel: false };
   if (m != null) return { v: m, manuel: c.sorte === "calc" };
@@ -1903,7 +1912,7 @@ function rendreComlChamps() {
   const L = COML_CHAMPS[id] || [];
   z.innerHTML = !L.length ? `<div class="vide-msg">Les champs de cette tâche arriveront ici.<br>Donne-moi leur liste et leurs formules : les dates se calculeront toutes seules depuis les Dates importantes.</div>`
     : L.map(c => { if (c.sorte === "note") return `<div class="coml-note">${esc(c.val)}</div>`;
-      const { v, manuel } = valComl(id, c), date = c.sorte === "calc" || c.sorte === "date";
+      const { v, manuel } = valComl(id, c), date = c.sorte === "calc" || c.sorte === "date" || c.sorte === "tache";
       return `<div class="coml-champ"><label for="coml_${c.k}">${esc(c.lib)}</label><div class="coml-rang">` +
         `<input id="coml_${c.k}" data-comlk="${c.k}"${date ? ` data-comldate="1" placeholder="JJ/MM/AAAA" inputmode="numeric" maxlength="10"` : ""}${c.sorte === "fixe" ? " readonly" : ""} class="${manuel ? "manuel" : ""}" value="${esc(v)}" autocomplete="off">` +
         (manuel ? `<button type="button" data-comlcalc="${c.k}" title="Revenir au calcul" aria-label="Revenir au calcul">↺</button>` : "") +
@@ -1929,6 +1938,12 @@ document.addEventListener("input", e => {
   const k = e.target.dataset?.comlk; if (!k || !comlOuvert) return;
   const c = (COML_CHAMPS[comlOuvert] || []).find(x => x.k === k); if (!c) return;
   if (e.target.dataset.comldate) e.target.value = formaterDate(e.target.value);
+  if (c.sorte === "tache") {   // date complète ou effacée : elle va dans la tâche (et dans les Dates importantes), la tâche n'est pas cochée
+    const iso = frVersIso(e.target.value);
+    e.target.classList.toggle("invalide", e.target.value.length === 10 && !iso);
+    if (iso) etat.dates[c.tache] = iso; else if (!e.target.value) delete etat.dates[c.tache]; else return;
+    sauver(); reporterDate(c.tache); majApresDate(); return;
+  }
   const o = etat.coml[comlOuvert] = etat.coml[comlOuvert] || {};
   if (e.target.value) o[k] = e.target.value; else delete o[k];
   sauver();
