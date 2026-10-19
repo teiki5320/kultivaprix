@@ -1344,9 +1344,9 @@ document.querySelector(".feu").addEventListener("click", e => {
 const GROUPES_DI = [
   { id: "gen", titre: "Générale", dates: [["poi", "Réception POI"], ["dre", "DRE"], ["dlr", "DLR"]] },
   { id: "pre", titre: "Pré-étude", dates: [["visite", "Visite terrain"], ["amiante", "Demande amiante"]] },
+  { id: "trav", titre: "Travaux", dates: [["travaux", "Envoi en travaux"], ["doe", "Réception DOE GC"], ["paiement", "Paiement attachement"], ["arch", "Archivage POI"]] },
   { id: "evol", titre: "Evol GC", dates: [["annexe3", "Envoi annexe 3 à EVOL GC - AMARIS"], ["retourEvol", "Retour Guichet travaux Evol GC réalisés"]] },
-  { id: "pv", titre: "Permission de voirie", dates: [["pvDemande", "Demande PV"], ["pvAccord", "Accord technique"], ["pvRetour", "Retour PV"]] },
-  { id: "trav", titre: "Travaux", dates: [["travaux", "Envoi en travaux"], ["doe", "Réception DOE GC"], ["paiement", "Paiement attachement"], ["arch", "Archivage POI"]] }];
+  { id: "pv", titre: "Permission de voirie", dates: [["pvDemande", "Demande PV"], ["pvAccord", "Accord technique"], ["pvRetour", "Retour PV"]] }];
 const DATES_IMP = GROUPES_DI.flatMap(g => g.dates);
 // précisions au survol de l'astérisque ou du titre (pas pour les envois en travaux, le paiement ni les archivages ; celle de la DLPI est dans le HTML)
 const AIDE_DI = {
