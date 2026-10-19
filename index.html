@@ -56,7 +56,8 @@ header .btn-accent { background: var(--accent); color: var(--accent-ink); }
 .tete .droite { margin-left: auto; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 
 /* recherche */
-.recherche { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.recherche { display: flex; align-items: center; gap: 10px; }
+#tableauRech { margin-top: 12px; }
 .recherche-champ { flex: 1; position: relative; }
 .recherche-champ svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); stroke: var(--muted); fill: none; stroke-width: 2; }
 .recherche input { width: 100%; border: 0; border-radius: var(--r-md); background: var(--carte-2); box-shadow: var(--inset); padding: 10px 12px 10px 38px; outline: none; }
@@ -73,7 +74,6 @@ th .fl { display: inline-block; width: 12px; color: var(--accent); }
 td { padding: 9px 10px; border-bottom: 1px solid var(--ligne); vertical-align: middle; }
 tbody tr { cursor: pointer; background: var(--carte); transition: background .12s; }
 tbody tr:hover { background: #fff3e6; }
-tbody tr.trouve { background: var(--trouve); box-shadow: inset 4px 0 0 #e0a800; }
 .sous { display: block; line-height: 1.35; white-space: nowrap; }
 .sous + .sous { border-top: 1px dashed rgba(74, 66, 56, .18); margin-top: 4px; padding-top: 4px; }
 .statut { color: var(--rouge); font-weight: 800; font-size: 12px; }
@@ -131,13 +131,18 @@ tbody tr.trouve { background: var(--trouve); box-shadow: inset 4px 0 0 #e0a800; 
   </header>
 
   <div class="card">
-    <div class="tete"><h2 id="titreVue">Dossiers en cours</h2>
-      <div class="droite"><button class="btn btn-mini" id="retourEnCours" type="button" hidden>← Dossiers en cours</button></div></div>
+    <div class="tete"><h2>Recherche</h2></div>
     <div class="recherche">
       <div class="recherche-champ"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
         <input id="recherche" type="search" placeholder="Rechercher dans tous les projets : adresse, N° POI, commentaire, note…" autocomplete="off" aria-label="Rechercher"></div>
       <span class="recherche-res" id="rechercheRes"></span>
     </div>
+    <div class="tableau" id="tableauRech" hidden><table><thead id="teteRech"></thead><tbody id="corpsRech"></tbody></table></div>
+  </div>
+
+  <div class="card">
+    <div class="tete"><h2 id="titreVue">Dossiers en cours</h2>
+      <div class="droite"><button class="btn btn-mini" id="retourEnCours" type="button" hidden>← Dossiers en cours</button></div></div>
     <div class="tableau"><table><thead id="tete"></thead><tbody id="corps"></tbody></table></div>
   </div>
 
@@ -240,7 +245,9 @@ const COLS = [
 // deux tableaux : celui du haut (tous les types) et celui de l'onglet du type choisi ; chacun garde son tri et sa vue
 const TABLEAUX = {
   tous: { tete: "tete", corps: "corps", tri: { k: "feu", sens: 1 }, vue: "cours", type: null },
-  type: { tete: "teteType", corps: "corpsType", tri: { k: "feu", sens: 1 }, vue: "cours", type: null } };   // aucun type choisi au départ
+  type: { tete: "teteType", corps: "corpsType", tri: { k: "feu", sens: 1 }, vue: "cours", type: null },   // aucun type choisi au départ
+  rech: { tete: "teteRech", corps: "corpsRech", tri: { k: "feu", sens: 1 }, vue: "tous", type: null } };
+let trouves = new Map();   // projet → où le mot a été trouvé
 try { const o = JSON.parse(localStorage.getItem("kultivaprix-suivi-onglet") || "{}"); if (TYPES.some(t => t.id === o.type)) TABLEAUX.type.type = o.type; if (o.vue === "archives") TABLEAUX.type.vue = "archives"; } catch (e) {}
 const garderOnglet = () => { try { localStorage.setItem("kultivaprix-suivi-onglet", JSON.stringify({ type: TABLEAUX.type.type, vue: TABLEAUX.type.vue })); } catch (e) {} };
 const comparer = tri => (a, b) => {
@@ -253,6 +260,7 @@ const comparer = tri => (a, b) => {
 };
 // en cours : les projets dont la POI principale est en cours ; archivés / annulés : seulement les POI qui le sont
 function lignesVue(vue, type) {
+  if (vue === "tous") return projets.filter(p => trouves.has(p.id)).map(ligneProjet);   // résultats de la recherche : toutes leurs POI
   const L = projets.filter(p => !type || p.type === type).map(ligneProjet);
   if (vue === "cours") return L.filter(x => enCours(x.principale));
   return L.map(x => ({ ...x, pois: x.pois.filter(po => !enCours(po)) })).filter(x => x.pois.length);
@@ -299,11 +307,11 @@ function rendreTableau() {
   $("sousOnglets").hidden = $("tableauType").hidden = !U.type;
   $("choixType").hidden = !!U.type;
   if (U.type) remplirTableau(U); else $("corpsType").innerHTML = "";
-  majRecherche();
+  rendreRecherche();
 }
 document.addEventListener("click", e => {
   const th = e.target.closest("thead [data-tri]");
-  if (th) { const T = th.closest("#teteType") ? TABLEAUX.type : TABLEAUX.tous;
+  if (th) { const T = th.closest("#teteType") ? TABLEAUX.type : th.closest("#teteRech") ? TABLEAUX.rech : TABLEAUX.tous;
     T.tri = T.tri.k === th.dataset.tri ? { k: T.tri.k, sens: -T.tri.sens } : { k: th.dataset.tri, sens: 1 }; rendreTableau(); return; }
   const o = e.target.closest("[data-onglet]"); if (o) { TABLEAUX.type.type = o.dataset.onglet; garderOnglet(); rendreTableau(); return; }
   // clic ailleurs (hors des onglets, des sous-onglets et du tableau du type) : plus aucun type choisi
@@ -328,22 +336,25 @@ $("voirArchives").onclick = () => { TABLEAUX.tous.vue = "archives"; rendreTablea
 $("retourEnCours").onclick = () => { TABLEAUX.tous.vue = "cours"; rendreTableau(); };
 
 /* ═══ Recherche : cherche dans tout le contenu de chaque projet et surligne les lignes trouvées ═══ */
-function majRecherche() {
+function rendreRecherche() {
   const q = norm($("recherche").value.trim());
-  const trouves = new Set(); let premier = null;
-  document.querySelectorAll("tbody tr[data-projet]").forEach(tr => {
-    const r = resumes[tr.dataset.projet] || {};
-    const sources = [...(r.recherche || []), ...(r.pois || []).map(po => ({ lieu: "Type", texte: po.type }))];
-    const lieux = q.length >= 2 ? [...new Set(sources.filter(s => norm(s.texte).includes(q)).map(s => s.lieu))] : [];
-    tr.classList.toggle("trouve", lieux.length > 0);
-    tr.title = lieux.length ? `Trouvé dans : ${lieux.join(", ")}` : "Ouvrir ce projet";
-    if (lieux.length) { trouves.add(tr.dataset.projet); premier = premier || tr; }
+  trouves = new Map();
+  if (q.length >= 2) projets.forEach(p => {
+    const r = resumes[p.id] || {};
+    const sources = [...(r.recherche || []), ...(r.pois || []).map(po => ({ lieu: "Type", texte: po.type })), { lieu: "Type", texte: typeDe(p.type).nom }];
+    const lieux = [...new Set(sources.filter(x => norm(x.texte).includes(q)).map(x => x.lieu))];
+    if (lieux.length) trouves.set(p.id, lieux);
   });
   const n = trouves.size;
   $("rechercheRes").textContent = q.length >= 2 ? (n ? `${n} projet${n > 1 ? "s" : ""} trouvé${n > 1 ? "s" : ""}` : "Aucun projet trouvé") : "";
-  return premier;
+  $("tableauRech").hidden = q.length < 2;
+  if (q.length < 2) { $("corpsRech").innerHTML = ""; return; }
+  remplirTableau(TABLEAUX.rech);
+  if (!n) $("corpsRech").innerHTML = `<tr><td colspan="${COLS.length}" class="vide"><b>Aucun projet trouvé</b>Essaie un autre mot-clé.</td></tr>`;
+  // au survol d'une ligne : où le mot a été trouvé
+  $("corpsRech").querySelectorAll("tr[data-projet]").forEach(tr => { tr.title = `Trouvé dans : ${trouves.get(tr.dataset.projet).join(", ")}`; });
 }
-$("recherche").addEventListener("input", () => { const p = majRecherche(); p?.scrollIntoView({ block: "nearest", behavior: "smooth" }); });
+$("recherche").addEventListener("input", rendreRecherche);
 
 /* ═══ Statistiques : nombre de POI et d'EL ; les EL sont liés au projet (comptés avec sa POI principale) ═══
    période du … au … : en cours = reçue avant la fin et pas encore archivée/annulée à la fin ; archivés / annulés = pendant la période */
