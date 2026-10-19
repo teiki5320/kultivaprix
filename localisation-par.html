@@ -1504,7 +1504,7 @@ document.addEventListener("keydown", e => { if (e.key === "Escape") fermerAnnulP
 /* ═══ Infos utiles : rien pour l'instant ═══ */
 /* ═══ Infos utiles : les équipements envisagés pour le PAR (chambre CH/…, poteau AR/…, autre) et le PAR choisi ═══ */
 function iuVisibilite() {}
-const EQ_TYPES = { ch: { lib: "Chambre", pre: "CH/" }, ar: { lib: "Poteau", pre: "AR/" }, autre: { lib: "Autre", pre: "", aide: "fourreau en attente" } };
+const EQ_TYPES = { ch: { lib: "Chambre", pre: "CH/" }, ar: { lib: "Poteau", pre: "AR/" }, autre: { lib: "Autre", pre: "", aide: "préciser" } };
 const eqNeuf = () => ({ type: "ch", val: "CH/" });
 if (!Array.isArray(etat.fiche.equip) || !etat.fiche.equip.length) etat.fiche.equip = [eqNeuf()];
 if (!etat.fiche.parChoisi || typeof etat.fiche.parChoisi !== "object") etat.fiche.parChoisi = eqNeuf();
