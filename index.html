@@ -95,6 +95,7 @@ tbody tr.trouve { background: var(--trouve); box-shadow: inset 4px 0 0 #e0a800; 
 .onglet:hover { background: #efe2d4; }
 .onglet.actif { background: #2b2b2b; color: #f5f5f5; box-shadow: var(--clay-sm); }
 .onglet.actif small { color: #f5c48f; }
+.choix-type { font-size: 13px; font-weight: 600; color: var(--muted); padding: 2px 2px 4px; }
 .sous-onglets { display: flex; gap: 6px; margin-bottom: 10px; }
 .sous-onglet { border: 0; border-radius: 999px; padding: 6px 14px; font-weight: 800; font-size: 12.5px; cursor: pointer; background: var(--carte-2); color: var(--muted); box-shadow: var(--inset); }
 .sous-onglet.actif { background: var(--accent); color: var(--accent-ink); box-shadow: var(--pouss-bas); }
@@ -144,7 +145,8 @@ tbody tr.trouve { background: var(--trouve); box-shadow: inset 4px 0 0 #e0a800; 
     <div class="tete"><h2>Suivi par type de dossier</h2></div>
     <div class="onglets" id="ongletsTypes" role="tablist" aria-label="Types de dossier"></div>
     <div class="sous-onglets" id="sousOnglets" role="tablist" aria-label="En cours ou archivés"></div>
-    <div class="tableau"><table><thead id="teteType"></thead><tbody id="corpsType"></tbody></table></div>
+    <div class="choix-type" id="choixType">Clique sur un type de dossier pour voir ses projets.</div>
+    <div class="tableau" id="tableauType"><table><thead id="teteType"></thead><tbody id="corpsType"></tbody></table></div>
   </div>
 
   <div class="card">
@@ -238,7 +240,7 @@ const COLS = [
 // deux tableaux : celui du haut (tous les types) et celui de l'onglet du type choisi ; chacun garde son tri et sa vue
 const TABLEAUX = {
   tous: { tete: "tete", corps: "corps", tri: { k: "feu", sens: 1 }, vue: "cours", type: null },
-  type: { tete: "teteType", corps: "corpsType", tri: { k: "feu", sens: 1 }, vue: "cours", type: "racco-d2" } };
+  type: { tete: "teteType", corps: "corpsType", tri: { k: "feu", sens: 1 }, vue: "cours", type: null } };   // aucun type choisi au départ
 try { const o = JSON.parse(localStorage.getItem("kultivaprix-suivi-onglet") || "{}"); if (TYPES.some(t => t.id === o.type)) TABLEAUX.type.type = o.type; if (o.vue === "archives") TABLEAUX.type.vue = "archives"; } catch (e) {}
 const garderOnglet = () => { try { localStorage.setItem("kultivaprix-suivi-onglet", JSON.stringify({ type: TABLEAUX.type.type, vue: TABLEAUX.type.vue })); } catch (e) {} };
 const comparer = tri => (a, b) => {
@@ -293,7 +295,10 @@ function rendreTableau() {
   const nb = v => lignesVue(v, U.type).length;
   $("sousOnglets").innerHTML = [["cours", "En cours"], ["archives", "Archivés / annulés"]].map(([v, l]) =>
     `<button class="sous-onglet${U.vue === v ? " actif" : ""}" type="button" role="tab" aria-selected="${U.vue === v}" data-sousonglet="${v}">${l} (${nb(v)})</button>`).join("");
-  remplirTableau(U);
+  // aucun type choisi : ni sous-onglets ni tableau
+  $("sousOnglets").hidden = $("tableauType").hidden = !U.type;
+  $("choixType").hidden = !!U.type;
+  if (U.type) remplirTableau(U); else $("corpsType").innerHTML = "";
   majRecherche();
 }
 document.addEventListener("click", e => {
@@ -301,6 +306,8 @@ document.addEventListener("click", e => {
   if (th) { const T = th.closest("#teteType") ? TABLEAUX.type : TABLEAUX.tous;
     T.tri = T.tri.k === th.dataset.tri ? { k: T.tri.k, sens: -T.tri.sens } : { k: th.dataset.tri, sens: 1 }; rendreTableau(); return; }
   const o = e.target.closest("[data-onglet]"); if (o) { TABLEAUX.type.type = o.dataset.onglet; garderOnglet(); rendreTableau(); return; }
+  // clic ailleurs (hors des onglets, des sous-onglets et du tableau du type) : plus aucun type choisi
+  if (TABLEAUX.type.type && !e.target.closest("#ongletsTypes, #sousOnglets, #tableauType")) { TABLEAUX.type.type = null; garderOnglet(); rendreTableau(); }
   const so = e.target.closest("[data-sousonglet]"); if (so) { TABLEAUX.type.vue = so.dataset.sousonglet; garderOnglet(); rendreTableau(); return; }
   const tr = e.target.closest("tbody [data-projet]"); if (tr) ouvrir(tr);
 });
