@@ -81,6 +81,9 @@ tbody tr.trouve { background: var(--trouve); box-shadow: inset 4px 0 0 #e0a800; 
 .feu.rouge { background: #e2493a; } .feu.orange { background: #f29a2e; } .feu.vert { background: #36c26a; } .feu.aucun { background: #ddd3c8; }
 .num { font-variant-numeric: tabular-nums; white-space: nowrap; }
 .note { max-width: 260px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* bulle de la note entière, au survol de la case Note */
+.bulle-note { position: fixed; z-index: 40; max-width: 420px; max-height: 60vh; overflow: auto; padding: 10px 13px; border-radius: 12px; background: #2b2b2b; color: #f2f2f2;
+  font-size: 13px; line-height: 1.45; white-space: pre-wrap; overflow-wrap: anywhere; box-shadow: var(--clay); pointer-events: none; }
 .vide { padding: 26px 16px; text-align: center; color: var(--muted); font-weight: 700; }
 .vide b { display: block; color: var(--texte); font-size: 15px; margin-bottom: 4px; }
 
@@ -134,6 +137,7 @@ tbody tr.trouve { background: var(--trouve); box-shadow: inset 4px 0 0 #e0a800; 
   </div>
 </div>
 
+<div class="bulle-note" id="bulleNote" hidden></div>
 <script type="module">
 /* ═══ Mémoire commune à toutes les pages (IndexedDB « kultivaprix ») ═══
    projets : [{ id, type, cree }] ; p:<id>:resume : résumé écrit par la page du type de dossier ; commun:* : liens Modop et mise en page */
@@ -247,7 +251,7 @@ function rendreTableau() {
       <td>${x.pois.map(po => `<span class="sous num">${esc(po.num || "—")}${statut(po)}</span>`).join("")}</td>
       <td>${esc(r.cabinet)}</td><td>${esc(r.adresse)}</td><td class="num">${esc(r.el)}</td>
       <td class="num">${isoVersFr(r.dlpi)}</td><td class="num">${isoVersFr(r.dre)}</td><td class="num">${isoVersFr(r.dlr)}</td>
-      <td class="note" title="${esc(r.note)}">${esc(r.note)}</td></tr>`; }).join("");
+      <td class="note" data-note="${x.id}">${esc(r.note)}</td></tr>`; }).join("");
   majRecherche();
 }
 $("tete").addEventListener("click", e => {
@@ -257,6 +261,18 @@ $("tete").addEventListener("click", e => {
 });
 const ouvrir = tr => { const p = projets.find(x => x.id === tr.dataset.projet), t = p && typeDe(p.type); if (t?.page) location.href = `${t.page}?p=${encodeURIComponent(p.id)}`; };
 $("corps").addEventListener("click", e => { const tr = e.target.closest("[data-projet]"); if (tr) ouvrir(tr); });
+// note entière au survol de sa case (avec ses retours à la ligne)
+$("corps").addEventListener("mouseover", e => {
+  const td = e.target.closest("[data-note]"), b = $("bulleNote");
+  const r = td && resumes[td.dataset.note], t = r && (r.noteLignes || r.note);
+  if (!t) { b.hidden = true; return; }
+  b.textContent = t; b.hidden = false;
+  const c = td.getBoundingClientRect(), w = b.offsetWidth, h = b.offsetHeight;
+  b.style.left = Math.max(8, Math.min(c.right - w, innerWidth - w - 8)) + "px";
+  b.style.top = (c.bottom + 6 + h > innerHeight ? Math.max(8, c.top - h - 6) : c.bottom + 6) + "px";
+});
+$("corps").addEventListener("mouseleave", () => { $("bulleNote").hidden = true; });
+addEventListener("scroll", () => { $("bulleNote").hidden = true; }, true);
 $("corps").addEventListener("keydown", e => { const tr = e.target.closest("[data-projet]"); if (tr && e.key === "Enter") ouvrir(tr); });
 $("voirArchives").onclick = () => { vue = "archives"; rendreTableau(); $("titreVue").scrollIntoView({ behavior: "smooth", block: "start" }); };
 $("retourEnCours").onclick = () => { vue = "cours"; rendreTableau(); };
