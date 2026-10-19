@@ -386,6 +386,8 @@ header.top.urg-vert { box-shadow: var(--clay-sm), inset 0 0 0 4px #3ddc76, 0 0 1
 .iu-bloc + .iu-bloc { margin-top: 26px; }
 .iu-bloc .iu-sec-titre { margin-bottom: 4px; font-size: 12px; }   /* même taille que « Générale » des Dates importantes */
 .eq-ligne select { flex: none; border: 0; border-radius: 8px; background: var(--carte-2); box-shadow: var(--inset); color: var(--texte); padding: 4px 6px; font: inherit; font-size: 12.5px; min-height: 26px; outline: none; }
+.bulle-eq { position: fixed; z-index: 40; max-width: 320px; padding: 7px 10px; border-radius: 10px; background: #f2f2f2; color: #2b2b2b; font-size: 13px; font-weight: 600;
+  line-height: 1.4; overflow-wrap: anywhere; box-shadow: var(--clay); pointer-events: none; }
 .eq-ligne select:focus { box-shadow: var(--inset), 0 0 0 3px var(--accent-dim); }
 /* sous-parties : IPON, PV, GCBLO, BANBOU */
 .iu-ligne[hidden] { display: none; }
@@ -1521,6 +1523,17 @@ function rendreIU() {
     `<section class="iu-bloc"><h3 class="iu-sec-titre">PAR choisi</h3>${eqLigne(etat.fiche.parChoisi, "par", "PAR choisi", false)}</section>`;
 }
 rendreIU();
+// texte trop long pour la case : il s'affiche en entier au survol
+const bulleEq = document.createElement("div"); bulleEq.className = "bulle-eq"; bulleEq.hidden = true; document.body.appendChild(bulleEq);
+$("infosUtiles").addEventListener("mouseover", e => {
+  const c = e.target.closest("[data-eqval]");
+  if (!c || !c.value.trim() || c.scrollWidth <= c.clientWidth) { bulleEq.hidden = true; return; }
+  bulleEq.textContent = c.value; bulleEq.hidden = false;
+  const r = c.getBoundingClientRect(), w = bulleEq.offsetWidth;
+  bulleEq.style.left = Math.max(8, Math.min(r.right - w, innerWidth - w - 8)) + "px"; bulleEq.style.top = (r.bottom + 6) + "px";
+});
+$("infosUtiles").addEventListener("mouseleave", () => { bulleEq.hidden = true; });
+$("infosUtiles").addEventListener("focusin", () => { bulleEq.hidden = true; });
 const eqObjet = cle => cle === "par" ? etat.fiche.parChoisi : etat.fiche.equip[+cle];
 $("infosUtiles").addEventListener("input", e => { const c = e.target.dataset.eqval; if (c == null) return; eqObjet(c).val = e.target.value; sauver(); });
 $("infosUtiles").addEventListener("change", e => {
