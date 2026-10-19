@@ -1663,7 +1663,7 @@ if (!Array.isArray(etat.fiche.iuGcblo)) etat.fiche.iuGcblo = [];
 const ordinal = i => i === 1 ? "1ère" : i + "ème";
 // La Roche : la case n'apparaît que si l'adresse parle de La Roche(-sur-Yon) ou du code postal 85000
 const aLaRoche = () => /la[\s-]*roche|\b85000\b/.test((etat.fiche.adr || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase());
-const iuChiffres = (k, lib) => `<input class="plein chiffres" data-iu="${k}" value="${iuVal(k)}" inputmode="numeric" maxlength="10" placeholder="10 chiffres max" aria-label="${esc(lib)}" autocomplete="off">`;
+const iuChiffres = (k, lib) => `<input class="plein chiffres" data-iu="${k}" value="${iuVal(k)}" inputmode="numeric" maxlength="10" placeholder="Référence" aria-label="${esc(lib)}" autocomplete="off">`;
 function iuVisibilite() {
   const ae = typeof NOEUDS !== "undefined" && NOEUDS.t1_3_1 && valide(NOEUDS.t1_3_1);
   if ($("iuSecPV")) $("iuSecPV").hidden = !ae;
