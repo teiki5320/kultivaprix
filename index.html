@@ -87,6 +87,18 @@ tbody tr.trouve { background: var(--trouve); box-shadow: inset 4px 0 0 #e0a800; 
 .vide { padding: 26px 16px; text-align: center; color: var(--muted); font-weight: 700; }
 .vide b { display: block; color: var(--texte); font-size: 15px; margin-bottom: 4px; }
 
+/* suivi par type de dossier : un onglet par type (nombre de projets en cours, archivés, annulés), puis En cours / Archivés-annulés */
+.onglets { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 8px; margin-bottom: 12px; }
+.onglet { border: 0; border-radius: var(--r-md); padding: 9px 12px; text-align: left; cursor: pointer; background: var(--carte-2); box-shadow: var(--inset); color: var(--texte); display: grid; gap: 2px; }
+.onglet b { font-size: 13.5px; }
+.onglet small { font-size: 11.5px; font-weight: 600; color: var(--muted); }
+.onglet:hover { background: #efe2d4; }
+.onglet.actif { background: #2b2b2b; color: #f5f5f5; box-shadow: var(--clay-sm); }
+.onglet.actif small { color: #f5c48f; }
+.sous-onglets { display: flex; gap: 6px; margin-bottom: 10px; }
+.sous-onglet { border: 0; border-radius: 999px; padding: 6px 14px; font-weight: 800; font-size: 12.5px; cursor: pointer; background: var(--carte-2); color: var(--muted); box-shadow: var(--inset); }
+.sous-onglet.actif { background: var(--accent); color: var(--accent-ink); box-shadow: var(--pouss-bas); }
+
 /* statistiques */
 .periode { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; color: var(--muted); }
 .date-champ { position: relative; }
@@ -126,6 +138,13 @@ tbody tr.trouve { background: var(--trouve); box-shadow: inset 4px 0 0 #e0a800; 
       <span class="recherche-res" id="rechercheRes"></span>
     </div>
     <div class="tableau"><table><thead id="tete"></thead><tbody id="corps"></tbody></table></div>
+  </div>
+
+  <div class="card">
+    <div class="tete"><h2>Suivi par type de dossier</h2></div>
+    <div class="onglets" id="ongletsTypes" role="tablist" aria-label="Types de dossier"></div>
+    <div class="sous-onglets" id="sousOnglets" role="tablist" aria-label="En cours ou archivés"></div>
+    <div class="tableau"><table><thead id="teteType"></thead><tbody id="corpsType"></tbody></table></div>
   </div>
 
   <div class="card">
@@ -216,34 +235,38 @@ const COLS = [
   { k: "dre", lib: "DRE", val: L => L.r.dre || "" },
   { k: "dlr", lib: "DLR", val: L => L.r.dlr || "" },
   { k: "note", lib: "Note", val: L => norm(L.r.note) }];
-let tri = { k: "feu", sens: 1 }, vue = "cours";
-function comparer(a, b) {
+// deux tableaux : celui du haut (tous les types) et celui de l'onglet du type choisi ; chacun garde son tri et sa vue
+const TABLEAUX = {
+  tous: { tete: "tete", corps: "corps", tri: { k: "feu", sens: 1 }, vue: "cours", type: null },
+  type: { tete: "teteType", corps: "corpsType", tri: { k: "feu", sens: 1 }, vue: "cours", type: "racco-d2" } };
+try { const o = JSON.parse(localStorage.getItem("kultivaprix-suivi-onglet") || "{}"); if (TYPES.some(t => t.id === o.type)) TABLEAUX.type.type = o.type; if (o.vue === "archives") TABLEAUX.type.vue = "archives"; } catch (e) {}
+const garderOnglet = () => { try { localStorage.setItem("kultivaprix-suivi-onglet", JSON.stringify({ type: TABLEAUX.type.type, vue: TABLEAUX.type.vue })); } catch (e) {} };
+const comparer = tri => (a, b) => {
   const c = COLS.find(x => x.k === tri.k), va = c.val(a), vb = c.val(b);
   const videA = va === "" || va == null, videB = vb === "" || vb == null;
   if (videA !== videB) return videA ? 1 : -1;   // les cases vides toujours en bas
   if (!videA && va !== vb) return (va < vb ? -1 : 1) * tri.sens;
   // à égalité : la DRE la plus proche, puis l'adresse
   return (a.r.dre || "9999").localeCompare(b.r.dre || "9999") || norm(a.r.adresse).localeCompare(norm(b.r.adresse));
-}
-function lignesVue() {
-  const L = projets.map(ligneProjet);
+};
+// en cours : les projets dont la POI principale est en cours ; archivés / annulés : seulement les POI qui le sont
+function lignesVue(vue, type) {
+  const L = projets.filter(p => !type || p.type === type).map(ligneProjet);
   if (vue === "cours") return L.filter(x => enCours(x.principale));
-  // archivés / annulés : seulement les POI qui le sont
   return L.map(x => ({ ...x, pois: x.pois.filter(po => !enCours(po)) })).filter(x => x.pois.length);
 }
-function rendreTableau() {
-  $("titreVue").textContent = vue === "cours" ? "Dossiers en cours" : "Dossiers archivés et annulés";
-  $("retourEnCours").hidden = vue === "cours";
-  $("voirArchives").hidden = vue !== "cours";
-  $("tete").innerHTML = `<tr>${COLS.map(c => `<th data-tri="${c.k}" aria-sort="${tri.k === c.k ? (tri.sens > 0 ? "ascending" : "descending") : "none"}">${esc(c.lib)} <span class="fl">${tri.k === c.k ? (tri.sens > 0 ? "▲" : "▼") : ""}</span></th>`).join("")}</tr>`;
-  const L = lignesVue().sort(comparer);
+function remplirTableau(T) {
+  const { tri, vue, type } = T;
+  $(T.tete).innerHTML = `<tr>${COLS.map(c => `<th data-tri="${c.k}" aria-sort="${tri.k === c.k ? (tri.sens > 0 ? "ascending" : "descending") : "none"}">${esc(c.lib)} <span class="fl">${tri.k === c.k ? (tri.sens > 0 ? "▲" : "▼") : ""}</span></th>`).join("")}</tr>`;
+  const L = lignesVue(vue, type).sort(comparer(tri));
   if (!L.length) {
-    $("corps").innerHTML = `<tr><td colspan="${COLS.length}" class="vide">${vue === "cours"
-      ? (projets.length ? "<b>Aucun dossier en cours</b>Tous tes projets sont archivés ou annulés." : "<b>Crée ton premier projet</b>Clique sur « + Nouveau projet » en haut à droite.")
+    const nb = projets.filter(p => !type || p.type === type).length;
+    $(T.corps).innerHTML = `<tr><td colspan="${COLS.length}" class="vide">${vue === "cours"
+      ? (nb ? "<b>Aucun dossier en cours</b>Ils sont tous archivés ou annulés." : type ? `<b>Aucun projet ${esc(typeDe(type).nom)}</b>${typeDe(type).page ? "Crée-le avec « + Nouveau projet » en haut à droite." : "Ce type de dossier arrive bientôt."}` : "<b>Crée ton premier projet</b>Clique sur « + Nouveau projet » en haut à droite.")
       : "<b>Aucun dossier archivé ou annulé</b>Ils apparaîtront ici dès qu'une POI sera archivée ou annulée."}</td></tr>`;
-    majRecherche(); return;
+    return;
   }
-  $("corps").innerHTML = L.map(x => {
+  $(T.corps).innerHTML = L.map(x => {
     const r = x.r, statut = po => enCours(po) ? "" : ` <span class="statut">${esc(po.statut)}${po.date && vue !== "cours" ? " le " + isoVersFr(po.date) : ""}</span>`;
     return `<tr data-projet="${x.id}" tabindex="0" title="Ouvrir ce projet">
       <td><span class="feu ${r.urgence || "aucun"}" title="${esc(r.urgence ? { rouge: "Urgent", orange: "Pas urgent, je peux avancer", vert: "En attente de documents" }[r.urgence] : "Pas de feu")}"></span></td>
@@ -252,18 +275,39 @@ function rendreTableau() {
       <td>${esc(r.cabinet)}</td><td>${esc(r.adresse)}</td><td class="num">${esc(r.el)}</td>
       <td class="num">${isoVersFr(r.dlpi)}</td><td class="num">${isoVersFr(r.dre)}</td><td class="num">${isoVersFr(r.dlr)}</td>
       <td class="note" data-note="${x.id}">${esc(r.note)}</td></tr>`; }).join("");
+}
+// statut d'un projet = celui de sa POI principale
+const statutProjet = p => { const s = ligneProjet(p).principale?.statut; return s === "archivée" ? "arch" : s === "annulée" ? "annul" : "cours"; };
+function rendreTableau() {
+  const T = TABLEAUX.tous;
+  $("titreVue").textContent = T.vue === "cours" ? "Dossiers en cours" : "Dossiers archivés et annulés";
+  $("retourEnCours").hidden = T.vue === "cours";
+  $("voirArchives").hidden = T.vue !== "cours";
+  remplirTableau(T);
+  // onglets par type : nombre de projets en cours, archivés et annulés
+  const U = TABLEAUX.type;
+  $("ongletsTypes").innerHTML = TYPES.map(t => {
+    const n = { cours: 0, arch: 0, annul: 0 }; projets.filter(p => p.type === t.id).forEach(p => n[statutProjet(p)]++);
+    return `<button class="onglet${t.id === U.type ? " actif" : ""}" type="button" role="tab" aria-selected="${t.id === U.type}" data-onglet="${t.id}">` +
+      `<b>${esc(t.nom)}</b><small>${n.cours} en cours · ${n.arch} archivé${n.arch > 1 ? "s" : ""} · ${n.annul} annulé${n.annul > 1 ? "s" : ""}</small></button>`; }).join("");
+  const nb = v => lignesVue(v, U.type).length;
+  $("sousOnglets").innerHTML = [["cours", "En cours"], ["archives", "Archivés / annulés"]].map(([v, l]) =>
+    `<button class="sous-onglet${U.vue === v ? " actif" : ""}" type="button" role="tab" aria-selected="${U.vue === v}" data-sousonglet="${v}">${l} (${nb(v)})</button>`).join("");
+  remplirTableau(U);
   majRecherche();
 }
-$("tete").addEventListener("click", e => {
-  const th = e.target.closest("[data-tri]"); if (!th) return;
-  tri = tri.k === th.dataset.tri ? { k: tri.k, sens: -tri.sens } : { k: th.dataset.tri, sens: 1 };
-  rendreTableau();
+document.addEventListener("click", e => {
+  const th = e.target.closest("thead [data-tri]");
+  if (th) { const T = th.closest("#teteType") ? TABLEAUX.type : TABLEAUX.tous;
+    T.tri = T.tri.k === th.dataset.tri ? { k: T.tri.k, sens: -T.tri.sens } : { k: th.dataset.tri, sens: 1 }; rendreTableau(); return; }
+  const o = e.target.closest("[data-onglet]"); if (o) { TABLEAUX.type.type = o.dataset.onglet; garderOnglet(); rendreTableau(); return; }
+  const so = e.target.closest("[data-sousonglet]"); if (so) { TABLEAUX.type.vue = so.dataset.sousonglet; garderOnglet(); rendreTableau(); return; }
+  const tr = e.target.closest("tbody [data-projet]"); if (tr) ouvrir(tr);
 });
 const ouvrir = tr => { const p = projets.find(x => x.id === tr.dataset.projet), t = p && typeDe(p.type); if (t?.page) location.href = `${t.page}?p=${encodeURIComponent(p.id)}`; };
-$("corps").addEventListener("click", e => { const tr = e.target.closest("[data-projet]"); if (tr) ouvrir(tr); });
 // note entière au survol de sa case (avec ses retours à la ligne)
-$("corps").addEventListener("mouseover", e => {
-  const td = e.target.closest("[data-note]"), b = $("bulleNote");
+document.addEventListener("mouseover", e => {
+  const b = $("bulleNote"), td = e.target.closest?.("td[data-note]");
   const r = td && resumes[td.dataset.note], t = r && (r.noteLignes || r.note);
   if (!t) { b.hidden = true; return; }
   b.textContent = t; b.hidden = false;
@@ -271,24 +315,24 @@ $("corps").addEventListener("mouseover", e => {
   b.style.left = Math.max(8, Math.min(c.right - w, innerWidth - w - 8)) + "px";
   b.style.top = (c.bottom + 6 + h > innerHeight ? Math.max(8, c.top - h - 6) : c.bottom + 6) + "px";
 });
-$("corps").addEventListener("mouseleave", () => { $("bulleNote").hidden = true; });
 addEventListener("scroll", () => { $("bulleNote").hidden = true; }, true);
-$("corps").addEventListener("keydown", e => { const tr = e.target.closest("[data-projet]"); if (tr && e.key === "Enter") ouvrir(tr); });
-$("voirArchives").onclick = () => { vue = "archives"; rendreTableau(); $("titreVue").scrollIntoView({ behavior: "smooth", block: "start" }); };
-$("retourEnCours").onclick = () => { vue = "cours"; rendreTableau(); };
+document.addEventListener("keydown", e => { const tr = e.target.closest?.("tbody [data-projet]"); if (tr && e.key === "Enter") ouvrir(tr); });
+$("voirArchives").onclick = () => { TABLEAUX.tous.vue = "archives"; rendreTableau(); $("titreVue").scrollIntoView({ behavior: "smooth", block: "start" }); };
+$("retourEnCours").onclick = () => { TABLEAUX.tous.vue = "cours"; rendreTableau(); };
 
 /* ═══ Recherche : cherche dans tout le contenu de chaque projet et surligne les lignes trouvées ═══ */
 function majRecherche() {
   const q = norm($("recherche").value.trim());
-  let n = 0, premier = null;
-  document.querySelectorAll("#corps tr[data-projet]").forEach(tr => {
+  const trouves = new Set(); let premier = null;
+  document.querySelectorAll("tbody tr[data-projet]").forEach(tr => {
     const r = resumes[tr.dataset.projet] || {};
     const sources = [...(r.recherche || []), ...(r.pois || []).map(po => ({ lieu: "Type", texte: po.type }))];
     const lieux = q.length >= 2 ? [...new Set(sources.filter(s => norm(s.texte).includes(q)).map(s => s.lieu))] : [];
     tr.classList.toggle("trouve", lieux.length > 0);
     tr.title = lieux.length ? `Trouvé dans : ${lieux.join(", ")}` : "Ouvrir ce projet";
-    if (lieux.length) { n++; premier = premier || tr; }
+    if (lieux.length) { trouves.add(tr.dataset.projet); premier = premier || tr; }
   });
+  const n = trouves.size;
   $("rechercheRes").textContent = q.length >= 2 ? (n ? `${n} projet${n > 1 ? "s" : ""} trouvé${n > 1 ? "s" : ""}` : "Aucun projet trouvé") : "";
   return premier;
 }
