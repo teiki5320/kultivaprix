@@ -1532,25 +1532,31 @@ document.addEventListener("keydown", e => { if (e.key === "Escape") fermerAnnulP
 /* ═══ Infos utiles : rien pour l'instant ═══ */
 /* ═══ Infos utiles : le PAR à créer (Chambre « CH/… (Type : …) », Appui « Appui : … (Type : …) », Autre) et la PV (SAVOIR, La Roche) ═══ */
 const EQ_TYPES = { ch: { lib: "Chambre", pre: "CH/", type: true }, ar: { lib: "Appui", pre: "", lab: "Appui :", type: true }, autre: { lib: "Autre", pre: "", aide: "préciser" } };
-if (!etat.fiche.parCree || typeof etat.fiche.parCree !== "object") etat.fiche.parCree = { type: "ch", val: "CH/" };
+// plusieurs PAR à créer possibles (« + Ajouter un PAR à créer ») ; l'ancien PAR unique devient le premier de la liste
+const parNeuf = () => ({ type: "ch", val: "CH/" });
+if (!Array.isArray(etat.fiche.parsCrees)) etat.fiche.parsCrees = [etat.fiche.parCree && typeof etat.fiche.parCree === "object" ? etat.fiche.parCree : parNeuf()];
+delete etat.fiche.parCree;
+if (!etat.fiche.parsCrees.length) etat.fiche.parsCrees.push(parNeuf());
 if (!etat.fiche.iu || typeof etat.fiche.iu !== "object") etat.fiche.iu = {};
 // La Roche : la case n'apparaît que si l'adresse parle de La Roche(-sur-Yon) ou du code postal 85000
 const aLaRoche = () => /la[\s-]*roche|\b85000\b/.test((etat.fiche.adr || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase());
 function iuVisibilite() { if ($("iuLaRoche")) $("iuLaRoche").hidden = !aLaRoche(); }
 // sur deux lignes : le choix (Chambre / Appui / Autre), puis le champ et son type, sur toute la largeur de la carte
-function ligneParCree() {
-  const o = etat.fiche.parCree, T = EQ_TYPES[o.type] || EQ_TYPES.ch;
+function ligneParCree(o, i, sup) {
+  const T = EQ_TYPES[o.type] || EQ_TYPES.ch, lib = `PAR à créer ${i + 1}`;
   return `<div class="iu-ligne eq-ligne pile"><div class="iu-rang">` +
-    `<select data-eqtype="par" aria-label="PAR à créer · équipement">${Object.entries(EQ_TYPES).map(([k, t]) => `<option value="${k}"${o.type === k ? " selected" : ""}>${t.lib}</option>`).join("")}</select></div><div class="iu-rang">` +
+    `<select data-eqtype="${i}" aria-label="${lib} · équipement">${Object.entries(EQ_TYPES).map(([k, t]) => `<option value="${k}"${o.type === k ? " selected" : ""}>${t.lib}</option>`).join("")}</select>` +
+    (sup ? `<button class="iu-sup" type="button" data-parsup="${i}" aria-label="Retirer ce PAR" title="Retirer">×</button>` : "") + `</div><div class="iu-rang">` +
     (T.lab ? `<span class="fixe">${esc(T.lab)}</span>` : "") +
-    `<input class="plein" data-eqval="par" value="${esc(o.val || "")}" placeholder="${esc(T.aide || (T.pre ? T.pre + "…" : ""))}" aria-label="PAR à créer" autocomplete="off">` +
-    (T.type ? `<span class="fixe">(Type :</span><input class="court" data-eqtyp="par" value="${esc(o.typ || "")}" aria-label="PAR à créer · type" autocomplete="off"><span class="fixe">)</span>` : "") +
+    `<input class="plein" data-eqval="${i}" value="${esc(o.val || "")}" placeholder="${esc(T.aide || (T.pre ? T.pre + "…" : ""))}" aria-label="${lib}" autocomplete="off">` +
+    (T.type ? `<span class="fixe">(Type :</span><input class="court" data-eqtyp="${i}" value="${esc(o.typ || "")}" aria-label="${lib} · type" autocomplete="off"><span class="fixe">)</span>` : "") +
     `</div></div>`;
 }
 const pvChamp = (k, lib) => `<input class="plein chiffres" data-pv="${k}" value="${esc(etat.fiche.iu[k] || "")}" inputmode="numeric" maxlength="10" placeholder="Référence" aria-label="${esc(lib)}" autocomplete="off">`;
 function rendreIU() {
   $("infosUtiles").innerHTML =
-    `<section class="iu-bloc"><h3 class="iu-sec-titre">PAR à créer</h3>${ligneParCree()}</section>` +
+    `<section class="iu-bloc"><h3 class="iu-sec-titre">PAR à créer</h3>${etat.fiche.parsCrees.map((o, i, L) => ligneParCree(o, i, L.length > 1)).join("")}` +
+      `<button class="iu-retablir iu-ajout" type="button" data-parplus="1">+ Ajouter un PAR à créer</button></section>` +
     `<section class="iu-bloc"><h3 class="iu-sec-titre">PV</h3>` +
       `<div class="iu-ligne"><span class="fixe">SAVOIR :</span>${pvChamp("pv_savoir", "PV SAVOIR")}</div>` +
       `<div class="iu-ligne" id="iuLaRoche"><span class="fixe">La Roche :</span>${pvChamp("pv_roche", "PV La Roche")}</div></section>`;
@@ -1559,20 +1565,29 @@ function rendreIU() {
 rendreIU();
 $("f_adr").addEventListener("input", iuVisibilite);
 $("infosUtiles").addEventListener("input", e => {
-  const o = etat.fiche.parCree;
-  if (e.target.dataset.eqval != null) { o.val = e.target.value; sauver(); }
-  if (e.target.dataset.eqtyp != null) { o.typ = e.target.value; sauver(); }
+  const L = etat.fiche.parsCrees;
+  if (e.target.dataset.eqval != null) { L[+e.target.dataset.eqval].val = e.target.value; sauver(); }
+  if (e.target.dataset.eqtyp != null) { L[+e.target.dataset.eqtyp].typ = e.target.value; sauver(); }
   const k = e.target.dataset.pv;
   if (k) { e.target.value = e.target.value.replace(/\D/g, "").slice(0, 10); etat.fiche.iu[k] = e.target.value; sauver(); }   // PV : chiffres seulement
 });
 $("infosUtiles").addEventListener("change", e => {
   if (e.target.dataset.eqtype == null) return;
-  const o = etat.fiche.parCree, avant = EQ_TYPES[o.type]?.pre || "";
+  const c = e.target.dataset.eqtype, o = etat.fiche.parsCrees[+c], avant = EQ_TYPES[o.type]?.pre || "";
   o.type = e.target.value;
   // champ vide ou resté sur le préfixe de l'ancien type : il prend celui du nouveau
   if (!String(o.val || "").trim() || String(o.val).trim() === avant) o.val = EQ_TYPES[o.type].pre;
   sauver(); rendreIU();
-  const i = document.querySelector('[data-eqval="par"]'); i?.focus(); i?.setSelectionRange(i.value.length, i.value.length);
+  const i = document.querySelector(`[data-eqval="${c}"]`); i?.focus(); i?.setSelectionRange(i.value.length, i.value.length);
+});
+$("infosUtiles").addEventListener("click", e => {
+  const L = etat.fiche.parsCrees;
+  if (e.target.closest("[data-parplus]")) { L.push(parNeuf()); sauver(); rendreIU();
+    const i = document.querySelector(`[data-eqval="${L.length - 1}"]`); i?.focus(); i?.setSelectionRange(i.value.length, i.value.length); return; }
+  const b = e.target.closest("[data-parsup]"); if (!b) return;
+  const o = L[+b.dataset.parsup], v = String(o.val || "").trim();
+  if (((v && v !== EQ_TYPES[o.type]?.pre) || String(o.typ || "").trim()) && !confirm("Retirer ce PAR à créer et ce qui y est écrit ?")) return;
+  L.splice(+b.dataset.parsup, 1); sauver(); rendreIU();
 });
 // texte trop long pour la case : il s'affiche en entier au survol
 const bulleEq = document.createElement("div"); bulleEq.className = "bulle-eq"; bulleEq.hidden = true; document.body.appendChild(bulleEq);
@@ -1970,7 +1985,7 @@ function ecrireResume() {
   [["cab", "Cabinet conseil"], ["num", "N° POI"], ["adr", "Adresse"], ["pc", "N° PC"], ["ref", "Regroupement syndic"], ["elNote", "Commentaire du nombre d’EL"]].forEach(([k, l]) => aj(l, f[k]));
   (f.imbs || []).forEach(o => { aj("IMB", o.imb); aj("IMB · adresse", o.adr); aj("IMB · commentaire", o.note); });
   Object.values(f.iu || {}).forEach(v => { if (!["PT", "PF", "CH/", "AR/", "TR"].includes(String(v).trim())) aj("Infos utiles", v); });
-  if (f.parCree) { if (!["CH/", "AR/"].includes(String(f.parCree.val).trim())) aj("PAR à créer", f.parCree.val); aj("PAR à créer · type", f.parCree.typ); }
+  (f.parsCrees || []).forEach(o => { if (!["CH/", "AR/"].includes(String(o.val).trim())) aj("PAR à créer", o.val); aj("PAR à créer · type", o.typ); });
   Object.entries(etat.memo || {}).forEach(([id, m]) => aj(`commentaire de « ${NOEUDS[id] ? NOEUDS[id].lib : id} »`, m.html != null ? txt(m.html) : m.note));
   aj("Note", txt(f.noteHtml));
   // la note telle qu'écrite (retours à la ligne gardés) pour la bulle du Suivi des dossiers
