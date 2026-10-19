@@ -840,7 +840,7 @@ function resultat(t) {
 // « Vérifier la conformité » (étapes 2, 5 et 7) : une liste de documents à cocher, propre à chaque tâche
 const AVEC_LISTE = new Set(["t4_1"]);
 const ICO_LISTE = `<svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M3.5 6l1.2 1.2L7 5M3.5 12l1.2 1.2L7 11M3.5 18l1.2 1.2L7 17"/></svg>`;
-const AVEC_DATE = new Set(["t1", "t2_1", "t2_3_2_2", "t2_3_2_4", "t2_4_1", "t2_4_2", "t2_4_3", "t2_5", "t3_4", "t4", "t4_3", "t4_5"]);
+const AVEC_DATE = new Set(["t1", "t2_1", "t2_3_2_2", "t2_3_2_4", "t2_4_1", "t2_4_2", "t2_4_3", "t2_5", "t3_4", "t4", "t4_3", "t4_4_2_1", "t4_5"]);
 const AVEC_MODOP = new Set(["t1_3", "t2_2", "t2_3_2", "t2_3_2_3", "t2_4_1", "t2_4_1_1", "t2_4_3", "t2_5", "t2_6", "t3_1", "t3_2", "t3_3", "t3_4_1", "t4_1", "t4_2", "t4_4_1_1", "t4_4_2_1"]);
 const AVEC_WEB = new Set();   // lien internet (logo violet) : aucun pour l'instant
 // Modop en rose
@@ -1346,7 +1346,7 @@ const GROUPES_DI = [
   { id: "pre", titre: "Pré-étude", dates: [["visite", "Visite terrain"], ["amiante", "Demande amiante"]] },
   { id: "trav", titre: "Travaux", dates: [["travaux", "Envoi en travaux"], ["doe", "Réception DOE GC"], ["paiement", "Paiement attachement"], ["arch", "Archivage POI"]] },
   { id: "evol", titre: "Evol GC", dates: [["annexe3", "Envoi annexe 3 à EVOL GC - AMARIS"], ["retourEvol", "Retour Guichet travaux Evol GC réalisés"]] },
-  { id: "pv", titre: "Permission de voirie", dates: [["pvDemande", "Demande PV"], ["pvAccord", "Accord technique"], ["pvRetour", "Retour PV"]] }];
+  { id: "pv", titre: "Permission de voirie", dates: [["pvDemande", "Demande PV"], ["pvAccord", "Accord technique"], ["pvRetour", "Retour PV"], ["pvCloture", "Clôture PV"]] }];
 const DATES_IMP = GROUPES_DI.flatMap(g => g.dates);
 // précisions au survol de l'astérisque ou du titre (pas pour les envois en travaux, le paiement ni les archivages ; celle de la DLPI est dans le HTML)
 const AIDE_DI = {
@@ -1359,7 +1359,7 @@ if (!etat.fiche.di || typeof etat.fiche.di !== "object") etat.fiche.di = {};
 if (!etat.fiche.diSrc || typeof etat.fiche.diSrc !== "object") etat.fiche.diSrc = {};   // tâche d'où vient chaque date reliée
 
 // dates des tâches reportées toutes seules dans les Dates importantes (la case reste modifiable à la main)
-const LIENS_DI = { t1: "poi", t2_1: "visite", t2_5: "amiante", t2_3_2_2: "annexe3", t2_3_2_4: "retourEvol", t2_4_1: "pvDemande", t2_4_2: "pvAccord", t2_4_3: "pvRetour", t3_4: "travaux", t4: "doe", t4_3: "paiement", t4_5: "arch" };
+const LIENS_DI = { t1: "poi", t2_1: "visite", t2_5: "amiante", t2_3_2_2: "annexe3", t2_3_2_4: "retourEvol", t2_4_1: "pvDemande", t2_4_2: "pvAccord", t2_4_3: "pvRetour", t3_4: "travaux", t4: "doe", t4_3: "paiement", t4_4_2_1: "pvCloture", t4_5: "arch" };
 // titre d'une date selon la tâche d'où elle vient (sinon le titre normal)
 const TITRE_SRC = { arch: { annul: "Annulation POI" } };
 function reporterDate(id) {
