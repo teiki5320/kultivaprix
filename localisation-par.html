@@ -629,8 +629,7 @@ const TACHES = [
     { id: "t3_6", lib: "Attente retour du Guichet", mode: "tout", kids: [
       { id: "t3_6_1", lib: "REFUSE (recommencer à partir de l’étape 2)" },
       { id: "t3_6_2", lib: "VALIDE" } ] },
-    { id: "t3_7", lib: "Archiver la POI", mode: "tout", kids: [
-      { id: "t3_7_1", lib: "Mettre ComL" } ] } ] }
+    { id: "t3_7", lib: "Archiver la POI" } ] }
 ];
 
 const CLE = "loc-par-v1";
@@ -814,7 +813,7 @@ function resultat(t) {
 const AVEC_LISTE = new Set(["t1_2"]);
 const ICO_LISTE = `<svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M3.5 6l1.2 1.2L7 5M3.5 12l1.2 1.2L7 11M3.5 18l1.2 1.2L7 17"/></svg>`;
 const AVEC_DATE = new Set(["t1", "t1_2_2", "t3_3", "t3_6_2", "t3_7"]);
-const AVEC_MODOP = new Set(["t1_2_1_2", "t3_1", "t3_3", "t3_4", "t3_5", "t3_7_1"]);
+const AVEC_MODOP = new Set(["t1_2_1_2", "t3_1", "t3_3", "t3_4", "t3_5"]);
 const AVEC_WEB = new Set(["t3_2"]);   // lien internet (logo violet) : l'agent DINOOTOO
 // Modop en rose
 const MODOP_ROSE = new Set();
@@ -1745,7 +1744,7 @@ majUrgence(); majDocs(); rendu(); ajusterEchelle();
 /* ═══ ComL : le dossier orange ouvre une grande fenêtre ═══
    à gauche la capture du logiciel (une par tâche, la même pour tous les dossiers, gardée à part dans IndexedDB),
    à droite les champs de la tâche : calculés depuis les Dates importantes (modifiables à la main), à remplir ou fixes */
-const COML = ["t1_2_1_2", "t3_5", "t3_7_1"];
+const COML = ["t1_2_1_2", "t3_5"];
 // champs par tâche : { k, lib, sorte: "calc" | "date" | "texte" | "fixe" | "note", calc: d => iso, aide, val } (note : simple consigne écrite)
 // d = les Dates importantes du dossier (d.dlpi, d.poi, d.dre…) et d.t les dates des tâches ; v("k") = la valeur d'un autre champ de la fenêtre ; les outils : ajJours(iso, n), ajMois(iso, n), plusTard(a, b), plusTot(a, b)
 // une date calculée ne tombe jamais un week-end ni un jour férié : elle passe au premier jour ouvré qui suit (horsFerie)
