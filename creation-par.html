@@ -1559,7 +1559,9 @@ function rendreIU() {
       `<button class="iu-retablir iu-ajout" type="button" data-parplus="1">+ Ajouter un PAR à créer</button></section>` +
     `<section class="iu-bloc"><h3 class="iu-sec-titre">PV</h3>` +
       `<div class="iu-ligne"><span class="fixe">SAVOIR :</span>${pvChamp("pv_savoir", "PV SAVOIR")}</div>` +
-      `<div class="iu-ligne" id="iuLaRoche"><span class="fixe">La Roche :</span>${pvChamp("pv_roche", "PV La Roche")}</div></section>`;
+      `<div class="iu-ligne" id="iuLaRoche"><span class="fixe">La Roche :</span>${pvChamp("pv_roche", "PV La Roche")}</div></section>` +
+    `<section class="iu-bloc"><h3 class="iu-sec-titre">Demande travaux</h3>` +
+      `<div class="iu-ligne pile"><span class="fixe">N° de consultation :</span><div class="iu-rang"><input class="plein" data-iut="dt_consult" value="${esc(etat.fiche.iu.dt_consult || "")}" placeholder="Référence" aria-label="Demande travaux · N° de consultation" autocomplete="off"></div></div></section>`;
   iuVisibilite();
 }
 rendreIU();
@@ -1570,6 +1572,7 @@ $("infosUtiles").addEventListener("input", e => {
   if (e.target.dataset.eqtyp != null) { L[+e.target.dataset.eqtyp].typ = e.target.value; sauver(); }
   const k = e.target.dataset.pv;
   if (k) { e.target.value = e.target.value.replace(/\D/g, "").slice(0, 10); etat.fiche.iu[k] = e.target.value; sauver(); }   // PV : chiffres seulement
+  const t = e.target.dataset.iut; if (t) { etat.fiche.iu[t] = e.target.value; sauver(); }
 });
 $("infosUtiles").addEventListener("change", e => {
   if (e.target.dataset.eqtype == null) return;

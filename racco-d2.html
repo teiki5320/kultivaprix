@@ -1727,7 +1727,8 @@ function rendreIU() {
     sec("PV", [[ligne("SAVOIR :", iuChiffres("pv_savoir", "PV SAVOIR"))], [ligne("La Roche :", iuChiffres("pv_roche", "PV La Roche")), "iuLaRoche"]], ` id="iuSecPV"`) +
     sec("GCBLO", [[gcblo]]) +
     sec("BANBOU", [[pile("CMS :", iuChamp("banbou_cms", "plein", "", "BANBOU CMS", "Référence BANBOU")), "iuCms"],
-      [pile("Dessin TIGRE :", iuChamp("banbou_tigre", "plein", "", "BANBOU Dessin TIGRE", "Référence BANBOU"))]]);
+      [pile("Dessin TIGRE :", iuChamp("banbou_tigre", "plein", "", "BANBOU Dessin TIGRE", "Référence BANBOU"))]]) +
+    sec("Demande travaux", [[pile("N° de consultation :", iuChamp("dt_consult", "plein", "", "Demande travaux · N° de consultation", "Référence"))]]);
   iuVisibilite();
 }
 rendreIU();
