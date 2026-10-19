@@ -50,8 +50,9 @@ header .btn-accent { background: var(--accent); color: var(--accent-ink); }
 .menu button:disabled { cursor: default; color: var(--muted); opacity: .7; }
 .menu small { font-weight: 600; font-size: 11.5px; color: var(--muted); }
 
-.card { background: var(--carte); border-radius: var(--r-lg); box-shadow: var(--clay); padding: 18px 20px; min-width: 0; }
-.card h2 { margin: 0; font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+.card { background: #2f2f2f; border-radius: var(--r-lg); box-shadow: var(--clay-sm); padding: 18px 20px; min-width: 0; }   /* grandes parties : fond gris foncé */
+.card h2 { margin: 0; font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; color: #fff; }
+.card .recherche-res, .card .periode, .card .choix-type { color: #cfcfcf; }
 .tete { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
 .tete .droite { margin-left: auto; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 
@@ -91,13 +92,12 @@ tbody tr:hover { background: #fff3e6; }
 
 /* suivi par type de dossier : un onglet par type (nombre de projets en cours, archivés, annulés), puis En cours / Archivés-annulés */
 .onglets { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 8px; margin-bottom: 12px; }
-/* onglets des types : gris foncé, titre en blanc ; celui qui est ouvert en orange */
-.onglet { border: 0; border-radius: var(--r-md); padding: 9px 12px; text-align: left; cursor: pointer; background: #3a3a3a; box-shadow: var(--clay-sm); color: #fff; display: grid; gap: 2px; }
+.onglet { border: 0; border-radius: var(--r-md); padding: 9px 12px; text-align: left; cursor: pointer; background: var(--carte-2); box-shadow: var(--inset); color: var(--texte); display: grid; gap: 2px; }
 .onglet b { font-size: 13.5px; }
-.onglet small { font-size: 11.5px; font-weight: 600; color: #cfcfcf; }
-.onglet:hover { background: #4a4a4a; }
-.onglet.actif { background: var(--accent); color: var(--accent-ink); box-shadow: var(--pouss-bas); }
-.onglet.actif small { color: #5a2a1c; }
+.onglet small { font-size: 11.5px; font-weight: 600; color: var(--muted); }
+.onglet:hover { background: #efe2d4; }
+.onglet.actif { background: #1e1e1e; color: #f5f5f5; box-shadow: 0 0 0 2px #f5c48f; }
+.onglet.actif small { color: #f5c48f; }
 .choix-type { font-size: 13px; font-weight: 600; color: var(--muted); padding: 2px 2px 4px; }
 .ligne-sous { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
 .sous-onglets { display: flex; gap: 6px; }
