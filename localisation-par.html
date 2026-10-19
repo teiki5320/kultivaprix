@@ -1311,7 +1311,7 @@ document.querySelector(".feu").addEventListener("click", e => {
 // une seule date MAD : elle devient « MAD anticipée » quand elle vient de la tâche de MAD anticipée
 const GROUPES_DI = [
   { id: "gen", titre: "Générale", dates: [["poi", "Réception POI"], ["dre", "DRE"], ["dlr", "DLR"]] },
-  { id: "loc", titre: "Localisation du PAR", dates: [["docsOk", "Réception docs conformes"], ["envoiPlan", "Envoi du plan charté"],
+  { id: "loc", titre: "Localisation du PAR", dates: [["docsOk", "Réception docs conformes"], ["envoiPlan", "Envoi du plan charté au guichet"],
     ["valide", "Validation du Guichet"], ["arch", "Archivage POI"]] }];
 const DATES_IMP = GROUPES_DI.flatMap(g => g.dates);
 // précisions au survol de l'astérisque ou du titre (pas pour les envois en travaux, le paiement ni les archivages ; celle de la DLPI est dans le HTML)
