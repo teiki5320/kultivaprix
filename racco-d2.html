@@ -378,6 +378,9 @@ header.top.urg-vert { box-shadow: var(--clay-sm), inset 0 0 0 4px #3ddc76, 0 0 1
 .iu .bout { flex: 1 1 0; width: 0; padding: 4px 6px; }
 .iu .tr { flex: 0 1 60px; width: 60px; }
 .iu-cab { cursor: text; }
+.eq-ligne select { flex: none; border: 0; border-radius: 8px; background: var(--carte-2); box-shadow: var(--inset); color: var(--texte); padding: 4px 6px; font: inherit; font-size: 12.5px; min-height: 26px; outline: none; }
+.eq-ligne select:focus { box-shadow: var(--inset), 0 0 0 3px var(--accent-dim); }
+.eq-ligne .iu-rang .plein { flex: 1 1 60px; width: 60px; min-width: 0; }
 /* sous-parties : IPON, PV, GCBLO, BANBOU */
 .iu-ligne[hidden] { display: none; }
 .iu-sec-titre { margin: 0; padding-left: 8px; border-left: 4px solid #f5a04b; font-size: 14.5px; font-weight: 800; letter-spacing: .4px; text-transform: uppercase; color: #f5c48f; line-height: 1.2; }
@@ -1637,13 +1640,17 @@ document.addEventListener("keydown", e => { if (e.key === "Escape") fermerAnnulP
 /* ═══ Infos utiles : texte noir fixe après « : », champ prérempli sinon ═══ */
 const IU = [
   { t: "PMZ", k: "pmz", l: [{ pre: "PT", k: "pmz_pt" }, { pre: "PF", k: "pmz_pf" }, { pre: "AR/", k: "pmz_ar" }, { lab: "FI reg :", k: "pmz_fireg" }] },
-  { t: "PA", k: "pa", l: [{ pre: "PT", k: "pa_pt" }, { pre: "PF", k: "pa_pf" }, { pre: "CH/", k: "pa_ch", type: "pa_type" }, { lab: "PA reg :", k: "pa_reg" }] },
+  { t: "PA", k: "pa", l: [{ lab: "PA reg :", k: "pa_reg" }, { pre: "PT", k: "pa_pt" }, { pre: "PF", k: "pa_pf" }, { pre: "CH/", k: "pa_ch", type: "pa_type" }] },
   { t: "PR/BPI", k: "bpi", l: [{ pre: "PT", k: "bpi_pt" }, { pre: "CH/", k: "bpi_ch", type: "bpi_type" }] },
   { t: "PB", k: "pb", l: [{ pre: "PT", k: "pb_pt" }, { pre: "PF", k: "pb_pf" }, { pre: "CH/", k: "pb_ch", type: "pb_type" }] },
-  { t: "PAR", l: [{ pre: "CH/", k: "par_ch", type: "par_type" }, { lab: "Appui :", k: "par_appui" }] },
+  { t: "PAR", l: [{ pre: "CH/", k: "par_ch", type: "par_type" }] },
   { t: "Câbles", k: "cab", aide: "ID Référentiel", l: [{ lab: "PMZ – PA :", pre: "TR", k: "cab_pmz_pa" }, { lab: "PA – PR/BPI :", pre: "TR", k: "cab_pa_bpi" }, { lab: "PR/BPI – PB :", pre: "TR", k: "cab_bpi_pb" }, { lab: "PA – PB :", pre: "TR", k: "cab_pa_pb" }] },
 ];
 if (!etat.fiche.iu || typeof etat.fiche.iu !== "object") etat.fiche.iu = {};
+// PAR : l'ancienne ligne « Appui : » devient le choix Appui de la ligne de l'équipement
+{ const u = etat.fiche.iu, ap = String(u.par_appui || "").trim();
+  if (ap && (!u.par_ch || ["", "CH/"].includes(String(u.par_ch).trim()))) { u.par_ch = ap; u.par_ch_eq = "ar"; }
+  if (ap === "" || u.par_ch_eq === "ar") delete u.par_appui; }
 const iuVal = (k, defaut = "") => esc(etat.fiche.iu[k] ?? defaut);
 const iuChamp = (k, cls, defaut, lib, aide = "") => `<input class="${cls}" data-iu="${k}" value="${iuVal(k, defaut)}"${aide ? ` placeholder="${esc(aide)}"` : ""} aria-label="${esc(lib)}" autocomplete="off">`;
 // lignes retirées pour ce dossier : « r:PMZ » pour une rubrique entière, la clé du champ pour une ligne ; ce qui est écrit est gardé
@@ -1669,6 +1676,17 @@ const clesAjout = (sorte, id) => sorte === "gc" ? [id] : sorte === "pb" ? [id, i
 const iuSup = (cle, lib) => `<button class="iu-sup" type="button" data-iusup="${cle}" aria-label="Retirer ${esc(lib)}" title="Retirer">×</button>`;
 const iuSupAjout = (cle, lib) => `<button class="iu-sup" type="button" data-iuajout="${cle}" aria-label="Supprimer ${esc(lib)}" title="Supprimer">×</button>`;
 const cabEdition = new Set();   // câbles ajoutés dont on modifie le départ ou l'arrivée
+// équipement (PA, PR/BPI, PB, PAR) : au choix Chambre « CH/… (Type : …) » ou Appui « Appui : … (Type : …) » ;
+// sur deux lignes : le choix (et la croix), puis le champ et son type sur toute la largeur
+const EQ_IU = { ch: "Chambre", ar: "Appui" };
+function ligneEquip(x, n) {
+  const eq = etat.fiche.iu[x.k + "_eq"] === "ar" ? "ar" : "ch", lib = `${n} ${EQ_IU[eq].toLowerCase()}`;
+  return `<div class="iu-ligne pile eq-ligne"><div class="iu-rang">` +
+    `<select data-iueq="${x.k}" aria-label="${esc(n)} · chambre ou appui">${Object.entries(EQ_IU).map(([k, l]) => `<option value="${k}"${k === eq ? " selected" : ""}>${l}</option>`).join("")}</select>` +
+    iuSup(x.k, `${n} ${EQ_IU[eq].toLowerCase()}`) + `</div><div class="iu-rang">` +
+    (eq === "ar" ? `<span class="fixe">Appui :</span>${iuChamp(x.k, "plein", "", lib)}` : iuChamp(x.k, "plein", "CH/", lib)) +
+    `<span class="fixe">(Type :</span>${iuChamp(x.type, "court", "", `${n} type`)}<span class="fixe">)</span></div></div>`;
+}
 function rendreIU() {
   const M = etat.fiche.iuMasques;
   // le PB d'origine puis les PB ajoutés ; dès qu'il y en a plusieurs : PB1, PB2, PB3…
@@ -1678,7 +1696,7 @@ function rendreIU() {
   const ipon = rubs.map(r => { const n = nom(r); return `<div class="iu-rub"><div class="iu-tete"><span class="fixe">${esc(n)} :</span>${r.k ? iuChamp(r.k, "plein", "", `${n} · ${r.aide || "ID Référentiel PT"}`, r.aide || "ID Référentiel PT") : ""}` +
     (r.t === "PB" && r === pbs[pbs.length - 1] ? `<button class="iu-plus" type="button" data-iuplus="pb" aria-label="Ajouter un PB" title="Ajouter un PB">+</button>` : "") +
     (r.ajout ? iuSupAjout(r.ajout, n) : iuSup("r:" + r.t, n)) + `</div>` +
-    r.l.filter(x => !M[x.k]).map(x => `<div class="iu-ligne">` +
+    r.l.filter(x => !M[x.k]).map(x => x.type ? ligneEquip(x, n) : `<div class="iu-ligne">` +
       (x.lab ? `<span class="fixe">${esc(x.lab)}</span>` : "") +
       iuChamp(x.k, "plein", x.pre ? x.pre + (x.pre.endsWith("/") ? "" : " ") : "", `${n} ${x.lab || x.pre}`) +
       (x.type ? `<span class="fixe">(Type :</span>${iuChamp(x.type, "court", "", `${n} type`)}<span class="fixe">)</span>` : "") +
@@ -1713,6 +1731,15 @@ function rendreIU() {
   iuVisibilite();
 }
 rendreIU();
+// chambre ↔ appui : un champ vide ou resté sur « CH/ » prend le début du nouveau choix
+$("infosUtiles").addEventListener("change", e => {
+  const k = e.target.dataset.iueq; if (!k) return;
+  const u = etat.fiche.iu, v = String(u[k] ?? "").trim();
+  u[k + "_eq"] = e.target.value;
+  if (!v || v === "CH/") { if (e.target.value === "ar") u[k] = ""; else delete u[k]; }
+  sauver(); rendreIU();
+  const c = document.querySelector(`[data-iu="${k}"]`); c?.focus(); c?.setSelectionRange(c.value.length, c.value.length);
+});
 $("infosUtiles").addEventListener("input", e => { const k = e.target.dataset.iu; if (!k) return;
   if (e.target.classList.contains("chiffres")) e.target.value = e.target.value.replace(/\D/g, "").slice(0, 10);   // N° PV : chiffres seulement
   etat.fiche.iu[k] = e.target.value; sauver(); });
@@ -2149,7 +2176,7 @@ function ecrireResume() {
   const recherche = [], aj = (lieu, t) => { t = String(t ?? "").trim(); if (t) recherche.push({ lieu, texte: t }); };
   [["cab", "Cabinet conseil"], ["ant", "N° POI anticipation"], ["racco", "N° POI Racco D2"], ["adr", "Adresse"], ["pc", "N° PC"], ["ref", "Regroupement syndic"], ["elNote", "Commentaire du nombre d’EL"]].forEach(([k, l]) => aj(l, f[k]));
   (f.imbs || []).forEach(o => { aj("IMB", o.imb); aj("IMB · adresse", o.adr); aj("IMB · commentaire", o.note); });
-  Object.values(f.iu || {}).forEach(v => { if (!["PT", "PF", "CH/", "AR/", "TR"].includes(String(v).trim())) aj("Infos utiles", v); });
+  Object.entries(f.iu || {}).forEach(([k, v]) => { if (!k.endsWith("_eq") && !["PT", "PF", "CH/", "AR/", "TR"].includes(String(v).trim())) aj("Infos utiles", v); });
   Object.entries(etat.memo || {}).forEach(([id, m]) => aj(`commentaire de « ${NOEUDS[id] ? NOEUDS[id].lib : id} »`, m.html != null ? txt(m.html) : m.note));
   aj("Note", txt(f.noteHtml));
   // la note telle qu'écrite (retours à la ligne gardés) pour la bulle du Suivi des dossiers
