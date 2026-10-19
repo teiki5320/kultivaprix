@@ -148,10 +148,10 @@ const kvPut = (k, v) => new Promise((ok, ko) => { const t = base.transaction("kv
 const kvTout = () => new Promise((ok, ko) => { const o = {}, r = base.transaction("kv").objectStore("kv").openCursor();
   r.onsuccess = () => { const c = r.result; if (c) { o[c.key] = c.value; c.continue(); } else ok(o); }; r.onerror = () => ko(r.error); });
 
-// les 5 types de dossier (seul Racco D2 a sa page pour l'instant)
+// les 5 types de dossier (ceux qui ont une page sont actifs dans « + Nouveau projet »)
 const TYPES = [
   { id: "racco-d2", nom: "Racco D2", page: "racco-d2.html" },
-  { id: "loc-par", nom: "Localisation de PAR" },
+  { id: "loc-par", nom: "Localisation de PAR", page: "localisation-par.html" },
   { id: "crea-par", nom: "Création du PAR" },
   { id: "pim", nom: "PIM (Petite opération immobilière)" },
   { id: "echec-prod", nom: "Échec de prod" }];
@@ -347,11 +347,13 @@ $("menuTypes").addEventListener("click", async e => {
 });
 
 /* ═══ Sauvegarde : tous les projets (et les captures des fenêtres ComL) dans un fichier ═══ */
-const baseComl = () => new Promise((ok, ko) => { const r = indexedDB.open("racco-d2-coml", 1); r.onupgradeneeded = () => r.result.createObjectStore("photos"); r.onsuccess = () => ok(r.result); r.onerror = () => ko(r.error); });
+const BASES_COML = ["racco-d2-coml", "loc-par-coml"];   // une base de captures ComL par type de dossier
+const baseComl = nom => new Promise((ok, ko) => { const r = indexedDB.open(nom, 1); r.onupgradeneeded = () => r.result.createObjectStore("photos"); r.onsuccess = () => ok(r.result); r.onerror = () => ko(r.error); });
 const comlTout = db => new Promise((ok, ko) => { const o = {}, r = db.transaction("photos").objectStore("photos").openCursor();
   r.onsuccess = () => { const c = r.result; if (c) { o[c.key] = c.value; c.continue(); } else ok(o); }; r.onerror = () => ko(r.error); });
 $("exporter").onclick = async () => {
-  const donnees = { app: "kultivaprix", version: 1, date: new Date().toISOString(), kv: await kvTout(), coml: await comlTout(await baseComl()) };
+  const coml = {}; for (const nom of BASES_COML) coml[nom] = await comlTout(await baseComl(nom));
+  const donnees = { app: "kultivaprix", version: 2, date: new Date().toISOString(), kv: await kvTout(), coml };
   const a = document.createElement("a");
   a.href = URL.createObjectURL(new Blob([JSON.stringify(donnees)], { type: "application/json" }));
   a.download = `suivi-dossiers-sauvegarde-${new Date().toISOString().slice(0, 10)}.json`;
@@ -363,8 +365,12 @@ $("importFichier").addEventListener("change", async e => {
   if (!d || d.app !== "kultivaprix" || !d.kv) { alert("Ce fichier n'est pas une sauvegarde du suivi des dossiers."); return; }
   if (!confirm(`Remplacer toutes les données actuelles par la sauvegarde du ${new Date(d.date).toLocaleDateString("fr-FR")} ?`)) return;
   await new Promise((ok, ko) => { const t = base.transaction("kv", "readwrite"), st = t.objectStore("kv"); st.clear(); Object.entries(d.kv).forEach(([k, v]) => st.put(v, k)); t.oncomplete = ok; t.onerror = () => ko(t.error); });
-  const db = await baseComl();
-  await new Promise((ok, ko) => { const t = db.transaction("photos", "readwrite"), st = t.objectStore("photos"); st.clear(); Object.entries(d.coml || {}).forEach(([k, v]) => st.put(v, k)); t.oncomplete = ok; t.onerror = () => ko(t.error); });
+  // version 1 : seulement les captures Racco D2
+  const parBase = d.version >= 2 ? (d.coml || {}) : { "racco-d2-coml": d.coml || {} };
+  for (const nom of BASES_COML) {
+    const db = await baseComl(nom);
+    await new Promise((ok, ko) => { const t = db.transaction("photos", "readwrite"), st = t.objectStore("photos"); st.clear(); Object.entries(parBase[nom] || {}).forEach(([k, v]) => st.put(v, k)); t.oncomplete = ok; t.onerror = () => ko(t.error); });
+  }
   location.reload();
 });
 
