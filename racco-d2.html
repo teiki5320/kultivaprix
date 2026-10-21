@@ -456,12 +456,16 @@ header.top { background: #111; border-radius: 999px; box-shadow: none; }
 .c-dossier > h2 { background: #E8701A; }                                   /* Infos du dossier : orange */
 .c-dates > h2 { background: #6F6B66; }                                     /* Dates importantes : gris */
 .c-utiles > h2 { background: #1A1A1A; }                                    /* Infos utiles : noir */
-.c-comm > h2 { background: #6F6B66; }                                      /* Commentaires : gris */
-.c-note > h2 { background: #E8701A; }                                      /* Note : orange */
-.c-dossier, .c-dates, .c-comm, .c-note { --carte: #fff; --carte-2: #F3F1ED; --muted: #6F6B66; }
+.c-comm > h2 { background: #B5B1AA; color: #1A1A1A; }                     /* Commentaires : gris clair */
+.c-note > h2 { background: #3A3836; }                                      /* Note : gris foncé */
+.c-comm, .c-note { --carte: #fff; --carte-2: #F3F1ED; --muted: #6F6B66; }
 .c-note .note-zone { background: #FFFBEA; }
-.c-utiles { --carte: #fff; --carte-2: #F3F1ED; --texte: #1A1A1A; --muted: #777; color: #1A1A1A; }
-.c-utiles .iu-sec-titre { color: #C45B10; border-left-color: #E8701A; }
+/* fonds un peu plus clairs que leur bandeau */
+.c-dossier { background: #F8C9A2; --carte: #F8C9A2; --carte-2: #FFF3EA; --muted: #7A3E0F; }   /* orange clair */
+.c-dates { background: #BDB9B3; --carte: #BDB9B3; --carte-2: #F3F1ED; --muted: #3A3836; }      /* gris */
+.c-utiles { background: #3A3836; --carte: #3A3836; --carte-2: #4C4A47; --texte: #F2F2F2; --muted: #C9C6C0; color: #F2F2F2; }   /* gris foncé */
+.c-utiles .iu-sec-titre { color: #F5A66B; border-left-color: #E8701A; }
+#docsTuile { background: #E8701A; border-color: #C45B10; color: #fff; }   /* Documents POI : orange du bandeau d'Infos du dossier */
 .btn-accent { background: #E8701A; color: #fff; }
 .gt { background: #F7F5F1; box-shadow: none; }
 .gt.actif { box-shadow: inset 0 0 0 2px #E8701A; }
