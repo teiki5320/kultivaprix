@@ -443,6 +443,29 @@ header.top.urg-vert { box-shadow: var(--clay-sm), inset 0 0 0 4px #3ddc76, 0 0 1
   header.top h1 { font-size: 18px; }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; } }
+
+/* ═══ Code couleur du Suivi des dossiers : fond sable, barre noire en pilule, cartes blanches avec un bandeau de titre en couleur ═══ */
+:root { --fond: #EDE4D6; --accent: #E8701A; --accent-fort: #F5A66B; --accent-ink: #fff; --accent-dim: rgba(232, 112, 26, .25);
+  --font: "Segoe UI", system-ui, -apple-system, sans-serif; }
+body { background: #EDE4D6; font-family: var(--font); }
+header.top { background: #111; border-radius: 999px; box-shadow: none; }
+.retour-suivi { color: #F5A66B; }
+.card { background: #fff; box-shadow: none; border-radius: 14px; padding: 18px 20px !important; }
+.card > h2 { margin: -18px -20px 14px !important; padding: 12px 20px; border-radius: 14px 14px 0 0; font-size: 12px; letter-spacing: .08em; color: #fff; }
+.col:not(.droite) > .card > h2 { background: #B5B1AA; color: #1A1A1A; }   /* Tâches : gris clair */
+.c-dossier > h2 { background: #E8701A; }                                   /* Infos du dossier : orange */
+.c-dates > h2 { background: #6F6B66; }                                     /* Dates importantes : gris */
+.c-utiles > h2 { background: #1A1A1A; }                                    /* Infos utiles : noir */
+.c-comm > h2 { background: #6F6B66; }                                      /* Commentaires : gris */
+.c-note > h2 { background: #E8701A; }                                      /* Note : orange */
+.c-dossier, .c-dates, .c-comm, .c-note { --carte: #fff; --carte-2: #F3F1ED; --muted: #6F6B66; }
+.c-note .note-zone { background: #FFFBEA; }
+.c-utiles { --carte: #fff; --carte-2: #F3F1ED; --texte: #1A1A1A; --muted: #777; color: #1A1A1A; }
+.c-utiles .iu-sec-titre { color: #C45B10; border-left-color: #E8701A; }
+.btn-accent { background: #E8701A; color: #fff; }
+.gt { background: #F7F5F1; box-shadow: none; }
+.gt.actif { box-shadow: inset 0 0 0 2px #E8701A; }
+.gt.fini { background: #E4F1E6; box-shadow: inset 0 0 0 2px #6fb985; }
 </style>
 </head>
 <body>
