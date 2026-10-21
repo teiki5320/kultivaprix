@@ -476,6 +476,15 @@ header.top { background: #111; border-radius: 999px; box-shadow: none; }
 .di-pv { --di: #E8701A; background: #FDE9D8; }                                      /* Permission de voirie : orange */
 .c-utiles .iu-sec-titre { color: #F5A66B; border-left-color: #E8701A; }
 #docsTuile { background: #E8701A; border-color: #C45B10; color: #fff; }   /* Documents POI : orange du bandeau d'Infos du dossier */
+/* chaque carte entourée d'un trait de la couleur de son bandeau (dans la carte : la colonne de droite ne le coupe pas) */
+.card { border: 3px solid transparent; }
+.card > h2 { border-radius: 11px 11px 0 0; }
+.col:not(.droite) > .card { border-color: #B5B1AA; }
+.c-dossier { border-color: #E8701A; }
+.c-dates { border-color: #6F6B66; }
+.c-utiles { border-color: #1A1A1A; }
+.c-comm { border-color: #B5B1AA; }
+.c-note { border-color: #3A3836; }
 .btn-accent { background: #E8701A; color: #fff; }
 .gt { background: #F7F5F1; box-shadow: none; }
 .gt.actif { box-shadow: inset 0 0 0 2px #E8701A; }
