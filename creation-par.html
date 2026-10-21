@@ -346,8 +346,6 @@ header.top.urg-vert { box-shadow: var(--clay-sm), inset 0 0 0 4px #3ddc76, 0 0 1
 .c-note h2 { display: flex; align-items: center; gap: 8px; }
 .note-liens { margin-left: auto; display: flex; gap: 4px; text-transform: none; letter-spacing: 0; }
 .c-note .note-zone { min-height: 90px; background: #fffdf3; }
-.suivi-tuile { background: #2b2b2b; border-color: #000; color: #f2f2f2; }
-.suivi-tuile:hover { background: #3a3a3a; }
 
 /* Infos utiles : rubriques en gras, sous-lignes à puce, champs à remplir */
 /* sous-parties plus aérées ; elles s'écartent pour descendre jusqu'au bas de la carte (au niveau des Dates importantes) */
@@ -633,9 +631,6 @@ header.top .urgence { justify-self: end; grid-column: 3; }
           <div class="docs">
             <button class="docs-tuile" id="docsTuile" type="button"><svg viewBox="0 0 24 24" width="40" height="40" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span>Documents POI<small id="docsEtat"></small></span></button>
             <button class="lien-edit" id="docsEdit" type="button" aria-label="Changer ou retirer le lien des documents" title="Changer ou retirer le lien" hidden>✎</button>
-          </div>
-          <div class="docs">
-            <button class="docs-tuile suivi-tuile" id="suiviTuile" type="button"><svg viewBox="0 0 24 24" width="40" height="40" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span>Suivi des dossiers<small id="suiviEtat">Tableau de suivi de tous les dossiers</small></span></button>
           </div>
         </div>
       </div>
@@ -1523,7 +1518,6 @@ $("notesEdit").onclick = () => ouvrirLienPop("notes", $("notesEdit"), "Lien OneD
 $("docsTuile").onclick = () => { const l = etat.liens.docsPOI; if (l) window.open(l, "_blank", "noopener"); else ouvrirLienPop("docsPOI", $("docsTuile"), "Lien du dossier OneDrive · Documents POI"); };
 $("docsEdit").onclick = () => ouvrirLienPop("docsPOI", $("docsEdit"), "Lien du dossier OneDrive · Documents POI");
 // Suivi des dossiers : retour au tableau de tous les projets
-$("suiviTuile").onclick = () => { clearTimeout(minuterieResume); ecrireResume(); quitterVers("./"); };
 document.querySelector(".retour-suivi").addEventListener("click", e => { e.preventDefault(); clearTimeout(minuterieResume); ecrireResume(); quitterVers("./"); });
 
 /* ═══ Note du dossier : texte et captures collées (⌘V) ; son texte s'affiche dans le Suivi des dossiers ═══ */
