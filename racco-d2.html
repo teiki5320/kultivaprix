@@ -449,6 +449,12 @@ header.top.urg-vert { box-shadow: var(--clay-sm), inset 0 0 0 4px #3ddc76, 0 0 1
   --font: "Segoe UI", system-ui, -apple-system, sans-serif; }
 body { background: #EDE4D6; font-family: var(--font); }
 header.top { background: #111; border-radius: 999px; box-shadow: none; }
+/* barre du haut : aussi haute que les bandeaux des cartes, le titre au milieu (retour au suivi à gauche, feu à droite) */
+header.top, header.top[class] { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 14px 24px !important; }
+header.top .titre-bloc { display: contents; }
+header.top .retour-suivi { justify-self: start; }
+header.top h1 { font-size: 22px !important; grid-column: 2; text-align: center; }
+header.top .urgence { justify-self: end; grid-column: 3; }
 .retour-suivi { color: #F5A66B; }
 .card { background: #fff; box-shadow: none; border-radius: 14px; padding: 18px 20px !important; }
 .card > h2 { margin: -18px -20px 14px !important; padding: 12px 20px; border-radius: 14px 14px 0 0; font-size: 12px; letter-spacing: .08em; color: #fff; }
