@@ -489,7 +489,9 @@ header.top .urgence { justify-self: end; grid-column: 3; }
 /* Infos du dossier : titres des champs (marron) un peu plus gros, chacun sur une ligne */
 .c-dossier .fiche label:not(.btn) { font-size: 13px; color: #4A4238; }   /* même gris que les grandes tâches, en gras */
 .c-dossier input::placeholder, .c-dossier textarea::placeholder { color: #3A3836; }
-.c-dossier .poi-annul, .c-dossier .btn.import { color: #1A1A1A; }   /* « Annuler » et « Importer Excel » en noir */   /* Infos du dossier : texte gris des champs vides, comme les Dates importantes */
+.c-dossier .poi-annul, .c-dossier .btn.import { color: #1A1A1A; }   /* « Annuler » et « Importer Excel » en noir */
+.c-dossier .bulle { --muted: #1A1A1A; }                 /* fenêtres IMB et Nombre d'EL : écritures en noir */
+.c-dossier .bulle .bulle-titre, .c-dossier .bulle .bulle-aide, .c-dossier .bulle .btn, .c-dossier .bulle .mini-lab { color: #1A1A1A; }   /* Infos du dossier : texte gris des champs vides, comme les Dates importantes */
 #docsTuile { background: #E8701A; border-color: #C45B10; color: #fff; }   /* Documents POI : orange du bandeau d'Infos du dossier */
 /* chaque carte entourée d'un trait de la couleur de son bandeau (dans la carte : la colonne de droite ne le coupe pas) */
 .card { border: 3px solid transparent; }
