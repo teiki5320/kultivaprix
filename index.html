@@ -6,124 +6,122 @@
 <title>Suivi des dossiers</title>
 <style>
 [hidden] { display: none !important; }
-/* même thème « Clay » clair que les pages des types de dossier */
+/* design « Suivi des dossiers » (Claude design) : fond sable, cartes blanches avec un bandeau de couleur, accent orange */
 :root {
-  --fond: #efe3d6; --carte: #fffaf4; --carte-2: #f3e7db;
-  --texte: #4a4238; --muted: #6d6259; --ligne: rgba(74, 66, 56, .1);
-  --accent: #e8907a; --accent-ink: #33190f; --accent-dim: rgba(232, 144, 122, .28);
-  --rouge: #d62d20; --trouve: #fbe7a1;
-  --clay: inset 2px 2px 5px rgba(255,255,255,.9), inset -3px -3px 8px rgba(120,90,60,.14), 0 10px 22px rgba(120,90,60,.16);
-  --clay-sm: inset 1px 1px 3px rgba(255,255,255,.95), inset -2px -2px 5px rgba(120,90,60,.14), 0 5px 12px rgba(120,90,60,.16);
-  --inset: inset 2px 2px 6px rgba(120,90,60,.12), inset -1px -1px 3px rgba(255,255,255,.6);
-  --pouss: 0 5px 0 rgba(120,90,60,.22); --pouss-bas: 0 2px 0 rgba(120,90,60,.22);
-  --font: -apple-system, ui-rounded, "SF Pro Rounded", "Segoe UI", system-ui, sans-serif;
-  --bounce: cubic-bezier(.34, 1.56, .64, 1);
-  --r-sm: 12px; --r-md: 16px; --r-lg: 22px; --r-xl: 30px;
+  --fond: #EDE4D6; --carte: #fff; --doux: #F3F1ED; --doux-2: #F1EFEB; --doux-3: #F7F5F1;
+  --texte: #1A1A1A; --muted: #777; --ligne: #EEECE8;
+  --orange: #E8701A; --orange-fonce: #C45B10; --peche: #FBE3CF; --peche-ink: #7A3E0F;
+  --rouge: #C0392B; --accent-dim: rgba(232, 112, 26, .25);
+  --font: "Segoe UI", system-ui, -apple-system, sans-serif;
   color-scheme: light;
 }
 *, *::before, *::after { box-sizing: border-box; }
-body { margin: 0; background: var(--fond); color: var(--texte); font-family: var(--font); font-size: 15px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
-button, input { font-family: inherit; font-size: inherit; color: inherit; }
-.page { max-width: 1500px; margin: 0 auto; padding: 18px 16px 32px; display: flex; flex-direction: column; gap: 18px; }
+body { margin: 0; background: var(--fond); color: var(--texte); font-family: var(--font); font-size: 14px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+button, input, select { font-family: inherit; font-size: inherit; color: inherit; }
+.page { max-width: 1180px; margin: 0 auto; padding: 32px 24px; display: flex; flex-direction: column; gap: 16px; }
 
-header.top { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
-  background: #2b2b2b; color: #f5f5f5; border-radius: var(--r-xl); padding: 14px 22px; box-shadow: var(--clay-sm); }
-header.top h1 { margin: 0; font-size: 22px; font-weight: 800; letter-spacing: .02em; }
+/* barre du haut : pilule noire */
+header.top { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; background: #111; color: #fff; border-radius: 999px; padding: 14px 24px; }
+header.top h1 { margin: 0; font-size: 20px; font-weight: 700; }
 .actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; position: relative; }
-
-.btn { border: 0; border-radius: var(--r-md); padding: 9px 15px; font-weight: 800; font-size: 13.5px; cursor: pointer;
-  background: var(--carte-2); color: var(--texte); box-shadow: var(--clay-sm); transition: transform .18s var(--bounce); }
-.btn:hover { transform: translateY(-1px); }
+.btn { border: 0; border-radius: 999px; padding: 9px 16px; font-weight: 700; font-size: 13px; cursor: pointer; background: var(--doux-2); color: var(--texte); transition: filter .12s, transform .12s; }
+.btn:hover { filter: brightness(1.08); }
 .btn:active { transform: scale(.97); }
-.btn-accent { background: var(--accent); color: var(--accent-ink); box-shadow: var(--pouss); }
-.btn-accent:active { transform: translateY(3px); box-shadow: var(--pouss-bas); }
-.btn:focus-visible { outline: none; box-shadow: var(--clay-sm), 0 0 0 3px var(--accent-dim); }
-.btn-mini { padding: 6px 11px; font-size: 12.5px; }
-header .btn { background: #3d3d3d; color: #f2f2f2; box-shadow: none; }
-header .btn-accent { background: var(--accent); color: var(--accent-ink); }
+.btn:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--accent-dim); }
+.btn-mini { padding: 5px 12px; font-size: 12px; }
+header .btn { background: #333; color: #fff; }
+.btn-accent, header .btn-accent { background: var(--orange); color: #fff; }
 
 /* menu « Nouveau projet » : les 5 types de dossier */
-.menu { position: absolute; top: calc(100% + 8px); left: 0; z-index: 30; min-width: 260px; background: var(--carte); color: var(--texte); border-radius: var(--r-md);
-  box-shadow: var(--clay), 0 0 0 1px var(--ligne); padding: 6px; display: grid; gap: 2px; }
-.menu button { border: 0; background: none; text-align: left; padding: 8px 10px; border-radius: 10px; font-weight: 700; font-size: 14px; cursor: pointer; display: flex; justify-content: space-between; gap: 10px; }
-.menu button:hover:not(:disabled) { background: var(--carte-2); }
+.menu { position: absolute; top: calc(100% + 8px); left: 0; z-index: 30; min-width: 260px; background: #fff; color: var(--texte); border-radius: 12px;
+  box-shadow: 0 12px 30px rgba(0,0,0,.18); padding: 6px; display: grid; gap: 2px; }
+.menu button { border: 0; background: none; text-align: left; padding: 8px 10px; border-radius: 8px; font-weight: 700; font-size: 14px; cursor: pointer; display: flex; justify-content: space-between; gap: 10px; }
+.menu button:hover:not(:disabled) { background: var(--peche); }
 .menu button:disabled { cursor: default; color: var(--muted); opacity: .7; }
 .menu small { font-weight: 600; font-size: 11.5px; color: var(--muted); }
 
-.card { background: var(--carte); border-radius: var(--r-lg); box-shadow: var(--clay); padding: 18px 20px; min-width: 0; }
-.card h2 { margin: 0; font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
-.tete { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
-.tete .droite { margin-left: auto; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+/* cartes : bandeau de titre en couleur */
+.card { background: var(--carte); border-radius: 14px; padding: 18px 20px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.bandeau { margin: -18px -20px 0; padding: 12px 20px; border-radius: 14px 14px 0 0; font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #fff; }
+.b-rech { background: #6F6B66; } .b-cours { background: var(--orange); } .b-type { background: #B5B1AA; color: var(--texte); } .b-stats { background: #1A1A1A; }
+.outils { display: flex; align-items: center; justify-content: flex-end; gap: 8px; flex-wrap: wrap; }
+.outils.entre { justify-content: space-between; }
 
 /* recherche */
 .recherche { display: flex; align-items: center; gap: 10px; }
-#tableauRech { margin-top: 12px; }
 .recherche-champ { flex: 1; position: relative; }
-.recherche-champ svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); stroke: var(--muted); fill: none; stroke-width: 2; }
-.recherche input { width: 100%; border: 0; border-radius: var(--r-md); background: var(--carte-2); box-shadow: var(--inset); padding: 10px 12px 10px 38px; outline: none; }
-.recherche input:focus { box-shadow: var(--inset), 0 0 0 3px var(--accent-dim); }
-.recherche-res { font-size: 13px; font-weight: 700; color: var(--muted); white-space: nowrap; }
+.recherche-champ svg { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); stroke: var(--muted); fill: none; stroke-width: 2.2; }
+.recherche input { width: 100%; border: 0; border-radius: 999px; background: var(--doux); padding: 10px 16px 10px 38px; font-size: 13px; outline: none; }
+.recherche input::placeholder { color: var(--muted); }
+.recherche input:focus { box-shadow: 0 0 0 3px var(--accent-dim); }
+.recherche-res { font-size: 12px; font-weight: 700; color: var(--muted); white-space: nowrap; }
 
-/* tableau des projets : une ligne par projet ; Type et N° POI sur deux lignes (Racco D2 / Anticipation) */
-.tableau { overflow-x: auto; border-radius: var(--r-md); background: var(--carte-2); box-shadow: var(--inset); }
-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
-th { text-align: left; font-size: 11.5px; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); padding: 10px 10px; white-space: nowrap;
-  cursor: pointer; user-select: none; border-bottom: 1px solid #1f1f1f; background: #3a3a3a; color: #fff; position: sticky; top: 0; }   /* ligne des titres : gris foncé, écriture blanche */
-th:hover { color: #f5c48f; }
-th .fl { display: inline-block; width: 12px; color: #f5c48f; }
-td { padding: 9px 10px; border-bottom: 1px solid var(--ligne); vertical-align: middle; }
+/* tableaux : une ligne par projet ; Type et N° POI sur deux lignes (Racco D2 / Anticipation) */
+.tableau { overflow-x: auto; border-radius: 10px; }
+table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+th { text-align: left; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; padding: 9px 10px; white-space: nowrap;
+  cursor: pointer; user-select: none; background: var(--peche); color: var(--peche-ink); position: sticky; top: 0; }
+th:hover { color: var(--orange-fonce); }
+th .fl { display: inline-block; width: 12px; color: var(--orange); }
+td { padding: 12px 10px; border-bottom: 1px solid var(--ligne); vertical-align: middle; }
 tbody tr { cursor: pointer; background: #fff; transition: background .12s; }
-tbody tr:nth-child(even) { background: #f1ece6; }   /* une ligne sur deux grisée pour se repérer */
-tbody tr:hover { background: #fff3e6; }
-.sous { display: block; line-height: 1.35; white-space: nowrap; }
-.sous + .sous { border-top: 1px dashed rgba(74, 66, 56, .18); margin-top: 4px; padding-top: 4px; }
-.type-dossier { font-weight: 800; }
-.statut { color: var(--rouge); font-weight: 800; font-size: 12px; }
-.feu { width: 14px; height: 14px; border-radius: 50%; display: inline-block; vertical-align: middle; box-shadow: inset 0 0 0 1px rgba(0,0,0,.12); }
-.feu.rouge { background: #e2493a; } .feu.orange { background: #f29a2e; } .feu.vert { background: #36c26a; } .feu.aucun { background: #ddd3c8; }
+tbody tr:nth-child(even) { background: #FAF8F5; }   /* une ligne sur deux légèrement grisée pour se repérer */
+tbody tr:hover { background: #FFF4EA; }
+tbody tr:last-child td { border-bottom: 0; }
+.sous { display: block; line-height: 1.9; white-space: nowrap; }
+.type-dossier { font-weight: 700; }
+.statut { color: var(--rouge); font-weight: 700; }
+.feu { width: 12px; height: 12px; border-radius: 50%; display: inline-block; vertical-align: middle; }
+.feu.rouge { background: #C0392B; } .feu.orange { background: #E8701A; } .feu.vert { background: #3E9B5F; } .feu.aucun { background: #D8D4CD; }
 .num { font-variant-numeric: tabular-nums; white-space: nowrap; }
-.note { max-width: 260px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.note { max-width: 190px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 /* bulle de la note entière, au survol de la case Note */
-.bulle-note { position: fixed; z-index: 40; max-width: 420px; max-height: 60vh; overflow: auto; padding: 10px 13px; border-radius: 12px; background: #2b2b2b; color: #f2f2f2;
-  font-size: 13px; line-height: 1.45; white-space: pre-wrap; overflow-wrap: anywhere; box-shadow: var(--clay); pointer-events: none; }
-.vide { padding: 26px 16px; text-align: center; color: var(--muted); font-weight: 700; }
-.vide b { display: block; color: var(--texte); font-size: 15px; margin-bottom: 4px; }
+.bulle-note { position: fixed; z-index: 40; max-width: 420px; max-height: 60vh; overflow: auto; padding: 10px 13px; border-radius: 10px; background: #1A1A1A; color: #f2f2f2;
+  font-size: 13px; line-height: 1.45; white-space: pre-wrap; overflow-wrap: anywhere; box-shadow: 0 10px 26px rgba(0,0,0,.2); pointer-events: none; }
+.vide { padding: 26px 16px; text-align: center; color: var(--muted); font-weight: 600; cursor: default; }
+.vide b { display: block; color: var(--texte); font-size: 14px; margin-bottom: 4px; }
+
+/* feux : un clic cache ou réaffiche les dossiers de cette couleur */
+.filtre-feux { display: flex; gap: 6px; }
+.ff { display: flex; align-items: center; gap: 5px; border: 0; border-radius: 999px; padding: 3px 10px; cursor: pointer; background: var(--doux-2); font-weight: 700; font-size: 11px; color: var(--texte); transition: opacity .15s; }
+.ff .feu { width: 9px; height: 9px; }
+.ff.zero { color: #999; }
+.ff.off { opacity: .4; text-decoration: line-through; }
 
 /* suivi par type de dossier : un onglet par type (nombre de projets en cours, archivés, annulés), puis En cours / Archivés-annulés */
-.onglets { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 8px; margin-bottom: 12px; }
-.onglet { border: 0; border-radius: var(--r-md); padding: 9px 12px; text-align: left; cursor: pointer; background: var(--carte-2); box-shadow: var(--inset); color: var(--texte); display: grid; gap: 2px; }
-.onglet b { font-size: 13.5px; }
-.onglet small { font-size: 11.5px; font-weight: 600; color: var(--muted); }
-.onglet:hover { background: #efe2d4; }
-.onglet.actif { background: #2b2b2b; color: #f5f5f5; box-shadow: var(--clay-sm); }
-.onglet.actif small { color: #f5c48f; }
-.choix-type { font-size: 13px; font-weight: 600; color: var(--muted); padding: 2px 2px 4px; }
-.ligne-sous { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+.onglets { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; }
+.onglet { border: 0; border-radius: 10px; padding: 10px 12px; text-align: left; cursor: pointer; background: var(--doux-3); color: var(--texte); display: grid; gap: 3px; transition: background .12s; }
+.onglet b { font-size: 13px; font-weight: 700; }
+.onglet small { font-size: 11px; color: #666; }
+.onglet small strong { color: var(--orange); }
+.onglet:hover { background: var(--doux-2); }
+.onglet.actif { background: var(--peche); box-shadow: inset 0 0 0 2px var(--orange); }
+.choix-type { font-size: 12px; color: var(--muted); }
+.ligne-sous { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
 .sous-onglets { display: flex; gap: 6px; }
-/* feux : un clic cache ou réaffiche les dossiers de cette couleur */
-.filtre-feux { display: flex; gap: 5px; }
-.ff { display: flex; align-items: center; gap: 5px; border: 0; border-radius: 999px; padding: 4px 10px 4px 6px; cursor: pointer; background: var(--carte-2); box-shadow: var(--clay-sm);
-  font-weight: 800; font-size: 12.5px; color: var(--texte); transition: opacity .15s; }
-.ff.off { opacity: .35; box-shadow: var(--inset); }
-.ff.off .feu { filter: grayscale(.6); }
-.sous-onglet { border: 0; border-radius: 999px; padding: 6px 14px; font-weight: 800; font-size: 12.5px; cursor: pointer; background: var(--carte-2); color: var(--muted); box-shadow: var(--inset); }
-.sous-onglet.actif { background: var(--accent); color: var(--accent-ink); box-shadow: var(--pouss-bas); }
+.sous-onglet { border: 0; border-radius: 999px; padding: 5px 12px; font-weight: 700; font-size: 12px; cursor: pointer; background: var(--doux-2); color: var(--texte); }
+.sous-onglet.actif { background: var(--orange); color: #fff; }
 
 /* statistiques */
-.periode { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; color: var(--muted); }
+.periode { display: flex; align-items: center; gap: 8px; font-size: 12px; }
 .date-champ { position: relative; }
-.date-champ input:not(.date-cachee) { width: 124px; border: 0; border-radius: 10px; background: var(--carte-2); box-shadow: var(--inset); padding: 6px 30px 6px 9px; outline: none; font-size: 13px; font-variant-numeric: tabular-nums; }
-.date-champ input.invalide { box-shadow: var(--inset), 0 0 0 2px var(--rouge); }
-.cal { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); width: 22px; height: 22px; border: 0; border-radius: 7px; background: none; padding: 0; cursor: pointer; color: var(--muted); }
+.date-champ input:not(.date-cachee) { width: 118px; border: 0; border-radius: 6px; background: var(--doux-2); padding: 4px 28px 4px 8px; outline: none; font-size: 12px; font-variant-numeric: tabular-nums; }
+.date-champ input::placeholder { color: #888; }
+.date-champ input:focus { box-shadow: 0 0 0 2px var(--accent-dim); }
+.date-champ input.invalide { box-shadow: 0 0 0 2px var(--rouge); }
+.cal { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); width: 20px; height: 20px; border: 0; border-radius: 5px; background: none; padding: 0; cursor: pointer; color: #888; }
 .cal svg { fill: none; stroke: currentColor; stroke-width: 1.8; }
 .date-cachee { position: absolute; inset: 0; opacity: 0; pointer-events: none; width: 100%; }
-.stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; font-size: 13px; }
 @media (max-width: 760px) { .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-.stat { border-radius: var(--r-md); padding: 12px 14px; background: var(--carte-2); box-shadow: var(--inset); }
-.stat h3 { margin: 0 0 6px; font-size: 13px; font-weight: 800; }
-.stat .ligne { display: flex; justify-content: space-between; font-size: 13.5px; }
-.stat .ligne b { font-size: 18px; font-variant-numeric: tabular-nums; }
-.stat.cours { background: #e4f1e6; } .stat.arch { background: #e7eaf3; } .stat.annul { background: #f6dfd9; } .stat.total { background: #f9edc9; }
+.stat { border-radius: 10px; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; background: var(--doux-2); }
+.stat h3 { margin: 0; font-size: 13px; font-weight: 700; }
+.stat .ligne { display: flex; justify-content: space-between; align-items: baseline; }
+.stat .ligne b { font-size: 16px; font-variant-numeric: tabular-nums; }
+.stat.cours { background: var(--peche); } .stat.cours b { color: var(--orange); }
+.stat.annul { background: #E3DFD8; }
+.stat.total { background: #3A3836; color: #fff; } .stat.total b { color: #F5A66B; }
+@media (max-width: 700px) { .page { padding: 16px; } header.top { border-radius: 22px; } }
 </style>
 </head>
 <body>
@@ -140,7 +138,7 @@ tbody tr:hover { background: #fff3e6; }
   </header>
 
   <div class="card">
-    <div class="tete"><h2>Recherche</h2></div>
+    <div class="bandeau b-rech">Recherche</div>
     <div class="recherche">
       <div class="recherche-champ"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
         <input id="recherche" type="search" placeholder="Rechercher dans tous les projets : adresse, N° POI, commentaire, note…" autocomplete="off" aria-label="Rechercher"></div>
@@ -150,14 +148,14 @@ tbody tr:hover { background: #fff3e6; }
   </div>
 
   <div class="card">
-    <div class="tete"><h2 id="titreVue">Dossiers en cours</h2>
-      <div class="droite"><div class="filtre-feux" id="feuxTous" role="group" aria-label="Afficher ou cacher les dossiers par feu"></div>
-        <button class="btn btn-mini" id="retourEnCours" type="button" hidden>← Dossiers en cours</button></div></div>
+    <div class="bandeau b-cours" id="titreVue">Dossiers en cours</div>
+    <div class="outils"><button class="btn btn-mini" id="retourEnCours" type="button" hidden>← Dossiers en cours</button>
+      <div class="filtre-feux" id="feuxTous" role="group" aria-label="Afficher ou cacher les dossiers par feu"></div></div>
     <div class="tableau"><table><thead id="tete"></thead><tbody id="corps"></tbody></table></div>
   </div>
 
   <div class="card">
-    <div class="tete"><h2>Suivi par type de dossier</h2></div>
+    <div class="bandeau b-type">Suivi par type de dossier</div>
     <div class="onglets" id="ongletsTypes" role="tablist" aria-label="Types de dossier"></div>
     <div class="ligne-sous" id="ligneSous"><div class="sous-onglets" id="sousOnglets" role="tablist" aria-label="En cours ou archivés"></div>
       <div class="filtre-feux" id="feuxType" role="group" aria-label="Afficher ou cacher les dossiers par feu"></div></div>
@@ -166,10 +164,11 @@ tbody tr:hover { background: #fff3e6; }
   </div>
 
   <div class="card">
-    <div class="tete"><h2>Statistiques</h2>
+    <div class="bandeau b-stats">Statistiques</div>
+    <div class="outils entre">
       <div class="periode">du <span class="date-champ"><input id="du" placeholder="JJ/MM/AAAA" inputmode="numeric" maxlength="10" autocomplete="off" aria-label="Date de début"><button class="cal" type="button" data-cal="du" aria-label="Calendrier"><svg viewBox="0 0 24 24" width="14" height="14"><rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg></button><input type="date" class="date-cachee" data-pick="du" tabindex="-1" aria-hidden="true"></span>
         au <span class="date-champ"><input id="au" placeholder="JJ/MM/AAAA" inputmode="numeric" maxlength="10" autocomplete="off" aria-label="Date de fin"><button class="cal" type="button" data-cal="au" aria-label="Calendrier"><svg viewBox="0 0 24 24" width="14" height="14"><rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg></button><input type="date" class="date-cachee" data-pick="au" tabindex="-1" aria-hidden="true"></span></div>
-      <div class="droite"><button class="btn btn-mini" id="voirArchives" type="button">Voir les archivés / annulés</button></div></div>
+      <button class="btn btn-mini" id="voirArchives" type="button">Voir les archivés / annulés</button></div>
     <div class="stats" id="stats"></div>
   </div>
 </div>
@@ -289,7 +288,7 @@ function remplirTableau(T) {
   let L = lignesVue(vue, type).sort(comparer(tri));
   if (T.feux) {
     const n = { rouge: 0, orange: 0, vert: 0, aucun: 0 }; L.forEach(x => n[couleur(x)]++);
-    $(T.barre).innerHTML = FEUX.map(([k, l]) => `<button class="ff${T.feux[k] ? "" : " off"}" type="button" data-ff="${k}" aria-pressed="${T.feux[k]}" title="${T.feux[k] ? "Cacher" : "Afficher"} : ${l}"><span class="feu ${k}"></span>${n[k]}</button>`).join("");
+    $(T.barre).innerHTML = FEUX.map(([k, l]) => `<button class="ff${T.feux[k] ? "" : " off"}${n[k] ? "" : " zero"}" type="button" data-ff="${k}" aria-pressed="${T.feux[k]}" title="${T.feux[k] ? "Cacher" : "Afficher"} : ${l}"><span class="feu ${k}"></span>${n[k]}</button>`).join("");
     const caches = L.filter(x => !T.feux[couleur(x)]).length;
     L = L.filter(x => T.feux[couleur(x)]);
     if (!L.length && caches) { $(T.corps).innerHTML = `<tr><td colspan="${COLS.length}" class="vide"><b>Tous les dossiers sont cachés</b>Clique sur un feu pour les réafficher.</td></tr>`; return; }
@@ -324,7 +323,7 @@ function rendreTableau() {
   $("ongletsTypes").innerHTML = TYPES.map(t => {
     const n = { cours: 0, arch: 0, annul: 0 }; projets.filter(p => p.type === t.id).forEach(p => n[statutProjet(p)]++);
     return `<button class="onglet${t.id === U.type ? " actif" : ""}" type="button" role="tab" aria-selected="${t.id === U.type}" data-onglet="${t.id}">` +
-      `<b>${esc(t.nom)}</b><small>${n.cours} en cours · ${n.arch} archivé${n.arch > 1 ? "s" : ""} · ${n.annul} annulé${n.annul > 1 ? "s" : ""}</small></button>`; }).join("");
+      `<b>${esc(t.nom)}</b><small>${n.cours ? `<strong>${n.cours} en cours</strong>` : "0 en cours"} · ${n.arch} archivé${n.arch > 1 ? "s" : ""} · ${n.annul} annulé${n.annul > 1 ? "s" : ""}</small></button>`; }).join("");
   const nb = v => lignesVue(v, U.type).length;
   $("sousOnglets").innerHTML = [["cours", "En cours"], ["archives", "Archivés / annulés"]].map(([v, l]) =>
     `<button class="sous-onglet${U.vue === v ? " actif" : ""}" type="button" role="tab" aria-selected="${U.vue === v}" data-sousonglet="${v}">${l} (${nb(v)})</button>`).join("");
