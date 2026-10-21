@@ -469,11 +469,8 @@ header.top { background: #111; border-radius: 999px; box-shadow: none; }
 .di-titre { border-left-width: 4px; }
 .di-grp { border: 1px solid rgba(0, 0, 0, .08); }
 .di-gen { --di: #1A1A1A; background: #FFFFFF; }                                     /* Générale : blanc */
-.di-racco { --di: #5A5652; background: #D3CFC8; }                                   /* Racco D2 : gris */
-.di-ant { --di: #E8701A; background: #FDE9D8; }                                     /* Anticipation : orange */
-.di-gcblo { --di: #F5A66B; background: #2B2A28; }                                   /* GCBLO : noir */
-.di-sout, .di-aer { --di: #1A1A1A; background: #FFFFFF; }
-.di-pv { --di: #E8701A; background: #FDE9D8; }                                      /* Permission de voirie : orange */
+/* toutes les sous-parties en blanc (Souterrain et Aérien gardent leur trait dans GCBLO) */
+.di-racco, .di-ant, .di-gcblo, .di-sout, .di-aer, .di-pv { --di: #1A1A1A; background: #FFFFFF; }
 .c-utiles .iu-sec-titre { color: #F5A66B; border-left-color: #E8701A; }
 #docsTuile { background: #E8701A; border-color: #C45B10; color: #fff; }   /* Documents POI : orange du bandeau d'Infos du dossier */
 /* chaque carte entourée d'un trait de la couleur de son bandeau (dans la carte : la colonne de droite ne le coupe pas) */
