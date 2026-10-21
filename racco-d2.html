@@ -473,11 +473,6 @@ header.top { background: #111; border-radius: 999px; box-shadow: none; }
 .di-racco, .di-ant, .di-gcblo, .di-sout, .di-aer, .di-pv { --di: #1A1A1A; background: #FFFFFF; }
 .di-sout, .di-aer { background: #F4F2EF; border-color: #DEDAD4; }   /* dans GCBLO : Souterrain et Aérien en gris pour ressortir */
 .di-sous .di-titre { font-size: 12px; text-transform: uppercase; letter-spacing: .4px; border-left-width: 4px; }   /* titres aussi gros que GCBLO */
-/* Souterrain : les titres des dates tiennent sur une ligne (texte un peu plus serré, case date un peu plus étroite) */
-#diGrp_sout { padding-left: 7px; padding-right: 7px; }
-#diGrp_sout .di-liste .champ > label { white-space: nowrap; font-size: 10.5px; letter-spacing: -.3px; }
-#diGrp_sout .di-liste .champ > .date-champ { flex-basis: 104px; }
-#diGrp_sout .di-liste .champ input:not(.date-cachee) { font-size: 12px; padding-left: 6px; padding-right: 26px; }
 .c-utiles .iu-sec-titre { color: #F5A66B; border-left-color: #E8701A; }
 #docsTuile { background: #E8701A; border-color: #C45B10; color: #fff; }   /* Documents POI : orange du bandeau d'Infos du dossier */
 /* chaque carte entourée d'un trait de la couleur de son bandeau (dans la carte : la colonne de droite ne le coupe pas) */
@@ -1476,10 +1471,10 @@ const GROUPES_DI = [
   { id: "ant", titre: "Anticipation", dates: [["travauxAnt", "Envoi en travaux anticipation"], ["doeAnt", "Réception DOE Anticipation"],
     ["paiementAnt", "Paiement attachement anticipation"], ["archAnt", "Archivage POI anticipation"]] },
   { id: "gcblo", titre: "GCBLO", dates: [] },
-  { id: "sout", titre: "Souterrain", sous: true, dates: [["cmdSout", "Demande commande d’accès souterrain"], ["retCmdSout", "Retour OK commande d’accès souterrain"],
+  { id: "sout", titre: "Souterrain", sous: true, dates: [["cmdSout", "Demande commande d’accès"], ["retCmdSout", "Retour OK commande d’accès"],
     ["dftSout", "Envoi DFT souterrain"], ["retDftSout", "Retour OK DFT souterrain"]] },
   { id: "aer", titre: "Aérien", sous: true, dates: [["releveBo", "Envoi relevé poteau au BO aérien"], ["sepale", "Retour BO aérien"],
-    ["cmdAer", "Demande commande d’accès aérien"], ["retCmdAer", "Retour OK commande d’accès aérien"], ["atlas", "ATLAS"],
+    ["cmdAer", "Demande commande d’accès"], ["retCmdAer", "Retour OK commande d’accès"], ["atlas", "ATLAS"],
     ["dftAer", "Envoi DFT aérien"], ["retDftAer", "Retour OK DFT aérien"]] },
   { id: "pv", titre: "Permission de voirie", dates: [["pvDemande", "Demande PV"], ["pvRetour", "Retour PV"], ["pvCloture", "Clôture PV"]] }];
 const DATES_IMP = GROUPES_DI.flatMap(g => g.dates);
