@@ -458,7 +458,13 @@ header.top.urg-vert { box-shadow: var(--clay-sm), inset 0 0 0 4px #3ddc76, 0 0 1
   --font: "Segoe UI", system-ui, -apple-system, sans-serif; }
 body { background: #EDE4D6; font-family: var(--font); }
 header.top { background: #111; border-radius: 999px; box-shadow: none; }
-.retour-suivi { color: #F5A66B; }
+/* barre du haut : aussi haute que les bandeaux des cartes, le titre au milieu (retour au suivi à gauche, feu à droite) */
+header.top, header.top[class] { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 14px 24px !important; }
+header.top .titre-bloc { display: contents; }
+header.top .retour-suivi { justify-self: start; }
+header.top h1 { font-size: 30px !important; font-weight: 600; grid-column: 2; text-align: center; text-transform: uppercase; letter-spacing: .08em; }   /* titre de la page : grand, sans gras */
+header.top .urgence { justify-self: end; grid-column: 3; }
+.retour-suivi { color: #fff; }
 .card { background: #fff; box-shadow: none; border-radius: 14px; padding: 18px 20px !important; }
 .card > h2 { margin: -18px -20px 14px !important; padding: 12px 20px; border-radius: 14px 14px 0 0; font-size: 12px; letter-spacing: .08em; color: #fff; }
 .col:not(.droite) > .card > h2 { background: #B5B1AA; color: #1A1A1A; }   /* Tâches : gris clair */
@@ -474,12 +480,19 @@ header.top { background: #111; border-radius: 999px; box-shadow: none; }
 .c-dates { background: #E3E0DB; --carte: #E3E0DB; --carte-2: #F3F1ED; --muted: #3A3836; }      /* gris très clair */
 .c-utiles { background: #5E5C59; --carte: #5E5C59; --carte-2: #82807C; --texte: #F2F2F2; --muted: #D9D6D0; color: #F2F2F2; }   /* gris foncé adouci */
 .c-utiles input::placeholder { color: #D9D6D0; opacity: .75; }
-/* sous-parties des Dates importantes en blanc, gris, orange et noir */
+/* sous-parties des Dates importantes : encadrés blancs, titres en orange */
 .di-titre { border-left-width: 4px; }
 .di-grp { border: 1px solid rgba(0, 0, 0, .08); }
-.di-gen { --di: #1A1A1A; background: #FFFFFF; }                                     /* Générale : blanc */
-.di-loc { --di: #E8701A; background: #FDE9D8; }                                     /* Localisation du PAR : orange */
-.c-utiles .iu-sec-titre { color: #F5A66B; border-left-color: #E8701A; }
+.di-gen, .di-loc { --di: #E8701A; background: #FFFFFF; }
+.dates-imp .di-titre { font-size: 14.5px; }
+/* noms des dates : le plus gros possible en restant sur une ligne (et plus petits que les titres orange) */
+.dates-imp .di-liste .champ > label { font-weight: 500; font-size: 12.5px; letter-spacing: -.25px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }   /* sans gras */
+.dates-imp .di-liste .champ > .date-champ { flex-basis: 112px; }
+.dates-imp .di-liste .champ input:not(.date-cachee) { padding-left: 7px; padding-right: 28px; }   /* aussi gros que les titres des Infos utiles (Souterrain et Aérien comme GCBLO) */
+.iu-bloc .iu-sec-titre { font-size: 14.5px; }   /* titres des Infos utiles à la même taille que ceux des Dates importantes */
+.c-utiles .iu-sec-titre { color: #E8701A; border-left-color: #E8701A; }   /* même orange que les titres des Dates importantes */
+/* Infos du dossier : titres des champs (marron) un peu plus gros, chacun sur une ligne */
+.c-dossier .fiche label:not(.btn) { font-size: 13px; color: #4A4238; }   /* même gris que les grandes tâches, en gras */
 .c-dossier input::placeholder, .c-dossier textarea::placeholder { color: #3A3836; }
 .c-dossier .poi-annul, .c-dossier .btn.import { color: #1A1A1A; }   /* « Annuler » et « Importer Excel » en noir */
 .c-dossier .note-btn:not(.plein) { color: #1A1A1A; }   /* petite bulle du Nombre d'EL en noir */
@@ -489,6 +502,8 @@ header.top { background: #111; border-radius: 999px; box-shadow: none; }
 /* chaque carte entourée d'un trait de la couleur de son bandeau (dans la carte : la colonne de droite ne le coupe pas) */
 .card { border: 3px solid transparent; }
 .card > h2 { border-radius: 11px 11px 0 0; }
+/* titres des cartes : majuscules plus grosses et plus épaisses, bandeau un peu plus haut */
+.card > h2 { font-size: 16px; font-weight: 800; letter-spacing: .06em; padding-top: 13px; padding-bottom: 13px; }
 .col:not(.droite) > .card { border-color: #B5B1AA; }
 .c-dossier { border-color: #E8701A; }
 .c-dates { border-color: #6F6B66; }
