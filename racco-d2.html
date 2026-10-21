@@ -459,11 +459,21 @@ header.top { background: #111; border-radius: 999px; box-shadow: none; }
 .c-comm > h2 { background: #B5B1AA; color: #1A1A1A; }                     /* Commentaires : gris clair */
 .c-note > h2 { background: #3A3836; }                                      /* Note : gris foncé */
 .c-comm, .c-note { --carte: #fff; --carte-2: #F3F1ED; --muted: #6F6B66; }
-.c-note .note-zone { background: #FFFBEA; }
+.c-note .note-zone { background: #F3F1ED; }   /* même gris que la zone d'écriture des Commentaires */
 /* fonds un peu plus clairs que leur bandeau */
-.c-dossier { background: #F8C9A2; --carte: #F8C9A2; --carte-2: #FFF3EA; --muted: #7A3E0F; }   /* orange clair */
-.c-dates { background: #BDB9B3; --carte: #BDB9B3; --carte-2: #F3F1ED; --muted: #3A3836; }      /* gris */
-.c-utiles { background: #3A3836; --carte: #3A3836; --carte-2: #4C4A47; --texte: #F2F2F2; --muted: #C9C6C0; color: #F2F2F2; }   /* gris foncé */
+.c-dossier { background: #FDEBDD; --carte: #FDEBDD; --carte-2: #FFF8F2; --muted: #7A3E0F; }   /* orange très clair */
+.c-dates { background: #E3E0DB; --carte: #E3E0DB; --carte-2: #F3F1ED; --muted: #3A3836; }      /* gris très clair */
+.c-utiles { background: #5E5C59; --carte: #5E5C59; --carte-2: #6F6D6A; --texte: #F2F2F2; --muted: #D9D6D0; color: #F2F2F2; }   /* gris foncé adouci */
+.c-utiles input::placeholder { color: #D9D6D0; opacity: .75; }
+/* sous-parties des Dates importantes en blanc, gris, orange et noir */
+.di-titre { border-left-width: 4px; }
+.di-grp { border: 1px solid rgba(0, 0, 0, .08); }
+.di-gen { --di: #1A1A1A; background: #FFFFFF; }                                     /* Générale : blanc */
+.di-racco { --di: #6F6B66; background: #EDEBE7; }                                   /* Racco D2 : gris */
+.di-ant { --di: #E8701A; background: #FDE9D8; }                                     /* Anticipation : orange */
+.di-gcblo { --di: #F5A66B; background: #2B2A28; }                                   /* GCBLO : noir */
+.di-sout, .di-aer { --di: #1A1A1A; background: #FFFFFF; }
+.di-pv { --di: #E8701A; background: #FDE9D8; }                                      /* Permission de voirie : orange */
 .c-utiles .iu-sec-titre { color: #F5A66B; border-left-color: #E8701A; }
 #docsTuile { background: #E8701A; border-color: #C45B10; color: #fff; }   /* Documents POI : orange du bandeau d'Infos du dossier */
 .btn-accent { background: #E8701A; color: #fff; }
