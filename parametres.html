@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Paramètres</title>
+<style>
+[hidden] { display: none !important; }
+/* même design que le Suivi des dossiers : fond sable, cartes blanches avec un bandeau de couleur, accent orange */
+:root {
+  --fond: #EDE4D6; --carte: #fff; --doux: #F3F1ED; --doux-2: #F1EFEB; --doux-3: #F7F5F1;
+  --texte: #1A1A1A; --muted: #777; --ligne: #EEECE8;
+  --orange: #E8701A; --orange-fonce: #C45B10; --peche: #FBE3CF; --peche-ink: #7A3E0F;
+  --rouge: #C0392B; --accent-dim: rgba(232, 112, 26, .25);
+  --font: "Segoe UI", system-ui, -apple-system, sans-serif;
+  color-scheme: light;
+}
+*, *::before, *::after { box-sizing: border-box; }
+body { margin: 0; background: var(--fond); color: var(--texte); font-family: var(--font); font-size: 14px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+button, input, select { font-family: inherit; font-size: inherit; color: inherit; }
+.page { max-width: 1100px; margin: 0 auto; padding: 32px 24px; display: flex; flex-direction: column; gap: 16px; }
+header.top { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 12px; background: #111; color: #fff; border-radius: 999px; padding: 14px 24px; }
+header.top h1 { margin: 0; font-size: 26px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; grid-column: 2; }
+.retour-suivi { color: #fff; text-decoration: none; font-weight: 700; font-size: 13px; }
+.retour-suivi:hover { text-decoration: underline; }
+.btn { border: 0; border-radius: 999px; padding: 8px 15px; font-weight: 700; font-size: 13px; cursor: pointer; background: var(--doux-2); color: var(--texte); transition: filter .12s, transform .12s; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
+.btn:hover { filter: brightness(.96); }
+.btn:active { transform: scale(.97); }
+.btn:focus-visible, .choix:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--accent-dim); }
+.btn:disabled { opacity: .45; cursor: default; }
+.btn-accent { background: var(--orange); color: #fff; }
+.btn-danger { background: var(--rouge); color: #fff; }
+.btn-mini { padding: 5px 11px; font-size: 12px; }
+
+/* cartes : bandeau de titre en couleur ; la partie admin a un bandeau foncé et un petit cadenas */
+.card { background: var(--carte); border-radius: 14px; padding: 18px 20px; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.bandeau { margin: -18px -20px 0; padding: 12px 20px; border-radius: 14px 14px 0 0; font-size: 13px; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; color: #fff; background: var(--orange); display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+[data-zone="prive"] > .bandeau { background: #3A3836; }
+.bandeau small { font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: none; opacity: .8; }
+.aide { margin: 0; color: var(--muted); font-size: 13px; }
+.rang { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.rang > .lib { min-width: 190px; font-weight: 700; }
+.sous-titre { margin: 4px 0 0; font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--orange-fonce); }
+.chemin { font-family: ui-monospace, Consolas, monospace; font-size: 12px; background: var(--doux); border-radius: 6px; padding: 4px 8px; overflow-wrap: anywhere; }
+.vide { color: var(--muted); font-style: italic; }
+select, .champ-date { border: 0; border-radius: 8px; background: var(--doux-2); padding: 6px 10px; outline: none; }
+select:focus, .champ-date:focus { box-shadow: 0 0 0 3px var(--accent-dim); }
+
+/* choix (thème, taille, densité) */
+.choix-grille { display: flex; gap: 10px; flex-wrap: wrap; }
+.choix { border: 0; border-radius: 12px; padding: 10px 14px; background: var(--doux-3); cursor: pointer; display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 13px; color: var(--texte); }
+.choix.actif { background: var(--peche); box-shadow: inset 0 0 0 2px var(--orange); }
+.pastilles { display: flex; }
+.pastilles i { width: 20px; height: 20px; border-radius: 50%; display: block; box-shadow: 0 0 0 2px #fff; }
+.pastilles i + i { margin-left: -6px; }
+input[type="color"] { width: 44px; height: 30px; border: 0; border-radius: 8px; padding: 2px; background: var(--doux-2); cursor: pointer; }
+/* interrupteur */
+.inter { position: relative; width: 40px; height: 22px; flex: none; }
+.inter input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; }
+.inter span { position: absolute; inset: 0; border-radius: 999px; background: #CFCAC2; transition: background .15s; pointer-events: none; }
+.inter span::after { content: ""; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: #fff; transition: transform .15s; }
+.inter input:checked + span { background: var(--orange); }
+.inter input:checked + span::after { transform: translateX(18px); }
+.inter input:focus-visible + span { box-shadow: 0 0 0 3px var(--accent-dim); }
+
+/* listes (colonnes, corbeille, sauvegardes, jours) */
+.liste { display: flex; flex-direction: column; gap: 6px; }
+.item { display: flex; align-items: center; gap: 10px; padding: 7px 10px; border-radius: 10px; background: var(--doux-3); flex-wrap: wrap; }
+.item .txt { flex: 1; min-width: 180px; }
+.item .txt small { display: block; color: var(--muted); font-size: 12px; }
+.item.off .txt { color: var(--muted); text-decoration: line-through; }
+.fl { border: 0; background: var(--doux-2); border-radius: 6px; width: 26px; height: 26px; cursor: pointer; font-size: 12px; }
+.fl:disabled { opacity: .3; cursor: default; }
+.ok-txt { color: #2E7D4F; font-weight: 700; font-size: 12.5px; }
+.ko-txt { color: var(--rouge); font-weight: 700; font-size: 12.5px; }
+.feu { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+.feu.rouge { background: #C0392B; } .feu.orange { background: #E8701A; } .feu.vert { background: #3E9B5F; } .feu.aucun { background: #D8D4CD; }
+
+/* bas de page : bouton Admin (ouvre la partie privée avec le code) */
+.admin { display: flex; justify-content: center; align-items: center; gap: 12px; padding: 8px 0 24px; color: var(--muted); font-size: 13px; }
+.enregistre { position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%); background: #1A1A1A; color: #fff; border-radius: 999px; padding: 8px 16px; font-weight: 700; font-size: 13px; opacity: 0; transition: opacity .2s; pointer-events: none; }
+.enregistre.vu { opacity: 1; }
+@media (max-width: 700px) { .page { padding: 16px; } header.top { border-radius: 22px; grid-template-columns: 1fr; text-align: center; } header.top h1 { grid-column: 1; font-size: 20px; } .rang > .lib { min-width: 0; width: 100%; } }
+</style>
+<script src="apparence.js"></script>
+</head>
+<body>
+<div class="page">
+  <header class="top">
+    <a class="retour-suivi" href="./">← Suivi des dossiers</a>
+    <h1>Paramètres</h1>
+  </header>
+
+  <!-- ═══ Informations ═══ -->
+  <section class="card" data-zone="public" data-section="infos">
+    <div class="bandeau">Informations</div>
+    <div class="rang"><span class="lib">Version du programme</span><b id="version"></b></div>
+    <div class="rang" id="rangDossier" hidden><span class="lib">Dossier des données</span><span class="chemin" id="dossierInfo"></span></div>
+    <div><button class="btn" id="voirNouveautes" type="button">Quoi de neuf</button></div>
+  </section>
+
+  <!-- ═══ Apparence ═══ -->
+  <section class="card" data-zone="prive" data-section="apparence">
+    <div class="bandeau">Apparence</div>
+    <div class="rang"><span class="lib">Thème</span><div class="choix-grille" id="themes"></div></div>
+    <div class="rang"><span class="lib">Couleurs une par une</span>
+      <label class="rang">Principale <input type="color" id="couleurAccent"></label>
+      <label class="rang">Fond <input type="color" id="couleurFond"></label>
+      <button class="btn btn-mini" id="couleursTheme" type="button">Revenir aux couleurs du thème</button></div>
+    <div class="rang"><span class="lib">Mode sombre</span><label class="inter"><input type="checkbox" id="sombre"><span></span></label></div>
+    <div class="rang"><span class="lib">Taille du texte</span><div class="choix-grille" id="tailles"></div></div>
+    <div class="rang"><span class="lib">Densité</span><div class="choix-grille" id="densites"></div></div>
+  </section>
+
+  <!-- ═══ Libellés ═══ -->
+  <section class="card" data-zone="prive" data-section="libelles">
+    <div class="bandeau">Libellés</div>
+    <p class="aide">Change le texte d’une tâche, d’une date importante, d’une info utile ou d’un titre. Seul le texte affiché change : les dossiers et leurs données ne bougent pas. Un même texte est changé partout où il apparaît.</p>
+    <div class="liste" id="libelles"></div>
+  </section>
+
+  <!-- ═══ Documents POI (logiciel seulement) ═══ -->
+  <section class="card" data-zone="prive" data-section="poi">
+    <div class="bandeau">Documents POI</div>
+    <p class="aide">Le bouton « Documents POI » d’un projet ouvre son dossier <b>docs GEDAFFAIRE</b> : POI › type de dossier › « adresse - COMMUNE (N° POI) » › docs GEDAFFAIRE. Le dossier du projet est retrouvé grâce à son N° POI entre parenthèses.</p>
+    <div id="poiNavigateur" class="aide" hidden>Disponible seulement dans le logiciel installé sur le PC.</div>
+    <div id="poiLogiciel">
+      <div class="rang"><span class="lib">Dossier « POI »</span><span class="chemin" id="poiBase"></span><button class="btn btn-mini btn-accent" id="poiChoisir" type="button">Choisir…</button></div>
+      <p class="sous-titre">Sous-dossier de chaque type</p>
+      <div class="liste" id="poiTypes"></div>
+    </div>
+  </section>
+
+  <!-- ═══ Données et sauvegardes ═══ -->
+  <section class="card" data-zone="prive" data-section="donnees">
+    <div class="bandeau">Données et sauvegardes</div>
+    <div id="donneesLogiciel">
+      <div class="rang"><span class="lib">Emplacement des données</span><span class="chemin" id="dossierDonnees"></span><button class="btn btn-mini btn-accent" id="changerDossier" type="button">Changer l’emplacement…</button></div>
+      <p class="aide">Tes données sont enregistrées à chaque modification dans <b>donnees.json</b>. Les copies de sécurité sont rangées dans le sous-dossier <b>Sauvegardes</b>.</p>
+      <div class="rang"><span class="lib">Copie automatique</span>
+        <select id="rythme" aria-label="Rythme des copies"><option value="jour">Chaque jour</option><option value="semaine">Chaque semaine</option></select>
+        <span>en gardant les</span>
+        <select id="garder" aria-label="Nombre de copies gardées"><option>7</option><option>15</option><option>30</option><option>60</option><option>90</option></select>
+        <span>dernières</span></div>
+      <div class="rang"><span class="lib">Copie à chaque fermeture</span><label class="inter"><input type="checkbox" id="fermeture"><span></span></label></div>
+      <div class="rang"><span class="lib">Copier ma sauvegarde</span><button class="btn btn-mini" id="copierSauvegarde" type="button">Copier vers une clé USB ou un autre dossier…</button></div>
+      <p class="sous-titre">Restaurer une sauvegarde</p>
+      <p class="aide">Toutes tes données reviennent comme elles étaient à cette date. L’état actuel est d’abord mis de côté dans une copie « avant restauration ».</p>
+      <div class="liste" id="sauvegardes"></div>
+    </div>
+    <p class="sous-titre">Exporter / Importer</p>
+    <div class="rang">
+      <button class="btn" id="exporter" type="button">Exporter tous les projets dans un fichier</button>
+      <label class="btn" for="importFichier">Importer une sauvegarde…</label>
+      <input type="file" id="importFichier" accept=".json,application/json" hidden>
+    </div>
+  </section>
+
+  <!-- ═══ Suivi des dossiers ═══ -->
+  <section class="card" data-zone="prive" data-section="suivi">
+    <div class="bandeau">Suivi des dossiers</div>
+    <p class="sous-titre">Colonnes affichées et leur ordre</p>
+    <div class="liste" id="colonnes"></div>
+    <p class="sous-titre">À l’ouverture</p>
+    <div class="rang"><span class="lib">Tri des tableaux</span><select id="triCol" aria-label="Colonne du tri"></select>
+      <select id="triSens" aria-label="Sens du tri"><option value="1">croissant ▲</option><option value="-1">décroissant ▼</option></select></div>
+    <div class="rang"><span class="lib">Feux affichés</span><div class="choix-grille" id="feux"></div></div>
+    <p class="sous-titre">Types de dossier cachés</p>
+    <p class="aide">Un type caché n’a plus d’onglet ni de bouton « + Nouveau projet ». Ses projets restent dans « Dossiers en cours ».</p>
+    <div class="liste" id="typesMasques"></div>
+  </section>
+
+  <!-- ═══ Corbeille ═══ -->
+  <section class="card" data-zone="prive" data-section="corbeille">
+    <div class="bandeau">Corbeille</div>
+    <p class="aide">Un projet supprimé reste ici 30 jours, puis disparaît pour de bon.</p>
+    <div class="liste" id="corbeille"></div>
+  </section>
+
+  <!-- ═══ Jours non travaillés ═══ -->
+  <section class="card" data-zone="prive" data-section="feries">
+    <div class="bandeau">Jours non travaillés</div>
+    <p class="aide">Les dates calculées des ComL ne tombent jamais un week-end ni un jour férié français (calculés tout seuls chaque année). Ajoute ici d’autres jours à éviter, par exemple un pont.</p>
+    <div class="rang"><input class="champ-date" id="ferieSaisie" placeholder="JJ/MM/AAAA" inputmode="numeric" maxlength="10" autocomplete="off" aria-label="Jour à ajouter">
+      <button class="btn btn-mini btn-accent" id="ferieAjouter" type="button">Ajouter</button><span class="ko-txt" id="ferieErreur"></span></div>
+    <div class="liste" id="feries"></div>
+  </section>
+
+  <!-- ═══ Code admin ═══ -->
+  <section class="card" data-zone="prive" data-section="code">
+    <div class="bandeau">Code admin</div>
+    <p class="aide">Le code protège la partie admin des Paramètres. C’est un simple verrou : il n’empêche pas quelqu’un qui a ta session Windows de lire tes fichiers.</p>
+    <div class="rang"><span class="lib" id="codeEtat"></span><button class="btn btn-mini btn-accent" id="codeChanger" type="button"></button><button class="btn btn-mini" id="codeRetirer" type="button">Retirer le code</button></div>
+  </section>
+
+  <div class="admin" id="admin"></div>
+</div>
+<div class="enregistre" id="enregistre">Enregistré</div>
+
+<script type="module">
+import { bureau, kvGet, kvEcrire, lireReglages, ecrireReglages, lireProjets, viderCorbeille, toutLire, toutRemplacer, sauvegardeValable,
+  COLONNES, JOURS_CORBEILLE, choisir, demander, VERSION, NOUVEAUTES } from "./commun.js";
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const isoVersFr = iso => { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || ""); return m ? `${m[3]}/${m[2]}/${m[1]}` : ""; };
+const frVersIso = fr => { const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(fr || ""); if (!m) return null; const d = new Date(+m[3], +m[2] - 1, +m[1]);
+  return d.getDate() === +m[1] && d.getMonth() === +m[2] - 1 ? `${m[3]}-${m[2]}-${m[1]}` : null; };
+const formaterDate = v => { const ch = v.replace(/\D/g, "").slice(0, 8); return ch.length > 4 ? `${ch.slice(0, 2)}/${ch.slice(2, 4)}/${ch.slice(4)}` : ch.length > 2 ? `${ch.slice(0, 2)}/${ch.slice(2)}` : ch; };
+const TYPES = [["racco-d2", "Racco D2", "racco-d2.html"], ["loc-par", "Localisation de PAR", "localisation-par.html"], ["crea-par", "Création du PAR", "creation-par.html"],
+  ["pim", "PIM (Petite opération immobilière)"], ["echec-prod", "Échec de prod"]];
+const nomType = id => (TYPES.find(t => t[0] === id) || [id, id])[1];
+
+let R = await lireReglages();
+let minuterie = null;
+async function enregistrer() {
+  await ecrireReglages(R);
+  $("enregistre").classList.add("vu"); clearTimeout(minuterie); minuterie = setTimeout(() => $("enregistre").classList.remove("vu"), 1200);
+}
+
+/* ═══ Partie publique / partie admin : la partie admin s'ouvre avec le code (s'il y en a un) ═══ */
+const hacher = async t => [...new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode("kultivaprix:" + t)))].map(b => b.toString(16).padStart(2, "0")).join("");
+let adminOuvert = false; try { adminOuvert = sessionStorage.getItem("kultivaprix-admin") === "1"; } catch (e) {}
+function rendreAdmin() {
+  document.querySelectorAll('[data-zone="prive"]').forEach(s => { s.hidden = !adminOuvert; });
+  $("admin").innerHTML = adminOuvert
+    ? `<span>Partie admin ouverte</span><button class="btn btn-mini" type="button" data-admin="fermer">Fermer la partie admin</button>`
+    : `<button class="btn" type="button" data-admin="ouvrir">🔒 Admin</button>`;
+}
+$("admin").addEventListener("click", async e => {
+  const a = e.target.closest("[data-admin]")?.dataset.admin; if (!a) return;
+  if (a === "fermer") { adminOuvert = false; try { sessionStorage.removeItem("kultivaprix-admin"); } catch (err) {} rendreAdmin(); window.scrollTo(0, 0); return; }
+  if (R.mdp) {
+    const c = await demander({ titre: "Partie admin", texte: "Tape le code admin.", type: "password", ok: "Ouvrir" });
+    if (c === null) return;
+    if (await hacher(c) !== R.mdp) { await choisir({ titre: "Code incorrect", boutons: [{ lib: "OK", v: 1, principal: true }] }); return; }
+  }
+  adminOuvert = true; try { sessionStorage.setItem("kultivaprix-admin", "1"); } catch (err) {}
+  rendreAdmin();
+  document.querySelector('[data-zone="prive"]')?.scrollIntoView({ behavior: "smooth", block: "start" });
+});
+
+/* ═══ Informations ═══ */
+$("version").textContent = VERSION;
+$("voirNouveautes").onclick = () => choisir({ titre: "Quoi de neuf",
+  html: NOUVEAUTES.map(n => `<div style="font-weight:700;margin-top:4px">Version ${esc(n.version)} · ${isoVersFr(n.date)}</div><ul style="margin:0;padding-left:18px;display:grid;gap:6px">${n.points.map(p => `<li>${esc(p)}</li>`).join("")}</ul>`).join(""),
+  boutons: [{ lib: "OK", v: 1, principal: true }] });
+
+/* ═══ Apparence (appliquée tout de suite, sur cette page aussi) ═══ */
+const THEMES = window.THEMES_APPARENCE;
+function rendreApparence() {
+  const t = THEMES[R.theme] || THEMES.orange;
+  $("themes").innerHTML = Object.entries(THEMES).map(([k, x]) => `<button class="choix${R.theme === k && !R.accent && !R.fond ? " actif" : ""}" type="button" data-theme="${k}">` +
+    `<span class="pastilles"><i style="background:${x.accent}"></i><i style="background:${x.fond}"></i></span>${esc(x.nom)}</button>`).join("");
+  $("couleurAccent").value = R.accent || t.accent; $("couleurFond").value = R.fond || t.fond;
+  $("couleursTheme").disabled = !R.accent && !R.fond;
+  $("sombre").checked = !!R.sombre;
+  $("tailles").innerHTML = [[0.9, "Petit"], [1, "Normal"], [1.1, "Grand"], [1.25, "Très grand"]].map(([v, l]) =>
+    `<button class="choix${(R.taille || 1) === v ? " actif" : ""}" type="button" data-taille="${v}" style="font-size:${13 * v}px">${l}</button>`).join("");
+  $("densites").innerHTML = [["aere", "Aéré"], ["compact", "Compact"]].map(([v, l]) =>
+    `<button class="choix${(R.densite || "aere") === v ? " actif" : ""}" type="button" data-densite="${v}">${l}</button>`).join("");
+}
+document.addEventListener("click", e => {
+  const th = e.target.closest("[data-theme]"); if (th) { R.theme = th.dataset.theme; R.accent = R.fond = ""; enregistrer(); rendreApparence(); return; }
+  const ta = e.target.closest("[data-taille]"); if (ta) { R.taille = +ta.dataset.taille; enregistrer(); rendreApparence(); return; }
+  const de = e.target.closest("[data-densite]"); if (de) { R.densite = de.dataset.densite; enregistrer(); rendreApparence(); }
+});
+$("couleurAccent").addEventListener("input", e => { R.accent = e.target.value; window.appliquerApparence(R); });
+$("couleurFond").addEventListener("input", e => { R.fond = e.target.value; window.appliquerApparence(R); });
+["couleurAccent", "couleurFond"].forEach(id => $(id).addEventListener("change", () => { enregistrer(); rendreApparence(); }));
+$("couleursTheme").onclick = () => { R.accent = R.fond = ""; enregistrer(); rendreApparence(); };
+$("sombre").onchange = e => { R.sombre = e.target.checked; enregistrer(); };
+
+/* ═══ Libellés : mode « renommer » dans la page du type (sur un de ses projets) ═══ */
+async function rendreLibelles() {
+  const projets = (await lireProjets()).filter(p => !p.supprime);
+  $("libelles").innerHTML = TYPES.filter(t => t[2]).map(([id, nom]) => {
+    const n = Object.keys((R.libelles || {})[id] || {}).length, p = projets.find(x => x.type === id);
+    return `<div class="item"><span class="txt"><b>${esc(nom)}</b><small>${n ? `${n} texte${n > 1 ? "s" : ""} renommé${n > 1 ? "s" : ""}` : "Textes d’origine"}${p ? "" : " · crée d’abord un projet de ce type pour pouvoir renommer"}</small></span>` +
+      `<button class="btn btn-mini btn-accent" type="button" data-renommer="${id}"${p ? "" : " disabled"}>Renommer des textes</button>` +
+      `<button class="btn btn-mini" type="button" data-origine="${id}"${n ? "" : " disabled"}>Revenir aux textes d’origine</button></div>`; }).join("");
+}
+$("libelles").addEventListener("click", async e => {
+  const r = e.target.closest("[data-renommer]");
+  if (r) { const p = (await lireProjets()).find(x => x.type === r.dataset.renommer && !x.supprime), t = TYPES.find(x => x[0] === r.dataset.renommer);
+    if (!p) return; try { sessionStorage.setItem("kultivaprix-renommer", "1"); } catch (err) {} location.href = `${t[2]}?p=${encodeURIComponent(p.id)}`; return; }
+  const o = e.target.closest("[data-origine]");
+  if (o && await choisir({ titre: "Revenir aux textes d’origine ?", texte: `Tous les textes renommés de ${nomType(o.dataset.origine)} reprennent leur texte d’origine.`, boutons: [{ lib: "Annuler", v: false }, { lib: "Revenir", v: true, principal: true }] })) {
+    delete R.libelles[o.dataset.origine]; await enregistrer(); rendreLibelles(); }
+});
+
+/* ═══ Documents POI (logiciel) ═══ */
+async function rendrePoi() {
+  $("poiNavigateur").hidden = !!bureau; $("poiLogiciel").hidden = !bureau;
+  if (!bureau) return;
+  const p = await bureau.poiEtat();
+  $("poiBase").textContent = p.base || "Pas encore choisi"; $("poiBase").classList.toggle("vide", !p.base);
+  $("poiTypes").innerHTML = !p.base ? `<div class="aide">Choisis d’abord le dossier « POI ».</div>` : TYPES.map(([id, nom]) => {
+    const t = p.types[id];
+    return `<div class="item"><span class="txt"><b>${esc(nom)}</b><small>${t ? `<span class="chemin">${esc(t)}</span>` : `<span class="ko-txt">Sous-dossier introuvable</span>`}</small></span>` +
+      `<button class="btn btn-mini" type="button" data-poitype="${id}">${t ? "Changer…" : "Choisir…"}</button></div>`; }).join("");
+}
+$("poiChoisir").onclick = async () => { if (bureau) { await bureau.poiChoisirBase(); rendrePoi(); } };
+$("poiTypes").addEventListener("click", async e => { const b = e.target.closest("[data-poitype]"); if (b) { await bureau.poiChoisirType(b.dataset.poitype); rendrePoi(); } });
+
+/* ═══ Données et sauvegardes ═══ */
+const taille = o => o > 1048576 ? `${(o / 1048576).toFixed(1).replace(".", ",")} Mo` : `${Math.max(1, Math.round(o / 1024))} Ko`;
+const SORTES = { jour: "Copie du jour", semaine: "Copie de la semaine", fermeture: "Copie à la fermeture", restauration: "Avant restauration", import: "Avant import" };
+async function rendreDonnees() {
+  $("donneesLogiciel").hidden = !bureau; $("rangDossier").hidden = !bureau;
+  if (!bureau) return;
+  const i = await bureau.infos();
+  $("dossierDonnees").textContent = $("dossierInfo").textContent = i.dossier;
+  $("rythme").value = R.sauvegardes.rythme; $("garder").value = String(R.sauvegardes.garder); $("fermeture").checked = !!R.sauvegardes.fermeture;
+  const L = await bureau.sauvegardes();
+  $("sauvegardes").innerHTML = L.length ? L.map(s => `<div class="item"><span class="txt"><b>${esc(new Date(s.date).toLocaleString("fr-FR", { dateStyle: "full", timeStyle: "short" }))}</b>` +
+    `<small>${esc(SORTES[s.sorte] || "Copie")} · ${taille(s.taille)}</small></span><button class="btn btn-mini" type="button" data-restaurer="${esc(s.nom)}">Restaurer</button></div>`).join("")
+    : `<div class="vide">Pas encore de copie : la première est faite aujourd’hui.</div>`;
+}
+const majSauvegardes = () => { R.sauvegardes = { rythme: $("rythme").value, garder: +$("garder").value, fermeture: $("fermeture").checked }; enregistrer(); };
+["rythme", "garder", "fermeture"].forEach(id => $(id).addEventListener("change", majSauvegardes));
+$("changerDossier").onclick = async () => {
+  const r = await bureau.changerDossier();
+  if (r && r.erreur) alert(r.erreur);
+  rendreDonnees();
+};
+$("copierSauvegarde").onclick = async () => {
+  const r = await bureau.copierSauvegarde();
+  if (r && r.erreur) alert(r.erreur);
+  else if (r && r.chemin) choisir({ titre: "Copie faite", texte: `Ta sauvegarde a été copiée ici :\n${r.chemin}`, boutons: [{ lib: "OK", v: 1, principal: true }] });
+};
+$("sauvegardes").addEventListener("click", async e => {
+  const b = e.target.closest("[data-restaurer]"); if (!b) return;
+  const v = await choisir({ titre: "Restaurer cette sauvegarde ?", texte: "Toutes tes données reviennent comme elles étaient à cette date. Ce que tu as fait depuis est remplacé (l’état actuel est d’abord mis de côté dans une copie « avant restauration »).",
+    boutons: [{ lib: "Annuler", v: false }, { lib: "Restaurer", v: true, principal: true }] });
+  if (!v) return;
+  const r = await bureau.restaurer(b.dataset.restaurer);
+  if (r && r.erreur) return alert(r.erreur);
+  location.reload();
+});
+$("exporter").onclick = async () => {
+  const texte = JSON.stringify(await toutLire()), nom = `suivi-dossiers-sauvegarde-${new Date().toISOString().slice(0, 10)}.json`;
+  if (bureau) { const r = await bureau.exporter(texte, nom); if (r && r.erreur) alert(r.erreur); return; }
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([texte], { type: "application/json" })); a.download = nom;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+};
+$("importFichier").addEventListener("change", async e => {
+  const f = e.target.files[0]; e.target.value = ""; if (!f) return;
+  let d; try { d = JSON.parse(await f.text()); } catch (err) { alert("Ce fichier n'est pas une sauvegarde valable."); return; }
+  if (!sauvegardeValable(d)) { alert("Ce fichier n'est pas une sauvegarde du suivi des dossiers."); return; }
+  const v = await choisir({ titre: "Importer cette sauvegarde ?", texte: `Toutes les données actuelles sont remplacées par la sauvegarde du ${new Date(d.date).toLocaleDateString("fr-FR")}.`,
+    boutons: [{ lib: "Annuler", v: false }, { lib: "Importer", v: true, principal: true }] });
+  if (!v) return;
+  await toutRemplacer(d);
+  location.href = "./";
+});
+
+/* ═══ Suivi des dossiers : colonnes, tri et feux à l'ouverture, types cachés ═══ */
+const nomCol = k => (COLONNES.find(c => c[0] === k) || [k, k])[1];
+function rendreSuivi() {
+  const C = R.colonnes;
+  $("colonnes").innerHTML = C.map((c, i) => `<div class="item${c.vue ? "" : " off"}"><label class="inter"><input type="checkbox" data-colvue="${i}"${c.vue ? " checked" : ""} aria-label="Afficher ${esc(nomCol(c.k))}"><span></span></label>` +
+    `<span class="txt">${esc(nomCol(c.k))}</span><button class="fl" type="button" data-colmonte="${i}"${i ? "" : " disabled"} aria-label="Monter">▲</button><button class="fl" type="button" data-coldescend="${i}"${i < C.length - 1 ? "" : " disabled"} aria-label="Descendre">▼</button></div>`).join("");
+  $("triCol").innerHTML = C.filter(c => c.vue).map(c => `<option value="${c.k}"${R.tri.k === c.k ? " selected" : ""}>${esc(nomCol(c.k))}</option>`).join("");
+  $("triSens").value = String(R.tri.sens);
+  $("feux").innerHTML = [["rouge", "Urgent"], ["orange", "Pas urgent"], ["vert", "En attente"], ["aucun", "Sans feu"]].map(([k, l]) =>
+    `<button class="choix${R.feux[k] ? " actif" : ""}" type="button" data-feu="${k}" aria-pressed="${R.feux[k]}"><span class="feu ${k}"></span>${l}</button>`).join("");
+  $("typesMasques").innerHTML = TYPES.map(([id, nom]) => { const cache = R.typesMasques.includes(id);
+    return `<div class="item${cache ? " off" : ""}"><label class="inter"><input type="checkbox" data-typevu="${id}"${cache ? "" : " checked"} aria-label="Afficher ${esc(nom)}"><span></span></label><span class="txt">${esc(nom)}<small>${cache ? "Caché" : "Affiché"}</small></span></div>`; }).join("");
+}
+$("colonnes").addEventListener("change", e => { const i = e.target.dataset.colvue; if (i === undefined) return;
+  R.colonnes[+i].vue = e.target.checked;
+  if (!R.colonnes.some(c => c.vue)) { R.colonnes[+i].vue = true; alert("Il faut garder au moins une colonne."); }
+  if (!R.colonnes.find(c => c.k === R.tri.k)?.vue) R.tri = { k: R.colonnes.find(c => c.vue).k, sens: 1 };
+  enregistrer(); rendreSuivi(); });
+$("colonnes").addEventListener("click", e => {
+  const m = e.target.closest("[data-colmonte],[data-coldescend]"); if (!m) return;
+  const i = +(m.dataset.colmonte ?? m.dataset.coldescend), j = m.dataset.colmonte !== undefined ? i - 1 : i + 1;
+  [R.colonnes[i], R.colonnes[j]] = [R.colonnes[j], R.colonnes[i]]; enregistrer(); rendreSuivi();
+});
+$("triCol").onchange = e => { R.tri.k = e.target.value; enregistrer(); };
+$("triSens").onchange = e => { R.tri.sens = +e.target.value; enregistrer(); };
+$("feux").addEventListener("click", e => { const b = e.target.closest("[data-feu]"); if (!b) return; R.feux[b.dataset.feu] = !R.feux[b.dataset.feu];
+  try { sessionStorage.removeItem("kultivaprix-suivi-feux"); } catch (err) {} enregistrer(); rendreSuivi(); });
+$("typesMasques").addEventListener("change", e => { const id = e.target.dataset.typevu; if (!id) return;
+  R.typesMasques = e.target.checked ? R.typesMasques.filter(x => x !== id) : [...R.typesMasques, id]; enregistrer(); rendreSuivi(); });
+
+/* ═══ Corbeille ═══ */
+async function rendreCorbeille() {
+  await viderCorbeille();
+  const L = (await lireProjets()).filter(p => p.supprime).sort((a, b) => b.supprime - a.supprime);
+  const res = {}; for (const p of L) { try { res[p.id] = JSON.parse((await kvGet(`p:${p.id}:resume`)) || "null") || {}; } catch (e) { res[p.id] = {}; } }
+  $("corbeille").innerHTML = L.length ? L.map(p => {
+    const r = res[p.id], nums = (r.pois || []).map(x => x.num).filter(Boolean).join(" - "), reste = Math.max(0, JOURS_CORBEILLE - Math.floor((Date.now() - p.supprime) / 864e5));
+    return `<div class="item"><span class="txt"><b>${esc(nomType(p.type))}</b> · ${esc(r.adresse || "Adresse non renseignée")}${nums ? ` (${esc(nums)})` : ""}` +
+      `<small>Supprimé le ${new Date(p.supprime).toLocaleDateString("fr-FR")} · effacé dans ${reste} jour${reste > 1 ? "s" : ""}</small></span>` +
+      `<button class="btn btn-mini btn-accent" type="button" data-recuperer="${p.id}">Récupérer</button><button class="btn btn-mini btn-danger" type="button" data-effacer="${p.id}">Effacer maintenant</button></div>`; }).join("")
+    : `<div class="vide">La corbeille est vide.</div>`;
+}
+$("corbeille").addEventListener("click", async e => {
+  const r = e.target.closest("[data-recuperer]"), x = e.target.closest("[data-effacer]"); if (!r && !x) return;
+  const L = await lireProjets(), p = L.find(q => q.id === (r || x).dataset[r ? "recuperer" : "effacer"]); if (!p) return;
+  if (r) { delete p.supprime; await kvEcrire("projets", L); }
+  else {
+    if (!await choisir({ titre: "Effacer ce projet pour de bon ?", texte: "Il ne pourra plus être récupéré.", boutons: [{ lib: "Annuler", v: false }, { lib: "Effacer", v: true, principal: true }] })) return;
+    p.supprime = 1; await kvEcrire("projets", L); await viderCorbeille();
+  }
+  rendreCorbeille();
+});
+
+/* ═══ Jours non travaillés ═══ */
+function rendreFeries() {
+  const L = [...(R.feries || [])].sort();
+  $("feries").innerHTML = L.length ? L.map(d => `<div class="item"><span class="txt">${esc(new Date(d + "T12:00").toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" }))}</span>` +
+    `<button class="btn btn-mini" type="button" data-ferie="${d}">Retirer</button></div>`).join("") : `<div class="vide">Aucun jour ajouté.</div>`;
+}
+$("ferieSaisie").addEventListener("input", e => { e.target.value = formaterDate(e.target.value); $("ferieErreur").textContent = ""; });
+const ajouterFerie = () => { const iso = frVersIso($("ferieSaisie").value);
+  if (!iso) { $("ferieErreur").textContent = "Date au format JJ/MM/AAAA"; return; }
+  R.feries = [...new Set([...(R.feries || []), iso])]; $("ferieSaisie").value = ""; enregistrer(); rendreFeries(); };
+$("ferieAjouter").onclick = ajouterFerie;
+$("ferieSaisie").addEventListener("keydown", e => { if (e.key === "Enter") ajouterFerie(); });
+$("feries").addEventListener("click", e => { const b = e.target.closest("[data-ferie]"); if (!b) return; R.feries = R.feries.filter(d => d !== b.dataset.ferie); enregistrer(); rendreFeries(); });
+
+/* ═══ Code admin ═══ */
+function rendreCode() {
+  $("codeEtat").textContent = R.mdp ? "Un code est en place" : "Pas de code : la partie admin s’ouvre sans code";
+  $("codeChanger").textContent = R.mdp ? "Changer le code" : "Mettre un code";
+  $("codeRetirer").hidden = !R.mdp;
+}
+$("codeChanger").onclick = async () => {
+  const a = await demander({ titre: R.mdp ? "Nouveau code admin" : "Code admin", texte: "Au moins 4 caractères.", type: "password" }); if (a === null) return;
+  if (a.length < 4) return choisir({ titre: "Code trop court", texte: "Le code doit avoir au moins 4 caractères.", boutons: [{ lib: "OK", v: 1, principal: true }] });
+  const b = await demander({ titre: "Confirme le code", texte: "Tape le même code une deuxième fois.", type: "password" }); if (b === null) return;
+  if (a !== b) return choisir({ titre: "Les deux codes sont différents", texte: "Le code n’a pas été changé.", boutons: [{ lib: "OK", v: 1, principal: true }] });
+  R.mdp = await hacher(a); await enregistrer(); rendreCode();
+};
+$("codeRetirer").onclick = async () => {
+  if (!await choisir({ titre: "Retirer le code ?", texte: "La partie admin s’ouvrira sans code.", boutons: [{ lib: "Annuler", v: false }, { lib: "Retirer", v: true, principal: true }] })) return;
+  R.mdp = ""; await enregistrer(); rendreCode();
+};
+
+rendreAdmin(); rendreApparence(); rendreLibelles(); rendrePoi(); rendreDonnees(); rendreSuivi(); rendreCorbeille(); rendreFeries(); rendreCode();
+</script>
+</body>
+</html>

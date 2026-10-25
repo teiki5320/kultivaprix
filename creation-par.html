@@ -514,7 +514,13 @@ header.top .urgence { justify-self: end; grid-column: 3; }
 .gt { background: #F7F5F1; box-shadow: none; }
 .gt.actif { box-shadow: none; }                         /* pas d'encadrement : ni la grande tâche en cours… */
 .gt.fini { background: #E4F1E6; box-shadow: none; }      /* … ni celles terminées (elles gardent leur fond vert) */
+
+/* supprimer le projet : petite corbeille dans la barre du haut */
+.suppr-projet { width: 30px; height: 30px; border-radius: 50%; border: 0; padding: 0; cursor: pointer; display: grid; place-items: center; background: rgba(255, 255, 255, .08); color: #fff; opacity: .55; transition: opacity .15s, background .15s; }
+.suppr-projet svg { fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+.suppr-projet:hover { opacity: 1; background: #C0392B; }
 </style>
+<script src="apparence.js"></script>
 </head>
 <body>
 <div class="page">
@@ -527,6 +533,7 @@ header.top .urgence { justify-self: end; grid-column: 3; }
         <button type="button" class="o" data-urg="orange" title="Pas urgent, je peux avancer" aria-label="Pas urgent, je peux avancer"></button>
         <button type="button" class="v" data-urg="vert" title="En attente de documents" aria-label="En attente de documents"></button>
       </div>
+      <button class="suppr-projet" id="supprProjet" type="button" title="Supprimer ce projet" aria-label="Supprimer ce projet"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg></button>
     </div>
   </header>
 
@@ -642,17 +649,16 @@ header.top .urgence { justify-self: end; grid-column: 3; }
 /* ═══ Mémoire : chaque projet a la sienne (creation-par.html?p=…), rangée dans IndexedDB (base « kultivaprix ») ;
    les liens Modop des tâches et la mise en page (tâches repliées) sont communs à tous les projets ═══ */
 const PARAMS = new URLSearchParams(location.search), PROJET = PARAMS.get("p");
-const base = await new Promise((ok, ko) => { const r = indexedDB.open("kultivaprix", 1); r.onupgradeneeded = () => r.result.createObjectStore("kv"); r.onsuccess = () => ok(r.result); r.onerror = () => ko(r.error); });
-const kvGet = k => new Promise((ok, ko) => { const r = base.transaction("kv").objectStore("kv").get(k); r.onsuccess = () => ok(r.result); r.onerror = () => ko(r.error); });
-const kvPrefixe = pfx => new Promise((ok, ko) => { const m = new Map(), r = base.transaction("kv").objectStore("kv").openCursor(IDBKeyRange.bound(pfx, pfx + "\uffff"));
-  r.onsuccess = () => { const c = r.result; if (c) { m.set(c.key.slice(pfx.length), c.value); c.continue(); } else ok(m); }; r.onerror = () => ko(r.error); });
+import { kvGet, kvPrefixe, kvEcrire, photo, lireReglages, lireProjets, ouvrirLien, lienValide, AIDE_LIEN, feriesEnPlus,
+  appliquerLibellesTaches, suivreLibelles, modeRenommer, documentsPoi, choisir, bureau } from "./commun.js";
+const TYPE_DOSSIER = "crea-par";
 // écritures en cours : on les attend avant de quitter la page (retour au suivi)
 const enCoursEcriture = new Set();
-const kvPut = (k, v) => { const pr = new Promise(ok => { const t = base.transaction("kv", "readwrite"); if (v === undefined) t.objectStore("kv").delete(k); else t.objectStore("kv").put(v, k); t.oncomplete = ok; t.onerror = ok; t.onabort = ok; });
+const kvPut = (k, v) => { const pr = kvEcrire(k, v).catch(() => {});
   enCoursEcriture.add(pr); pr.then(() => enCoursEcriture.delete(pr)); return pr; };
 const quitterVers = async url => { await Promise.all([...enCoursEcriture]); location.href = url; };
-const projets = (await kvGet("projets")) || [];
-if (!PROJET || !projets.some(x => x.id === PROJET)) { location.replace("./"); await new Promise(() => {}); }   // pas de projet : retour au suivi
+const projets = await lireProjets(), REGLAGES = await lireReglages(), FERIES_EN_PLUS = feriesEnPlus(REGLAGES);
+if (!PROJET || !projets.some(x => x.id === PROJET && !x.supprime)) { location.replace("./"); await new Promise(() => {}); }   // pas de projet : retour au suivi
 const PFX = `p:${PROJET}:`, cacheProjet = await kvPrefixe(PFX), commun = await kvPrefixe("commun:");
 const magasin = {
   getItem: k => cacheProjet.has(k) ? cacheProjet.get(k) : null,
@@ -729,6 +735,7 @@ const sauver = () => {
 /* index parent / nœuds */
 const NOEUDS = {}, PARENT = {};
 (function idx(list, p) { list.forEach(n => { NOEUDS[n.id] = n; PARENT[n.id] = p; if (n.kids) idx(n.kids, n); }); })(TACHES, null);
+appliquerLibellesTaches(REGLAGES, TYPE_DOSSIER, NOEUDS);   // textes renommés dans ⚙ Paramètres
 const desc = n => (n.kids || []).flatMap(k => [k, ...desc(k)]);
 const anc = n => { const a = []; let p = PARENT[n.id]; while (p) { a.push(p); p = PARENT[p.id]; } return a; };
 
@@ -1113,7 +1120,7 @@ function ouvrirLienPop(id, ancre, titre) {
   lienPop.className = "lien-pop";
   lienPop.innerHTML = `<div class="bulle-titre">${esc(titre)}</div>
     <input type="url" id="lienSaisie" placeholder="Colle le lien OneDrive (clic droit › Copier le lien)" value="${esc(actuel)}">
-    <div class="ko" id="lienErreur" hidden>Le lien doit commencer par https://</div>
+    <div class="ko" id="lienErreur" hidden>${esc(AIDE_LIEN)}</div>
     <div class="actions">${actuel ? '<button class="btn btn-mini" type="button" data-pop="retirer">Retirer le lien</button>' : ""}
       <button class="btn btn-mini" type="button" data-pop="annuler">Annuler</button>
       <button class="btn btn-mini btn-accent" type="button" data-pop="ok">Enregistrer</button></div>`;
@@ -1125,7 +1132,7 @@ function ouvrirLienPop(id, ancre, titre) {
   saisie.focus(); saisie.select();
   const enregistrer = () => {
     const v = saisie.value.trim();
-    if (!/^https?:\/\//i.test(v)) { lienPop.querySelector("#lienErreur").hidden = false; return; }
+    if (!lienValide(v)) { lienPop.querySelector("#lienErreur").hidden = false; return; }
     etat.liens[id] = v; sauver(); fermerLienPop(); rendu(); majDocs();
   };
   saisie.addEventListener("keydown", e => { if (e.key === "Enter") enregistrer(); });
@@ -1142,7 +1149,7 @@ $("arbre").addEventListener("click", e => {
   const b = e.target.closest("[data-lien]"); if (!b) return;
   if (COML.includes(b.dataset.lien)) { ouvrirComl(b.dataset.lien); return; }
   const l = etat.liens[b.dataset.lien];
-  if (l) window.open(l, "_blank", "noopener"); else ouvrirLienPop(b.dataset.lien, b);
+  if (l) ouvrirLien(l); else ouvrirLienPop(b.dataset.lien, b);
 });
 document.addEventListener("pointerdown", e => { if (lienPop && !lienPop.contains(e.target) && !e.target.closest("[data-lien],[data-lienedit],#docsTuile,#docsEdit,#notesTuile,#notesEdit")) fermerLienPop(); });
 document.addEventListener("keydown", e => { if (e.key === "Escape" && lienPop) fermerLienPop(); });
@@ -1256,10 +1263,10 @@ rendreImbs();
 
 /* ═══ Import de l'export Excel des IMB (une ligne par IMB, un seul regroupement par fichier) ═══
    colonnes : A Dossier (IMB), D Code Regroupement Syndic, W..AD adresse, AU / AV / AW logements (total, R = particuliers, P = pro) */
-const SHEETJS = "https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js";
+const SHEETJS = "vendor/xlsx.full.min.js";
 function chargerSheetJS() {
   if (window.XLSX) return Promise.resolve();
-  return new Promise((ok, ko) => { const sc = document.createElement("script"); sc.src = SHEETJS; sc.onload = ok; sc.onerror = () => ko(new Error("lecteur Excel introuvable (connexion internet ?)")); document.head.appendChild(sc); });
+  return new Promise((ok, ko) => { const sc = document.createElement("script"); sc.src = SHEETJS; sc.onload = ok; sc.onerror = () => ko(new Error("lecteur Excel introuvable")); document.head.appendChild(sc); });
 }
 const COL = { imb: 0, regroup: 3, num: 22, cplt: 23, voie: 24, adresse: 25, bat: 26, esc: 27, cp: 28, loc: 29, el: 46, elR: 47, elP: 48 };
 const txt = v => (v == null ? "" : String(v)).trim();
@@ -1506,16 +1513,18 @@ $("datesImp").addEventListener("change", e => {
 function majDocs() {
   if (typeof majComlLien === "function") majComlLien();
   const l = etat.liens.docsPOI;
-  $("docsEtat").textContent = l ? "Ouvrir le dossier OneDrive" : "Ajouter le lien OneDrive";
-  $("docsEdit").hidden = !l;
+  $("docsEtat").textContent = l ? "Ouvrir le dossier OneDrive" : bureau ? "Ouvrir docs GEDAFFAIRE" : "Ajouter le lien OneDrive";
+  $("docsEdit").hidden = !l && !bureau;
   const n = etat.liens.notes;
   $("notesEtat").textContent = n ? "Notes OneDrive" : "+ Lien OneDrive";
   $("notesEdit").hidden = !n;
 }
 // Notes : même fonctionnement que Documents POI, vers le fichier de notes sur OneDrive
-$("notesTuile").onclick = () => { const l = etat.liens.notes; if (l) window.open(l, "_blank", "noopener"); else ouvrirLienPop("notes", $("notesTuile"), "Lien OneDrive · Notes"); };
+$("notesTuile").onclick = () => { const l = etat.liens.notes; if (l) ouvrirLien(l); else ouvrirLienPop("notes", $("notesTuile"), "Lien OneDrive · Notes"); };
 $("notesEdit").onclick = () => ouvrirLienPop("notes", $("notesEdit"), "Lien OneDrive · Notes");
-$("docsTuile").onclick = () => { const l = etat.liens.docsPOI; if (l) window.open(l, "_blank", "noopener"); else ouvrirLienPop("docsPOI", $("docsTuile"), "Lien du dossier OneDrive · Documents POI"); };
+$("docsTuile").onclick = () => { const l = etat.liens.docsPOI; if (l) ouvrirLien(l);
+  else if (bureau) documentsPoi(TYPE_DOSSIER, [etat.fiche.num], etat.fiche.adr);   // retrouvé par le N° POI dans OneDrive\POI
+  else ouvrirLienPop("docsPOI", $("docsTuile"), "Lien du dossier OneDrive · Documents POI"); };
 $("docsEdit").onclick = () => ouvrirLienPop("docsPOI", $("docsEdit"), "Lien du dossier OneDrive · Documents POI");
 // Suivi des dossiers : retour au tableau de tous les projets
 document.querySelector(".retour-suivi").addEventListener("click", e => { e.preventDefault(); clearTimeout(minuterieResume); ecrireResume(); quitterVers("./"); });
@@ -1891,7 +1900,7 @@ function feries(an) {
 const horsFerie = iso => {
   if (!iso) return "";
   for (let n = 0; n < 10; n++) { const [a, m, j] = iso.split("-").map(Number), w = new Date(a, m - 1, j).getDay();
-    if (w !== 0 && w !== 6 && !feries(a).has(iso)) return iso; iso = ajJours(iso, 1); }
+    if (w !== 0 && w !== 6 && !feries(a).has(iso) && !FERIES_EN_PLUS.has(iso)) return iso; iso = ajJours(iso, 1); }
   return iso;
 };
 const plusTard = (a, b) => !a ? b || "" : !b ? a : a > b ? a : b;
@@ -1899,20 +1908,7 @@ const plusTot = (a, b) => !a ? b || "" : !b ? a : a < b ? a : b;
 const datesComl = () => ({ ...(etat.fiche.di || {}), dlpi: etat.fiche.dlpi || "", t: etat.dates });
 if (!etat.coml || typeof etat.coml !== "object") etat.coml = {};   // ce qui est tapé ou remplacé à la main, par dossier
 // les captures : base IndexedDB à part (elles sont grosses et ne dépendent pas du dossier)
-let comlBase = null;
-const comlDb = () => comlBase || (comlBase = new Promise((ok, ko) => {
-  const r = indexedDB.open("crea-par-coml", 1);
-  r.onupgradeneeded = () => r.result.createObjectStore("photos");
-  r.onsuccess = () => ok(r.result); r.onerror = () => ko(r.error);
-}));
-const comlPhoto = async (id, val) => {
-  const db = await comlDb();
-  return new Promise((ok, ko) => {
-    const t = db.transaction("photos", val === undefined ? "readonly" : "readwrite"), st = t.objectStore("photos");
-    const r = val === undefined ? st.get(id) : val === null ? st.delete(id) : st.put(val, id);
-    r.onsuccess = () => ok(r.result); r.onerror = () => ko(r.error);
-  });
-};
+const comlPhoto = (id, val) => photo("crea-par-coml", id, val);
 // ComL cochée : sa DRE et sa DLR (calculées, ou changées à la main dans la fenêtre) passent dans les Dates importantes
 // (pas la tâche 1 : la DRE/DLR de départ se met à la main ; ni les ComL « On ne change pas la DRE/DLR »)
 const COML_DRE_DLR = [];
@@ -2000,7 +1996,7 @@ document.addEventListener("click", e => {
   if (e.target.id === "comlFond") { fermerComl(); return; }
   const a = e.target.closest("[data-coml]")?.dataset.coml;
   if (a === "fermer") return fermerComl();
-  if (a === "modop") return window.open(etat.liens[comlOuvert], "_blank", "noopener");
+  if (a === "modop") return ouvrirLien(etat.liens[comlOuvert]);
   if (a === "lien") return ouvrirLienPop(comlOuvert, e.target.closest("[data-coml]"));
   if (a === "choisir" || (!a && e.target.closest(".coml-photo.vide"))) return $("comlFichier").click();
   if (a === "retirer") { if (confirm("Retirer cette capture ? Elle disparaîtra pour tous les dossiers.")) comlPhoto(comlOuvert, null).then(rendreComlPhoto); return; }
@@ -2062,6 +2058,16 @@ if (PARAMS.get("retour") === "1") { await ecrireResume(); location.replace("./")
 else ecrireResume();
 // en quittant la page (retour au suivi…), le résumé est écrit tout de suite
 addEventListener("pagehide", () => { clearTimeout(minuterieResume); ecrireResume(); });
+$("supprProjet").onclick = async () => {
+  const v = await choisir({ titre: "Supprimer ce projet ?", texte: "Il part dans la corbeille (⚙ Paramètres) pendant 30 jours : tu peux le récupérer pendant ce temps. Ensuite, il disparaît pour de bon.",
+    boutons: [{ lib: "Annuler", v: false }, { lib: "Supprimer", v: true, principal: true }] });
+  if (v !== true) return;
+  const L = await lireProjets(), p = L.find(x => x.id === PROJET); if (p) p.supprime = Date.now();
+  await kvPut("projets", L); quitterVers("./");
+};
+// textes renommés (et mode « renommer » lancé depuis les Paramètres)
+suivreLibelles(REGLAGES, TYPE_DOSSIER);
+modeRenommer(REGLAGES, TYPE_DOSSIER, NOEUDS, () => rendu());
 // pour les vérifications dans la console
 Object.assign(window, { basculer, NOEUDS, rendu, valComl, COML_CHAMPS, fermerComl, rafraichirDatesImp, reporterDate, statutsPoi, ecrireResume, estBarre, sauver });
 Object.defineProperty(window, "etat", { get: () => etat, set: v => { etat = v; }, configurable: true });

@@ -122,7 +122,30 @@ tbody tr:last-child td { border-bottom: 0; }
 .stat.annul { background: #E3DFD8; }
 .stat.total { background: #3A3836; color: #fff; } .stat.total b { color: #F5A66B; }
 @media (max-width: 700px) { .page { padding: 16px; } header.top { border-radius: 22px; } }
+
+/* rappels : DRE / DLR à moins de 5 jours ou dépassées (pastille dans le tableau + bandeau en haut) */
+.rap { display: inline-block; margin-left: 6px; padding: 1px 7px; border-radius: 999px; font-size: 10.5px; font-weight: 700; vertical-align: middle; white-space: nowrap; }
+.rap-o { background: #FDE3CC; color: #9A4A0C; box-shadow: inset 0 0 0 1px #F5B27A; }
+.rap-r { background: #C0392B; color: #fff; }
+tr.alerte td:first-child { box-shadow: inset 4px 0 0 var(--orange); }
+tr.alerte-r td:first-child { box-shadow: inset 4px 0 0 var(--rouge); }
+.rappels { background: var(--carte); border: 3px solid var(--orange); border-radius: 14px; padding: 12px 18px; display: flex; flex-direction: column; gap: 8px; }
+.rappels-tete { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.rappels-tete b { font-size: 15px; display: flex; align-items: center; gap: 8px; }
+.rappels-tete svg { width: 20px; height: 20px; fill: none; stroke: var(--orange); stroke-width: 2.2; flex: none; }
+.rappels-liste { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; gap: 6px 16px; align-items: center; font-size: 13px; }
+.rappels-liste .typ { font-weight: 700; white-space: nowrap; }
+.rappels-liste .ech { font-weight: 700; white-space: nowrap; color: var(--orange-fonce); }
+.rappels-liste .ech.r { color: var(--rouge); }
+@media (max-width: 700px) { .rappels-liste { grid-template-columns: minmax(0, 1fr) auto; } .rappels-liste .typ { grid-column: 1 / -1; } }
+a.btn { text-decoration: none; display: inline-block; }
+/* bas de page : version du programme */
+.pied { text-align: center; font-size: 12px; color: var(--muted); display: flex; justify-content: center; align-items: center; gap: 10px; }
+.lien-btn { border: 0; background: none; padding: 0; font: inherit; font-weight: 700; color: var(--orange-fonce); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+.nouveautes { margin: 0; padding-left: 18px; display: grid; gap: 6px; max-height: 50vh; overflow: auto; }
+.nouveautes-v { font-weight: 700; margin-top: 4px; }
 </style>
+<script src="apparence.js"></script>
 </head>
 <body>
 <div class="page">
@@ -131,11 +154,15 @@ tbody tr:last-child td { border-bottom: 0; }
     <div class="actions">
       <button class="btn btn-accent" id="nouveau" type="button" aria-haspopup="true" aria-expanded="false">+ Nouveau projet</button>
       <div class="menu" id="menuTypes" hidden role="menu"></div>
-      <button class="btn" id="exporter" type="button" title="Enregistrer tous les projets dans un fichier">Exporter</button>
-      <label class="btn" for="importFichier" title="Remplacer les données par une sauvegarde">Importer</label>
-      <input type="file" id="importFichier" accept=".json,application/json" hidden>
+      <a class="btn" id="parametres" href="parametres.html" title="Couleurs, sauvegardes, Documents POI, corbeille…">⚙ Paramètres</a>
     </div>
   </header>
+
+  <div class="rappels" id="rappels" hidden>
+    <div class="rappels-tete"><b><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg><span id="rappelsTitre"></span></b>
+      <button class="btn btn-mini" id="rappelsMasquer" type="button">Masquer pour aujourd’hui</button></div>
+    <div class="rappels-liste" id="rappelsListe"></div>
+  </div>
 
   <div class="card">
     <div class="bandeau b-rech">Recherche</div>
@@ -171,18 +198,16 @@ tbody tr:last-child td { border-bottom: 0; }
       <button class="btn btn-mini" id="voirArchives" type="button">Voir les archivés / annulés</button></div>
     <div class="stats" id="stats"></div>
   </div>
+  <div class="pied"><span id="version"></span><button class="lien-btn" id="voirNouveautes" type="button">Quoi de neuf</button></div>
 </div>
 
 <div class="bulle-note" id="bulleNote" hidden></div>
 <script type="module">
 /* ═══ Mémoire commune à toutes les pages (IndexedDB « kultivaprix ») ═══
    projets : [{ id, type, cree }] ; p:<id>:resume : résumé écrit par la page du type de dossier ; commun:* : liens Modop et mise en page */
+import { kvGet, kvEcrire as kvPut, lireReglages, viderCorbeille, choisir, VERSION, NOUVEAUTES } from "./commun.js";
 const $ = id => document.getElementById(id);
-const base = await new Promise((ok, ko) => { const r = indexedDB.open("kultivaprix", 1); r.onupgradeneeded = () => r.result.createObjectStore("kv"); r.onsuccess = () => ok(r.result); r.onerror = () => ko(r.error); });
-const kvGet = k => new Promise((ok, ko) => { const r = base.transaction("kv").objectStore("kv").get(k); r.onsuccess = () => ok(r.result); r.onerror = () => ko(r.error); });
-const kvPut = (k, v) => new Promise((ok, ko) => { const t = base.transaction("kv", "readwrite"); if (v === undefined) t.objectStore("kv").delete(k); else t.objectStore("kv").put(v, k); t.oncomplete = ok; t.onerror = () => ko(t.error); });
-const kvTout = () => new Promise((ok, ko) => { const o = {}, r = base.transaction("kv").objectStore("kv").openCursor();
-  r.onsuccess = () => { const c = r.result; if (c) { o[c.key] = c.value; c.continue(); } else ok(o); }; r.onerror = () => ko(r.error); });
+const REGLAGES = await lireReglages();
 
 // les 5 types de dossier (ceux qui ont une page sont actifs dans « + Nouveau projet »)
 const TYPES = [
@@ -192,6 +217,8 @@ const TYPES = [
   { id: "pim", nom: "PIM (Petite opération immobilière)" },
   { id: "echec-prod", nom: "Échec de prod" }];
 const typeDe = id => TYPES.find(t => t.id === id) || { id, nom: id };
+// types cachés dans les Paramètres : ni onglet ni « + Nouveau projet »
+const TYPES_VUS = TYPES.filter(t => !REGLAGES.typesMasques.includes(t.id));
 
 /* reprise des anciennes données (un seul dossier Racco D2, avant le suivi) : elles deviennent le projet n°1 */
 async function reprendreAnciennes() {
@@ -219,7 +246,8 @@ if ((await kvGet("projets")) === undefined && await reprendreAnciennes()) {
 /* ═══ Données affichées ═══ */
 let projets = [], resumes = {};
 async function charger() {
-  projets = (await kvGet("projets")) || [];
+  await viderCorbeille();   // projets supprimés depuis plus de 30 jours : effacés pour de bon
+  projets = ((await kvGet("projets")) || []).filter(p => !p.supprime);
   resumes = {};
   for (const p of projets) { try { resumes[p.id] = JSON.parse((await kvGet(`p:${p.id}:resume`)) || "null"); } catch (e) { resumes[p.id] = null; } }
 }
@@ -240,32 +268,48 @@ function ligneProjet(p) {
 }
 const enCours = x => !x.statut || x.statut === "en cours";
 
-/* ═══ Tableau : tri par feu au départ, puis par n'importe quelle colonne (un 2e clic inverse) ═══ */
-const COLS = [
-  { k: "feu", lib: "Feu", val: L => ORDRE_FEU[L.r.urgence] ?? 9 },
-  { k: "type", lib: "Type", val: L => norm(L.pois.map(x => x.type).join(" ")) },
-  { k: "poi", lib: "N° POI", val: L => norm(L.pois[0]?.num) },
-  { k: "cab", lib: "Cabinet conseil", val: L => norm(L.r.cabinet) },
-  { k: "adr", lib: "Adresse", val: L => norm(L.r.adresse) },
-  { k: "el", lib: "Nb EL", val: L => L.r.el === "" || L.r.el == null ? "" : +L.r.el },
-  { k: "dlpi", lib: "DLPI", val: L => L.r.dlpi || "" },
-  { k: "dre", lib: "DRE", val: L => L.r.dre || "" },
-  { k: "dlr", lib: "DLR", val: L => L.r.dlr || "" },
-  { k: "note", lib: "Note", val: L => norm(L.r.note) }];
+/* ═══ Rappels : DRE / DLR à moins de 5 jours, ou dépassées, des projets en cours ═══ */
+const RAPPEL_JOURS = 5;
+const isoJour = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+const AUJOURDHUI = isoJour(new Date());
+const ecart = iso => { const [a, m, j] = iso.split("-").map(Number), [A, M, J] = AUJOURDHUI.split("-").map(Number); return Math.round((new Date(a, m - 1, j) - new Date(A, M - 1, J)) / 864e5); };
+const rappel = (x, iso) => iso && enCours(x.principale) && ecart(iso) <= RAPPEL_JOURS ? ecart(iso) : null;
+const texteRappel = n => n < 0 ? `dépassée de ${-n} j` : n === 0 ? "aujourd’hui" : `dans ${n} j`;
+const pastille = n => n == null ? "" : `<span class="rap ${n <= 0 ? "rap-r" : "rap-o"}">${texteRappel(n)}</span>`;
+
+/* ═══ Tableau : tri par feu au départ, puis par n'importe quelle colonne (un 2e clic inverse) ═══
+   colonnes affichées et leur ordre : ⚙ Paramètres */
+const statutHtml = (po, vue) => enCours(po) ? "" : ` <span class="statut">${esc(po.statut)}${po.date && vue !== "cours" ? " le " + isoVersFr(po.date) : ""}</span>`;
+const TOUTES_COLS = [
+  { k: "feu", lib: "Feu", val: L => ORDRE_FEU[L.r.urgence] ?? 9,
+    td: x => `<td><span class="feu ${x.r.urgence || "aucun"}" title="${esc(x.r.urgence ? { rouge: "Urgent", orange: "Pas urgent, je peux avancer", vert: "En attente de documents" }[x.r.urgence] : "Pas de feu")}"></span></td>` },
+  { k: "type", lib: "Type", val: L => norm(L.pois.map(x => x.type).join(" ")), td: x => `<td class="type-dossier">${x.pois.map(po => `<span class="sous">${esc(po.type)}</span>`).join("")}</td>` },
+  { k: "poi", lib: "N° POI", val: L => norm(L.pois[0]?.num), td: (x, vue) => `<td>${x.pois.map(po => `<span class="sous num">${esc(po.num || "—")}${statutHtml(po, vue)}</span>`).join("")}</td>` },
+  { k: "cab", lib: "Cabinet conseil", val: L => norm(L.r.cabinet), td: x => `<td>${esc(x.r.cabinet)}</td>` },
+  { k: "adr", lib: "Adresse", val: L => norm(L.r.adresse), td: x => `<td>${esc(x.r.adresse)}</td>` },
+  { k: "el", lib: "Nb EL", val: L => L.r.el === "" || L.r.el == null ? "" : +L.r.el, td: x => `<td class="num">${esc(x.r.el)}</td>` },
+  { k: "dlpi", lib: "DLPI", val: L => L.r.dlpi || "", td: x => `<td class="num">${isoVersFr(x.r.dlpi)}</td>` },
+  { k: "dre", lib: "DRE", val: L => L.r.dre || "", td: x => `<td class="num">${isoVersFr(x.r.dre)}${pastille(rappel(x, x.r.dre))}</td>` },
+  { k: "dlr", lib: "DLR", val: L => L.r.dlr || "", td: x => `<td class="num">${isoVersFr(x.r.dlr)}${pastille(rappel(x, x.r.dlr))}</td>` },
+  { k: "note", lib: "Note", val: L => norm(L.r.note), td: x => `<td class="note" data-note="${x.id}">${esc(x.r.note)}</td>` }];
+const COLS = REGLAGES.colonnes.filter(c => c.vue).map(c => TOUTES_COLS.find(x => x.k === c.k)).filter(Boolean);
+if (!COLS.length) COLS.push(...TOUTES_COLS);
+const TRI_DEPART = COLS.some(c => c.k === REGLAGES.tri.k) ? { ...REGLAGES.tri } : { k: COLS[0].k, sens: 1 };
 // deux tableaux : celui du haut (tous les types) et celui de l'onglet du type choisi ; chacun garde son tri et sa vue
 const TABLEAUX = {
-  tous: { tete: "tete", corps: "corps", tri: { k: "feu", sens: 1 }, vue: "cours", type: null },
-  type: { tete: "teteType", corps: "corpsType", tri: { k: "feu", sens: 1 }, vue: "cours", type: null },   // aucun type choisi au départ
-  rech: { tete: "teteRech", corps: "corpsRech", tri: { k: "feu", sens: 1 }, vue: "tous", type: null } };
-// feux affichés dans « Dossiers en cours » et dans le tableau du type (rouge, orange, vert, sans feu)
+  tous: { tete: "tete", corps: "corps", tri: { ...TRI_DEPART }, vue: "cours", type: null },
+  type: { tete: "teteType", corps: "corpsType", tri: { ...TRI_DEPART }, vue: "cours", type: null },   // aucun type choisi au départ
+  rech: { tete: "teteRech", corps: "corpsRech", tri: { ...TRI_DEPART }, vue: "tous", type: null } };
+// feux affichés dans « Dossiers en cours » et dans le tableau du type (rouge, orange, vert, sans feu) :
+// ceux des Paramètres à l'ouverture du logiciel, puis gardés le temps de la séance
 const FEUX = [["rouge", "Urgent"], ["orange", "Pas urgent, je peux avancer"], ["vert", "En attente de documents"], ["aucun", "Sans feu"]];
-TABLEAUX.tous.feux = { rouge: true, orange: true, vert: true, aucun: true }; TABLEAUX.tous.barre = "feuxTous";
-TABLEAUX.type.feux = { rouge: true, orange: true, vert: true, aucun: true }; TABLEAUX.type.barre = "feuxType";
-try { const f = JSON.parse(localStorage.getItem("kultivaprix-suivi-feux") || "{}"); ["tous", "type"].forEach(t => Object.assign(TABLEAUX[t].feux, f[t] || {})); } catch (e) {}
-const garderFeux = () => { try { localStorage.setItem("kultivaprix-suivi-feux", JSON.stringify({ tous: TABLEAUX.tous.feux, type: TABLEAUX.type.feux })); } catch (e) {} };
+TABLEAUX.tous.feux = { ...REGLAGES.feux }; TABLEAUX.tous.barre = "feuxTous";
+TABLEAUX.type.feux = { ...REGLAGES.feux }; TABLEAUX.type.barre = "feuxType";
+try { const f = JSON.parse(sessionStorage.getItem("kultivaprix-suivi-feux") || "{}"); ["tous", "type"].forEach(t => Object.assign(TABLEAUX[t].feux, f[t] || {})); } catch (e) {}
+const garderFeux = () => { try { sessionStorage.setItem("kultivaprix-suivi-feux", JSON.stringify({ tous: TABLEAUX.tous.feux, type: TABLEAUX.type.feux })); } catch (e) {} };
 const couleur = x => x.r.urgence || "aucun";
 let trouves = new Map();   // projet → où le mot a été trouvé
-try { const o = JSON.parse(localStorage.getItem("kultivaprix-suivi-onglet") || "{}"); if (TYPES.some(t => t.id === o.type)) TABLEAUX.type.type = o.type; if (o.vue === "archives") TABLEAUX.type.vue = "archives"; } catch (e) {}
+try { const o = JSON.parse(localStorage.getItem("kultivaprix-suivi-onglet") || "{}"); if (TYPES_VUS.some(t => t.id === o.type)) TABLEAUX.type.type = o.type; if (o.vue === "archives") TABLEAUX.type.vue = "archives"; } catch (e) {}
 const garderOnglet = () => { try { localStorage.setItem("kultivaprix-suivi-onglet", JSON.stringify({ type: TABLEAUX.type.type, vue: TABLEAUX.type.vue })); } catch (e) {} };
 const comparer = tri => (a, b) => {
   const c = COLS.find(x => x.k === tri.k), va = c.val(a), vb = c.val(b);
@@ -301,15 +345,27 @@ function remplirTableau(T) {
     return;
   }
   $(T.corps).innerHTML = L.map(x => {
-    const r = x.r, statut = po => enCours(po) ? "" : ` <span class="statut">${esc(po.statut)}${po.date && vue !== "cours" ? " le " + isoVersFr(po.date) : ""}</span>`;
-    return `<tr data-projet="${x.id}" tabindex="0" title="Ouvrir ce projet">
-      <td><span class="feu ${r.urgence || "aucun"}" title="${esc(r.urgence ? { rouge: "Urgent", orange: "Pas urgent, je peux avancer", vert: "En attente de documents" }[r.urgence] : "Pas de feu")}"></span></td>
-      <td class="type-dossier">${x.pois.map(po => `<span class="sous">${esc(po.type)}</span>`).join("")}</td>
-      <td>${x.pois.map(po => `<span class="sous num">${esc(po.num || "—")}${statut(po)}</span>`).join("")}</td>
-      <td>${esc(r.cabinet)}</td><td>${esc(r.adresse)}</td><td class="num">${esc(r.el)}</td>
-      <td class="num">${isoVersFr(r.dlpi)}</td><td class="num">${isoVersFr(r.dre)}</td><td class="num">${isoVersFr(r.dlr)}</td>
-      <td class="note" data-note="${x.id}">${esc(r.note)}</td></tr>`; }).join("");
+    // trait de couleur à gauche : une échéance proche (orange) ou dépassée (rouge)
+    const n = [rappel(x, x.r.dre), rappel(x, x.r.dlr)].filter(v => v != null), alerte = !n.length ? "" : Math.min(...n) <= 0 ? " alerte-r" : " alerte";
+    return `<tr class="${alerte.trim()}" data-projet="${x.id}" tabindex="0" title="Ouvrir ce projet">${COLS.map(c => c.td(x, vue)).join("")}</tr>`; }).join("");
 }
+// bandeau en haut du Suivi : toutes les échéances proches ou dépassées (sauf si masqué pour aujourd'hui)
+function rendreRappels() {
+  let masque = false; try { masque = localStorage.getItem("kultivaprix-rappels-masques") === AUJOURDHUI; } catch (e) {}
+  const R = [];
+  projets.map(ligneProjet).forEach(x => [["DRE", x.r.dre], ["DLR", x.r.dlr]].forEach(([quoi, iso]) => { const n = rappel(x, iso); if (n != null) R.push({ x, quoi, iso, n }); }));
+  R.sort((a, b) => a.n - b.n);
+  $("rappels").hidden = masque || !R.length;
+  if (!R.length) return;
+  const dep = R.filter(r => r.n < 0).length;
+  $("rappelsTitre").textContent = `${R.length} échéance${R.length > 1 ? "s" : ""} dans moins de ${RAPPEL_JOURS} jours${dep ? ` (dont ${dep} dépassée${dep > 1 ? "s" : ""})` : ""}`;
+  $("rappelsListe").innerHTML = R.map(({ x, quoi, iso, n }) => {
+    const nums = x.pois.map(po => po.num).filter(Boolean).join(" - ");
+    return `<span class="typ">${esc(typeDe(x.type).nom)}</span><span>${esc(x.r.adresse || "Adresse non renseignée")}${nums ? ` (${esc(nums)})` : ""}</span>` +
+      `<span class="ech${n <= 0 ? " r" : ""}">${quoi} ${texteRappel(n)} (${isoVersFr(iso).slice(0, 5)})</span><button class="btn btn-mini btn-accent" type="button" data-ouvrir="${x.id}">Ouvrir</button>`; }).join("");
+}
+$("rappelsMasquer").onclick = () => { try { localStorage.setItem("kultivaprix-rappels-masques", AUJOURDHUI); } catch (e) {} rendreRappels(); };
+$("rappelsListe").addEventListener("click", e => { const b = e.target.closest("[data-ouvrir]"); if (b) ouvrir({ dataset: { projet: b.dataset.ouvrir } }); });
 // statut d'un projet = celui de sa POI principale
 const statutProjet = p => { const s = ligneProjet(p).principale?.statut; return s === "archivée" ? "arch" : s === "annulée" ? "annul" : "cours"; };
 function rendreTableau() {
@@ -320,7 +376,7 @@ function rendreTableau() {
   remplirTableau(T);
   // onglets par type : nombre de projets en cours, archivés et annulés
   const U = TABLEAUX.type;
-  $("ongletsTypes").innerHTML = TYPES.map(t => {
+  $("ongletsTypes").innerHTML = TYPES_VUS.map(t => {
     const n = { cours: 0, arch: 0, annul: 0 }; projets.filter(p => p.type === t.id).forEach(p => n[statutProjet(p)]++);
     return `<button class="onglet${t.id === U.type ? " actif" : ""}" type="button" role="tab" aria-selected="${t.id === U.type}" data-onglet="${t.id}">` +
       `<b>${esc(t.nom)}</b><small>${n.cours ? `<strong>${n.cours} en cours</strong>` : "0 en cours"} · ${n.arch} archivé${n.arch > 1 ? "s" : ""} · ${n.annul} annulé${n.annul > 1 ? "s" : ""}</small></button>`; }).join("");
@@ -403,9 +459,10 @@ function rendreStats() {
   const bloc = (cls, titre, o) => `<div class="stat ${cls}"><h3>${titre}</h3><div class="ligne"><span>Nombre de POI</span><b>${o.poi}</b></div><div class="ligne"><span>Nombre d'EL</span><b>${o.el}</b></div></div>`;
   $("stats").innerHTML = bloc("cours", "En cours", S.cours) + bloc("arch", "Archivés", S.arch) + bloc("annul", "Annulés", S.annul) + bloc("total", "Total", T);
 }
-// période gardée d'une visite à l'autre sur ce navigateur
-try { const p = JSON.parse(localStorage.getItem("kultivaprix-suivi-periode") || "{}"); $("du").value = p.du || ""; $("au").value = p.au || ""; } catch (e) {}
-const garderPeriode = () => { try { localStorage.setItem("kultivaprix-suivi-periode", JSON.stringify({ du: $("du").value, au: $("au").value })); } catch (e) {} };
+// période : du 1er janvier de l'année à aujourd'hui à l'ouverture du logiciel, puis gardée le temps de la séance
+$("du").value = `01/01/${AUJOURDHUI.slice(0, 4)}`; $("au").value = isoVersFr(AUJOURDHUI);
+try { const p = JSON.parse(sessionStorage.getItem("kultivaprix-suivi-periode") || "null"); if (p) { $("du").value = p.du || ""; $("au").value = p.au || ""; } } catch (e) {}
+const garderPeriode = () => { try { sessionStorage.setItem("kultivaprix-suivi-periode", JSON.stringify({ du: $("du").value, au: $("au").value })); } catch (e) {} };
 ["du", "au"].forEach(id => {
   const c = $(id);
   c.addEventListener("input", () => { c.value = formaterDate(c.value); c.classList.toggle("invalide", c.value.length === 10 && !frVersIso(c.value)); if (!c.value || frVersIso(c.value)) { garderPeriode(); rendreStats(); } });
@@ -422,7 +479,7 @@ document.addEventListener("change", e => {
 });
 
 /* ═══ Nouveau projet : choix du type ═══ */
-$("menuTypes").innerHTML = TYPES.map(t => `<button type="button" role="menuitem" data-type="${t.id}"${t.page ? "" : " disabled"}>${esc(t.nom)}${t.page ? "" : "<small>à venir</small>"}</button>`).join("");
+$("menuTypes").innerHTML = TYPES_VUS.map(t => `<button type="button" role="menuitem" data-type="${t.id}"${t.page ? "" : " disabled"}>${esc(t.nom)}${t.page ? "" : "<small>à venir</small>"}</button>`).join("");
 $("nouveau").onclick = () => { const m = $("menuTypes"); m.hidden = !m.hidden; $("nouveau").setAttribute("aria-expanded", String(!m.hidden)); };
 document.addEventListener("pointerdown", e => { if (!e.target.closest("#menuTypes, #nouveau")) { $("menuTypes").hidden = true; $("nouveau").setAttribute("aria-expanded", "false"); } });
 $("menuTypes").addEventListener("click", async e => {
@@ -434,36 +491,20 @@ $("menuTypes").addEventListener("click", async e => {
   location.href = `${t.page}?p=${id}`;
 });
 
-/* ═══ Sauvegarde : tous les projets (et les captures des fenêtres ComL) dans un fichier ═══ */
-const BASES_COML = ["racco-d2-coml", "loc-par-coml", "crea-par-coml"];   // une base de captures ComL par type de dossier
-const baseComl = nom => new Promise((ok, ko) => { const r = indexedDB.open(nom, 1); r.onupgradeneeded = () => r.result.createObjectStore("photos"); r.onsuccess = () => ok(r.result); r.onerror = () => ko(r.error); });
-const comlTout = db => new Promise((ok, ko) => { const o = {}, r = db.transaction("photos").objectStore("photos").openCursor();
-  r.onsuccess = () => { const c = r.result; if (c) { o[c.key] = c.value; c.continue(); } else ok(o); }; r.onerror = () => ko(r.error); });
-$("exporter").onclick = async () => {
-  const coml = {}; for (const nom of BASES_COML) coml[nom] = await comlTout(await baseComl(nom));
-  const donnees = { app: "kultivaprix", version: 2, date: new Date().toISOString(), kv: await kvTout(), coml };
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(new Blob([JSON.stringify(donnees)], { type: "application/json" }));
-  a.download = `suivi-dossiers-sauvegarde-${new Date().toISOString().slice(0, 10)}.json`;
-  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
-};
-$("importFichier").addEventListener("change", async e => {
-  const f = e.target.files[0]; e.target.value = ""; if (!f) return;
-  let d; try { d = JSON.parse(await f.text()); } catch (err) { alert("Ce fichier n'est pas une sauvegarde valable."); return; }
-  if (!d || d.app !== "kultivaprix" || !d.kv) { alert("Ce fichier n'est pas une sauvegarde du suivi des dossiers."); return; }
-  if (!confirm(`Remplacer toutes les données actuelles par la sauvegarde du ${new Date(d.date).toLocaleDateString("fr-FR")} ?`)) return;
-  await new Promise((ok, ko) => { const t = base.transaction("kv", "readwrite"), st = t.objectStore("kv"); st.clear(); Object.entries(d.kv).forEach(([k, v]) => st.put(v, k)); t.oncomplete = ok; t.onerror = () => ko(t.error); });
-  // version 1 : seulement les captures Racco D2
-  const parBase = d.version >= 2 ? (d.coml || {}) : { "racco-d2-coml": d.coml || {} };
-  for (const nom of BASES_COML) {
-    const db = await baseComl(nom);
-    await new Promise((ok, ko) => { const t = db.transaction("photos", "readwrite"), st = t.objectStore("photos"); st.clear(); Object.entries(parBase[nom] || {}).forEach(([k, v]) => st.put(v, k)); t.oncomplete = ok; t.onerror = () => ko(t.error); });
-  }
-  location.reload();
-});
-
-async function tout() { await charger(); rendreTableau(); rendreStats(); }
+async function tout() { await charger(); rendreRappels(); rendreTableau(); rendreStats(); }
 await tout();
+
+/* ═══ Version du programme et « Quoi de neuf » (affiché une fois après chaque nouvelle version) ═══ */
+$("version").textContent = `Version ${VERSION}`;
+const montrerNouveautes = liste => choisir({ titre: "Quoi de neuf", html: liste.map(n => `<div class="nouveautes-v">Version ${esc(n.version)} · ${isoVersFr(n.date)}</div><ul class="nouveautes">${n.points.map(p => `<li>${esc(p)}</li>`).join("")}</ul>`).join(""),
+  boutons: [{ lib: "OK", v: 1, principal: true }] });
+$("voirNouveautes").onclick = () => montrerNouveautes(NOUVEAUTES);
+let vue = null; try { vue = localStorage.getItem("kultivaprix-version-vue"); } catch (e) {}
+if (vue !== VERSION) {
+  try { localStorage.setItem("kultivaprix-version-vue", VERSION); } catch (e) {}
+  const plusRecent = (a, b) => { const x = a.split(".").map(Number), y = (b || "0").split(".").map(Number); for (let i = 0; i < 3; i++) if ((x[i] || 0) !== (y[i] || 0)) return (x[i] || 0) > (y[i] || 0); return false; };
+  montrerNouveautes(NOUVEAUTES.filter(n => plusRecent(n.version, vue)));
+}
 // retour sur la page par « Précédent » : les infos des projets ont pu changer
 addEventListener("pageshow", e => { if (e.persisted) tout(); });
 </script>

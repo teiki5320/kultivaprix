@@ -1,0 +1,34 @@
+{
+  "name": "racco-d2",
+  "productName": "Racco D2",
+  "version": "1.0.0",
+  "description": "Suivi des dossiers (Racco D2, Localisation de PAR, Création du PAR…)",
+  "author": "teiki5320",
+  "private": true,
+  "main": "bureau/main.js",
+  "scripts": {
+    "start": "electron .",
+    "exe": "electron-builder --win portable --x64"
+  },
+  "devDependencies": {
+    "electron": "44.9.3",
+    "electron-builder": "26.17.0"
+  },
+  "build": {
+    "appId": "fr.kultivaprix.racco-d2",
+    "productName": "Racco D2",
+    "files": [
+      "*.html",
+      "*.js",
+      "vendor/**",
+      "bureau/**",
+      "package.json"
+    ],
+    "directories": { "output": "dist" },
+    "win": {
+      "target": [{ "target": "portable", "arch": ["x64"] }],
+      "signAndEditExecutable": false
+    },
+    "portable": { "artifactName": "Racco D2.exe" }
+  }
+}
