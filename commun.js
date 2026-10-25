@@ -123,7 +123,7 @@ export function ouvrirLien(l) {
   else window.open(l, "_blank", "noopener");
 }
 
-/* ═══ Documents POI (logiciel) : OneDrive\POI\<type>\<adresse - COMMUNE (N° POI)>\docs GEDAFFAIRE ═══
+/* ═══ Documents POI (logiciel) : ouvre OneDrive\POI\<type>\<adresse - COMMUNE (N° POI)>, qui contient « docs GEDAFFAIRE » ═══
    le dossier du projet est retrouvé par son N° POI entre parenthèses ; s'il n'existe pas, on propose de le créer */
 // « 12 rue des Lilas 44000 NANTES » → « 12 rue des Lilas - NANTES (N° POI) »
 export function nomDossierPoi(adresse, nums) {
@@ -142,7 +142,7 @@ export async function documentsPoi(type, nums, adresse) {
     const v = await choisir({ titre: "Pas de dossier « docs GEDAFFAIRE »", texte: `Le dossier du projet existe, mais il n’a pas de sous-dossier « docs GEDAFFAIRE » :\n${r.chemin}`,
       boutons: [{ lib: "Annuler", v: null }, { lib: "Ouvrir le dossier du projet", v: "ouvrir" }, { lib: "Créer « docs GEDAFFAIRE »", v: "creer", principal: true }] });
     if (v === "ouvrir") return bureau.ouvrir(r.chemin);
-    if (v === "creer") { const c = await bureau.poiCreer({ type, chemin: r.chemin }); if (c.erreur) return alert(c.erreur); return bureau.ouvrir(c.chemin); }
+    if (v === "creer") { const c = await bureau.poiCreer({ type, chemin: r.chemin }); if (c.erreur) return alert(c.erreur); return bureau.ouvrir(r.chemin); }
     return;
   }
   if (r.etat === "plusieurs") {

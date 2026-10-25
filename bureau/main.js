@@ -130,7 +130,7 @@ async function ouvrirDonnees() {
   }
 }
 
-/* ═══ Documents POI : OneDrive\POI\<type>\<adresse - COMMUNE (N° POI)>\docs GEDAFFAIRE ═══ */
+/* ═══ Documents POI : on ouvre OneDrive\POI\<type>\<adresse - COMMUNE (N° POI)>, qui contient « docs GEDAFFAIRE » ═══ */
 const norm = s => String(s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]/g, "");
 const MOTS_TYPE = { "racco-d2": ["raccod2", "racco"], "loc-par": ["localisation"], "crea-par": ["creation"], "pim": ["pim"], "echec-prod": ["echec"] };
 const sousDossiers = d => { try { return fs.readdirSync(d, { withFileTypes: true }).filter(x => x.isDirectory()).map(x => x.name); } catch (e) { return []; } };
@@ -290,7 +290,7 @@ repondre("poi:chercher", ({ type, nums }) => {
   if (!trouves.length) return { etat: "aucun", dossierType: dt };
   if (trouves.length > 1) return { etat: "plusieurs", liste: trouves.map(nom => ({ nom, chemin: path.join(dt, nom) })) };
   const projet = path.join(dt, trouves[0]), docs = sousDossiers(projet).find(n => norm(n) === "docsgedaffaire");
-  return docs ? { etat: "ok", chemin: path.join(projet, docs) } : { etat: "sans-docs", chemin: projet };
+  return docs ? { etat: "ok", chemin: projet } : { etat: "sans-docs", chemin: projet };
 });
 repondre("poi:creer", ({ type, nom, chemin }) => {
   try {
@@ -302,6 +302,6 @@ repondre("poi:creer", ({ type, nom, chemin }) => {
     }
     const docs = path.join(projet, "docs GEDAFFAIRE");
     fs.mkdirSync(docs, { recursive: true });
-    return { chemin: docs };
+    return { chemin: projet };
   } catch (e) { return { erreur: `Le dossier n'a pas pu être créé : ${e.message}` }; }
 });

@@ -1513,7 +1513,7 @@ $("datesImp").addEventListener("change", e => {
 function majDocs() {
   if (typeof majComlLien === "function") majComlLien();
   const l = etat.liens.docsPOI;
-  $("docsEtat").textContent = l ? "Ouvrir le dossier OneDrive" : bureau ? "Ouvrir docs GEDAFFAIRE" : "Ajouter le lien OneDrive";
+  $("docsEtat").textContent = l ? "Ouvrir le dossier OneDrive" : bureau ? "Ouvrir le dossier du projet" : "Ajouter le lien OneDrive";
   $("docsEdit").hidden = !l && !bureau;
   const n = etat.liens.notes;
   $("notesEtat").textContent = n ? "Notes OneDrive" : "+ Lien OneDrive";
