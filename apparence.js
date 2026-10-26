@@ -9,8 +9,8 @@
     vert: { nom: "Vert", accent: "#3E8A5B", fond: "#ECEADC" },
     gris: { nom: "Gris", accent: "#4A4A4A", fond: "#E6E6E6" } };
   window.THEMES_APPARENCE = THEMES;
-  // couleurs qui ne changent jamais : feux d'urgence, voyants, fenêtres communes
-  const GARDEES = /feu|\.led|urgence|\.ff\b|\.cm-|renommer/;
+  // couleurs qui ne changent jamais : feux d'urgence, voyants, fenêtres communes, bulles du tuto
+  const GARDEES = /feu|\.led|urgence|\.ff\b|\.cm-|renommer|tuto-/;
 
   const hexVersRgb = h => { h = h.replace("#", ""); if (h.length <= 4) h = [...h].map(c => c + c).join("");
     return { r: parseInt(h.slice(0, 2), 16), g: parseInt(h.slice(2, 4), 16), b: parseInt(h.slice(4, 6), 16), a: h.length === 8 ? parseInt(h.slice(6, 8), 16) / 255 : 1 }; };

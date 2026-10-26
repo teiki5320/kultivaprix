@@ -649,6 +649,7 @@ header.top .urgence { justify-self: end; grid-column: 3; }
 const PARAMS = new URLSearchParams(location.search), PROJET = PARAMS.get("p");
 import { kvGet, kvPrefixe, kvEcrire, photo, lireReglages, lireProjets, ouvrirLien, lienValide, AIDE_LIEN, feriesEnPlus,
   appliquerLibellesTaches, suivreLibelles, modeRenommer, documentsPoi, choisir, bureau } from "./commun.js";
+import { suivreTuto } from "./tuto.js";
 const TYPE_DOSSIER = "loc-par";
 // écritures en cours : on les attend avant de quitter la page (retour au suivi)
 const enCoursEcriture = new Set();
@@ -1835,6 +1836,7 @@ majUrgence(); majDocs(); rendu(); ajusterEchelle();
    à gauche la capture du logiciel (une par tâche, la même pour tous les dossiers, gardée à part dans IndexedDB),
    à droite les champs de la tâche : calculés depuis les Dates importantes (modifiables à la main), à remplir ou fixes */
 const COML = ["t1_2_1_2", "t3_5"];
+window.COML_IDS = COML;   // pour le tuto (bulle sur une fenêtre ComL)
 // champs par tâche : { k, lib, sorte: "calc" | "date" | "texte" | "fixe" | "note", calc: d => iso, aide, val } (note : simple consigne écrite)
 // d = les Dates importantes du dossier (d.dlpi, d.poi, d.dre…) et d.t les dates des tâches ; v("k") = la valeur d'un autre champ de la fenêtre ; les outils : ajJours(iso, n), ajMois(iso, n), plusTard(a, b), plusTot(a, b)
 // une date calculée ne tombe jamais un week-end ni un jour férié : elle passe au premier jour ouvré qui suit (horsFerie)
@@ -2018,6 +2020,7 @@ $("supprProjet").onclick = async () => {
 // textes renommés (et mode « renommer » lancé depuis les Paramètres)
 suivreLibelles(REGLAGES, TYPE_DOSSIER);
 modeRenommer(REGLAGES, TYPE_DOSSIER, NOEUDS, () => rendu());
+suivreTuto();   // visite guidée en cours
 // pour les vérifications dans la console
 Object.assign(window, { basculer, NOEUDS, rendu, valComl, COML_CHAMPS, fermerComl, rafraichirDatesImp, reporterDate, statutsPoi, ecrireResume, estBarre, sauver });
 Object.defineProperty(window, "etat", { get: () => etat, set: v => { etat = v; }, configurable: true });

@@ -206,6 +206,7 @@ a.btn { text-decoration: none; display: inline-block; }
 /* ═══ Mémoire commune à toutes les pages (IndexedDB « kultivaprix ») ═══
    projets : [{ id, type, cree }] ; p:<id>:resume : résumé écrit par la page du type de dossier ; commun:* : liens Modop et mise en page */
 import { kvGet, kvEcrire as kvPut, lireReglages, viderCorbeille, choisir, VERSION, NOUVEAUTES } from "./commun.js";
+import { suivreTuto, tutoPrevu } from "./tuto.js";
 const $ = id => document.getElementById(id);
 const REGLAGES = await lireReglages();
 
@@ -503,8 +504,10 @@ let vue = null; try { vue = localStorage.getItem("kultivaprix-version-vue"); } c
 if (vue !== VERSION) {
   try { localStorage.setItem("kultivaprix-version-vue", VERSION); } catch (e) {}
   const plusRecent = (a, b) => { const x = a.split(".").map(Number), y = (b || "0").split(".").map(Number); for (let i = 0; i < 3; i++) if ((x[i] || 0) !== (y[i] || 0)) return (x[i] || 0) > (y[i] || 0); return false; };
-  montrerNouveautes(NOUVEAUTES.filter(n => plusRecent(n.version, vue)));
+  // au tout premier lancement, c'est le tuto qui s'ouvre (le « Quoi de neuf » reste dans les Paramètres)
+  if (!tutoPrevu()) montrerNouveautes(NOUVEAUTES.filter(n => plusRecent(n.version, vue)));
 }
+suivreTuto();
 // retour sur la page par « Précédent » : les infos des projets ont pu changer
 addEventListener("pageshow", e => { if (e.persisted) tout(); });
 </script>

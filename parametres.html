@@ -112,6 +112,13 @@ input[type="color"] { width: 44px; height: 30px; border: 0; border-radius: 8px; 
     <div class="rang"><span class="lib">Densité</span><div class="choix-grille" id="densites"></div></div>
   </section>
 
+  <!-- ═══ Tuto ═══ -->
+  <section class="card" data-zone="public" data-section="tuto">
+    <div class="bandeau">Tuto</div>
+    <p class="aide">Une visite guidée en bulles : le Suivi des dossiers, la page d’un dossier, puis les Paramètres. Elle ne change rien à tes données.</p>
+    <div><button class="btn btn-accent" id="relancerTuto" type="button">Relancer le tuto</button></div>
+  </section>
+
   <!-- ═══ Libellés ═══ -->
   <section class="card" data-zone="prive" data-section="libelles">
     <div class="bandeau">Libellés</div>
@@ -200,6 +207,7 @@ input[type="color"] { width: 44px; height: 30px; border: 0; border-radius: 8px; 
 <script type="module">
 import { bureau, kvGet, kvEcrire, lireReglages, ecrireReglages, lireProjets, viderCorbeille, toutLire, toutRemplacer, sauvegardeValable,
   COLONNES, JOURS_CORBEILLE, choisir, demander, VERSION, NOUVEAUTES } from "./commun.js";
+import { lancerTuto, suivreTuto, noterAdminParTuto } from "./tuto.js";
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const isoVersFr = iso => { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || ""); return m ? `${m[3]}/${m[2]}/${m[1]}` : ""; };
@@ -440,7 +448,18 @@ $("codeRetirer").onclick = async () => {
   R.mdp = ""; await enregistrer(); rendreCode();
 };
 
+/* ═══ Tuto ═══ */
+$("relancerTuto").onclick = () => lancerTuto();
+// la visite montre deux réglages de la partie admin : elle l'ouvre seulement s'il n'y a pas de code (et la referme à la fin)
+window.adminTuto = () => {
+  if (adminOuvert) return true;
+  if (R.mdp) return false;
+  adminOuvert = true; try { sessionStorage.setItem("kultivaprix-admin", "1"); } catch (e) {}
+  noterAdminParTuto(); rendreAdmin(); return true;
+};
+
 rendreAdmin(); rendreApparence(); rendreLibelles(); rendrePoi(); rendreDonnees(); rendreSuivi(); rendreCorbeille(); rendreFeries(); rendreCode();
+suivreTuto();
 </script>
 </body>
 </html>

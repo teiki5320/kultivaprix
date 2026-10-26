@@ -8,5 +8,6 @@ export const NOUVEAUTES = [
     "Documents POI : le bouton ouvre directement le dossier du projet (avec son sous-dossier « docs GEDAFFAIRE »), ou le crée s’il n’existe pas.",
     "Rappels : les DRE et DLR à moins de 5 jours (ou dépassées) sont signalées dans le tableau et en haut du Suivi.",
     "Un projet peut être supprimé : il passe 30 jours dans la corbeille avant de disparaître.",
+    "Tuto de lancement : une visite guidée en bulles, à relancer quand tu veux depuis ⚙ Paramètres.",
   ] },
 ];
