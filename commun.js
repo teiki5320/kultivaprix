@@ -289,4 +289,4 @@ export function modeRenommer(reg, type, noeuds, rafraichir) {
 }
 
 /* ═══ Version du programme (affichée en bas du Suivi et dans les Paramètres) ═══ */
-export { VERSION, NOUVEAUTES } from "./nouveautes.js";
+export { VERSION, AUTEUR, NOUVEAUTES } from "./nouveautes.js";

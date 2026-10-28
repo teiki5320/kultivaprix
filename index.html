@@ -205,7 +205,7 @@ a.btn { text-decoration: none; display: inline-block; }
 <script type="module">
 /* ═══ Mémoire commune à toutes les pages (IndexedDB « kultivaprix ») ═══
    projets : [{ id, type, cree }] ; p:<id>:resume : résumé écrit par la page du type de dossier ; commun:* : liens Modop et mise en page */
-import { kvGet, kvEcrire as kvPut, lireReglages, viderCorbeille, choisir, VERSION, NOUVEAUTES } from "./commun.js";
+import { kvGet, kvEcrire as kvPut, lireReglages, viderCorbeille, choisir, VERSION, AUTEUR, NOUVEAUTES } from "./commun.js";
 import { suivreTuto, tutoPrevu } from "./tuto.js";
 const $ = id => document.getElementById(id);
 const REGLAGES = await lireReglages();
@@ -496,7 +496,7 @@ async function tout() { await charger(); rendreRappels(); rendreTableau(); rendr
 await tout();
 
 /* ═══ Version du programme et « Quoi de neuf » (affiché une fois après chaque nouvelle version) ═══ */
-$("version").textContent = `Version ${VERSION}`;
+$("version").textContent = `Version ${VERSION} · Créé par ${AUTEUR}`;
 const montrerNouveautes = liste => choisir({ titre: "Quoi de neuf", html: liste.map(n => `<div class="nouveautes-v">Version ${esc(n.version)} · ${isoVersFr(n.date)}</div><ul class="nouveautes">${n.points.map(p => `<li>${esc(p)}</li>`).join("")}</ul>`).join(""),
   boutons: [{ lib: "OK", v: 1, principal: true }] });
 $("voirNouveautes").onclick = () => montrerNouveautes(NOUVEAUTES);

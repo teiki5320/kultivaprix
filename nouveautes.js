@@ -1,8 +1,10 @@
 /* ═══ Numéro de version et « Quoi de neuf » : une entrée par version, la plus récente en premier ═══ */
 export const VERSION = "1.1.1";
+export const AUTEUR = "Laura Couton";
 export const NOUVEAUTES = [
   { version: "1.1.1", date: "2026-10-28", points: [
     "Racco D2 : logo Modop orange ajouté derrière « Faire DT » (Traiter la pré-étude › Traiter l’aérien).",
+    "Le nom de l’autrice s’affiche à côté de la version.",
   ] },
   { version: "1.1.0", date: "2026-10-28", points: [
     "Fiches préremplies (Racco D2) : choisis tes deux modèles Excel dans ⚙ Paramètres › Documents POI. Le dossier de chaque projet reçoit un sous-dossier « Fiches préremplies » avec une copie vierge de chacun, nommée avec les N° POI.",

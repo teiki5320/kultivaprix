@@ -2,8 +2,8 @@
   "name": "racco-d2",
   "productName": "Racco D2",
   "version": "1.1.1",
+  "author": "Laura Couton",
   "description": "Suivi des dossiers (Racco D2, Localisation de PAR, Création du PAR…)",
-  "author": "teiki5320",
   "private": true,
   "main": "bureau/main.js",
   "scripts": {
