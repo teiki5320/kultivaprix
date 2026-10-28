@@ -644,7 +644,7 @@ header.top .urgence { justify-self: end; grid-column: 3; }
    les liens Modop des tâches et la mise en page (tâches repliées) sont communs à tous les projets ═══ */
 const PARAMS = new URLSearchParams(location.search), PROJET = PARAMS.get("p");
 import { kvGet, kvPrefixe, kvEcrire, photo, lireReglages, lireProjets, ouvrirLien, lienValide, AIDE_LIEN, feriesEnPlus,
-  appliquerLibellesTaches, suivreLibelles, modeRenommer, documentsPoi, choisir, bureau } from "./commun.js";
+  appliquerLibellesTaches, suivreLibelles, modeRenommer, documentsPoi, ouvrirFiche, choisir, bureau } from "./commun.js";
 import { suivreTuto } from "./tuto.js";
 const TYPE_DOSSIER = "racco-d2";
 // écritures en cours : on les attend avant de quitter la page (retour au suivi)
@@ -995,6 +995,8 @@ const AVEC_MODOP = new Set(["t1_5", "t2_1_1_1", "t2_1_2_1", "t3_5_1", "t3_2", "t
 // Modop en rose
 const MODOP_ROSE = new Set(["t3_2", "t4_2_15", "t6_5"]);
 const MODOP_DOUBLE = new Set(["t4_2_15", "t6_5", "t3_3_1"]);   // un logo rose et un logo orange, chacun avec son lien
+// dans le logiciel, les logos roses ouvrent la fiche préremplie du projet (Fichier 1 ou 2 de ⚙ Paramètres › Documents POI)
+const FICHE_ROSE = { t3_2: 1, "t3_3_1~rose": 2, t4_2_15: 2, t6_5: 2 };
 const ICO_CAL = '<svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>';
 const ICO_DOC = '<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M7 3h7l5 5v11a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg>';
 function outilsHTML(n) {
@@ -1003,6 +1005,7 @@ function outilsHTML(n) {
     `<button class="cal" type="button" data-calbtn="${n.id}" aria-label="Choisir la date dans le calendrier" title="Calendrier">${ICO_CAL}</button>` +
     `<input type="date" class="date-cachee" data-calpick="${n.id}" tabindex="-1" aria-hidden="true"></span>`;
   const modop = (cle, rose) => { const l = etat.liens[cle];
+    if (rose && bureau && FICHE_ROSE[cle]) return `<span class="modop"><button class="modop-btn plein rose" type="button" data-fiche="${FICHE_ROSE[cle]}" aria-label="Ouvrir la fiche préremplie" title="Ouvrir la fiche préremplie du projet (Fichier ${FICHE_ROSE[cle]})">${ICO_DOC}</button></span>`;
     return `<span class="modop"><button class="modop-btn ${l ? "plein" : "vide"}${rose ? " rose" : ""}" type="button" data-lien="${cle}" aria-label="${l ? "Ouvrir le Modop" : "Ajouter le lien du Modop"}" title="${l ? "Ouvrir le Modop" : "Ajouter le lien OneDrive du Modop"}">${ICO_DOC}</button>` +
       (l ? `<button class="lien-edit" type="button" data-lienedit="${cle}" aria-label="Changer ou retirer le lien" title="Changer ou retirer le lien">✎</button>` : "") + `</span>`; };
   // deux logos : le rose toujours devant l'orange
@@ -1229,6 +1232,8 @@ function ouvrirLienPop(id, ancre, titre) {
 $("arbre").addEventListener("click", e => {
   const ed = e.target.closest("[data-lienedit]");
   if (ed) { ouvrirLienPop(ed.dataset.lienedit, ed); return; }
+  const fi = e.target.closest("[data-fiche]");
+  if (fi) { ouvrirFiche(TYPE_DOSSIER, +fi.dataset.fiche, [etat.fiche.ant, etat.fiche.racco]); return; }
   const b = e.target.closest("[data-lien]"); if (!b) return;
   if (COML.includes(b.dataset.lien)) { ouvrirComl(b.dataset.lien); return; }
   const l = etat.liens[b.dataset.lien];

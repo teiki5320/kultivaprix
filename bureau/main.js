@@ -142,13 +142,44 @@ function dossierType(id) {
   for (const mot of MOTS_TYPE[id] || []) { const n = noms.find(x => norm(x).includes(mot)); if (n) return path.join(config.poiBase, n); }
   return null;
 }
-const etatPoi = () => ({ base: config.poiBase || "", types: Object.fromEntries(Object.keys(MOTS_TYPE).map(id => [id, dossierType(id)])) });
+const etatPoi = () => ({ base: config.poiBase || "", types: Object.fromEntries(Object.keys(MOTS_TYPE).map(id => [id, dossierType(id)])), fiches: config.fiches || {} });
 // numéros entre les dernières parenthèses du nom : « (12345678 - 23456789) »
 function numerosDuNom(nom) {
   const m = /\(([^()]*)\)\s*$/.exec(nom) || /\(([^()]*)\)/.exec(nom);
   return m ? m[1].split(/[\s\-–\/,;]+/).map(x => x.trim().toUpperCase()).filter(Boolean) : [];
 }
 const nomPropre = n => n.replace(/[<>:"/\\|?*\u0000-\u001f]/g, "-").replace(/[. ]+$/, "").trim();
+// recherche du dossier du projet par ses N° POI
+function chercherProjet(type, nums) {
+  if (!config.poiBase || !fs.existsSync(config.poiBase)) return { etat: "base" };
+  const dt = dossierType(type); if (!dt) return { etat: "type", base: config.poiBase };
+  const voulus = (nums || []).map(n => String(n).trim().toUpperCase()).filter(Boolean);
+  const trouves = sousDossiers(dt).filter(nom => numerosDuNom(nom).some(n => voulus.includes(n)));
+  if (!trouves.length) return { etat: "aucun", dossierType: dt };
+  if (trouves.length > 1) return { etat: "plusieurs", liste: trouves.map(nom => ({ nom, chemin: path.join(dt, nom) })) };
+  return { etat: "trouve", chemin: path.join(dt, trouves[0]) };
+}
+
+/* ═══ Fiches préremplies (Racco D2) : copies vierges des modèles Excel dans <projet>\Fiches préremplies ═══ */
+const DOSSIER_FICHES = "Fiches préremplies";
+const TYPES_FICHES = ["racco-d2"];
+// « Fiche CMS.xlsx » + N° POI → « Fiche CMS - BHU510263 - BHU510264.xlsx »
+const nomFiche = (modele, nums) => { const ext = path.extname(modele), base = path.basename(modele, ext);
+  return nomPropre([base, ...(nums || []).map(n => String(n).trim()).filter(Boolean)].join(" - ")) + ext; };
+// ajoute ce qui manque (sous-dossier et fiches) ; ne remplace jamais une fiche existante ; renvoie les problèmes
+function ajouterFiches(type, projet, nums) {
+  if (!TYPES_FICHES.includes(type)) return [];
+  const modeles = Object.entries(config.fiches || {}).filter(([, m]) => m); if (!modeles.length) return [];
+  const pbs = [], dossierFiches = path.join(projet, DOSSIER_FICHES);
+  try { fs.mkdirSync(dossierFiches, { recursive: true }); } catch (e) { return [`Le dossier « ${DOSSIER_FICHES} » n'a pas pu être créé : ${e.message}`]; }
+  for (const [n, modele] of modeles) {
+    if (!fs.existsSync(modele)) { pbs.push(`Modèle du Fichier ${n.slice(1)} introuvable :\n${modele}`); continue; }
+    const cible = path.join(dossierFiches, nomFiche(modele, nums));
+    if (fs.existsSync(cible)) continue;
+    try { fs.copyFileSync(modele, cible, fs.constants.COPYFILE_EXCL); } catch (e) { if (e.code !== "EEXIST") pbs.push(`La fiche n'a pas pu être copiée : ${e.message}`); }
+  }
+  return pbs;
+}
 
 /* ═══ Fenêtre ═══ */
 let fenetre = null;
@@ -283,16 +314,12 @@ repondre("poi:type", async id => {
   return etatPoi();
 });
 repondre("poi:chercher", ({ type, nums }) => {
-  if (!config.poiBase || !fs.existsSync(config.poiBase)) return { etat: "base" };
-  const dt = dossierType(type); if (!dt) return { etat: "type", base: config.poiBase };
-  const voulus = (nums || []).map(n => String(n).trim().toUpperCase()).filter(Boolean);
-  const trouves = sousDossiers(dt).filter(nom => numerosDuNom(nom).some(n => voulus.includes(n)));
-  if (!trouves.length) return { etat: "aucun", dossierType: dt };
-  if (trouves.length > 1) return { etat: "plusieurs", liste: trouves.map(nom => ({ nom, chemin: path.join(dt, nom) })) };
-  const projet = path.join(dt, trouves[0]), docs = sousDossiers(projet).find(n => norm(n) === "docsgedaffaire");
-  return docs ? { etat: "ok", chemin: projet } : { etat: "sans-docs", chemin: projet };
+  const r = chercherProjet(type, nums);
+  if (r.etat !== "trouve") return r;
+  const docs = sousDossiers(r.chemin).find(n => norm(n) === "docsgedaffaire");
+  return docs ? { etat: "ok", chemin: r.chemin, problemes: ajouterFiches(type, r.chemin, nums) } : { etat: "sans-docs", chemin: r.chemin };
 });
-repondre("poi:creer", ({ type, nom, chemin }) => {
+repondre("poi:creer", ({ type, nom, chemin, nums }) => {
   try {
     let projet = chemin;
     if (!projet) {
@@ -302,6 +329,28 @@ repondre("poi:creer", ({ type, nom, chemin }) => {
     }
     const docs = path.join(projet, "docs GEDAFFAIRE");
     fs.mkdirSync(docs, { recursive: true });
-    return { chemin: projet };
+    return { chemin: projet, problemes: ajouterFiches(type, projet, nums) };
   } catch (e) { return { erreur: `Le dossier n'a pas pu être créé : ${e.message}` }; }
+});
+repondre("fiche:choisir", async n => {
+  const r = await dialog.showOpenDialog(fenetre, { title: `Modèle du Fichier ${n} (fiche préremplie)`, defaultPath: (config.fiches || {})["f" + n] || config.poiBase || app.getPath("home"),
+    properties: ["openFile"], filters: [{ name: "Excel", extensions: ["xlsx", "xlsm", "xls"] }, { name: "Tous les fichiers", extensions: ["*"] }] });
+  if (!r.canceled) { config.fiches = { ...(config.fiches || {}), ["f" + n]: r.filePaths[0] }; ecrireConfig(); }
+  return etatPoi();
+});
+// bouton rose : ouvre la fiche du projet dans Excel
+repondre("fiche:ouvrir", async ({ type, nums, n, chemin }) => {
+  const modele = (config.fiches || {})["f" + n];
+  if (!modele) return { etat: "modele" };
+  let projet = chemin;
+  if (!projet) { const r = chercherProjet(type, nums); if (r.etat !== "trouve") return r; projet = r.chemin; }
+  const dossierFiches = path.join(projet, DOSSIER_FICHES), voulu = path.join(dossierFiches, nomFiche(modele, nums));
+  // nom exact, sinon une fiche qui commence par le nom du modèle (N° POI complété depuis, par exemple)
+  let f = fs.existsSync(voulu) ? voulu : null;
+  if (!f) { const debut = norm(path.basename(modele, path.extname(modele)));
+    let noms = []; try { noms = fs.readdirSync(dossierFiches); } catch (e) {}
+    const t = noms.find(x => !x.startsWith("~$") && norm(x).startsWith(debut)); if (t) f = path.join(dossierFiches, t); }
+  if (!f) return { etat: "absente", chemin: voulu };
+  const err = await shell.openPath(f);
+  return err ? { etat: "erreur", erreur: err } : { etat: "ok" };
 });

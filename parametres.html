@@ -135,6 +135,9 @@ input[type="color"] { width: 44px; height: 30px; border: 0; border-radius: 8px; 
       <div class="rang"><span class="lib">Dossier « POI »</span><span class="chemin" id="poiBase"></span><button class="btn btn-mini btn-accent" id="poiChoisir" type="button">Choisir…</button></div>
       <p class="sous-titre">Sous-dossier de chaque type</p>
       <div class="liste" id="poiTypes"></div>
+      <p class="sous-titre">Fiches préremplies (Racco D2)</p>
+      <p class="aide">Modèles Excel vierges. À la création du dossier d’un projet, une copie de chacun est déposée dans son sous-dossier « Fiches préremplies », avec les N° POI dans le nom. Le logo rose « Faire CMS » ouvre le Fichier 1 ; « Faire Desat PMZ », « Faire la FI incomplète » et « Faire la FI » ouvrent le Fichier 2.</p>
+      <div class="liste" id="poiFiches"></div>
     </div>
   </section>
 
@@ -306,9 +309,13 @@ async function rendrePoi() {
     const t = p.types[id];
     return `<div class="item"><span class="txt"><b>${esc(nom)}</b><small>${t ? `<span class="chemin">${esc(t)}</span>` : `<span class="ko-txt">Sous-dossier introuvable</span>`}</small></span>` +
       `<button class="btn btn-mini" type="button" data-poitype="${id}">${t ? "Changer…" : "Choisir…"}</button></div>`; }).join("");
+  $("poiFiches").innerHTML = [1, 2].map(n => { const f = p.fiches["f" + n];
+    return `<div class="item"><span class="txt"><b>Fichier ${n}</b><small>${f ? `<span class="chemin">${esc(f)}</span>` : `<span class="ko-txt">Pas encore choisi</span>`}</small></span>` +
+      `<button class="btn btn-mini" type="button" data-fiche="${n}">${f ? "Changer…" : "Choisir…"}</button></div>`; }).join("");
 }
 $("poiChoisir").onclick = async () => { if (bureau) { await bureau.poiChoisirBase(); rendrePoi(); } };
 $("poiTypes").addEventListener("click", async e => { const b = e.target.closest("[data-poitype]"); if (b) { await bureau.poiChoisirType(b.dataset.poitype); rendrePoi(); } });
+$("poiFiches").addEventListener("click", async e => { const b = e.target.closest("[data-fiche]"); if (b) { await bureau.ficheChoisir(+b.dataset.fiche); rendrePoi(); } });
 
 /* ═══ Données et sauvegardes ═══ */
 const taille = o => o > 1048576 ? `${(o / 1048576).toFixed(1).replace(".", ",")} Mo` : `${Math.max(1, Math.round(o / 1024))} Ko`;

@@ -22,4 +22,6 @@ contextBridge.exposeInMainWorld("bureau", {
   poiChoisirType: id => appel("poi:type", id),
   poiChercher: o => appel("poi:chercher", o),
   poiCreer: o => appel("poi:creer", o),
+  ficheChoisir: n => appel("fiche:choisir", n),
+  ficheOuvrir: o => appel("fiche:ouvrir", o),
 });

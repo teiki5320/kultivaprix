@@ -135,14 +135,14 @@ export function nomDossierPoi(adresse, nums) {
 export async function documentsPoi(type, nums, adresse) {
   nums = nums.map(x => String(x || "").trim()).filter(Boolean);
   const r = await bureau.poiChercher({ type, nums });
-  if (r.etat === "ok") return bureau.ouvrir(r.chemin);
+  if (r.etat === "ok") return ouvrirProjet(r);
   if (r.etat === "base") return choisir({ titre: "Dossier des Documents POI", texte: "Indique d’abord ton dossier « POI » (celui qui contient un sous-dossier par type de dossier) dans ⚙ Paramètres › Documents POI.", boutons: [{ lib: "OK", v: 1, principal: true }] });
   if (r.etat === "type") return choisir({ titre: "Dossier du type introuvable", texte: `Le sous-dossier de ce type de dossier n’a pas été trouvé dans « ${r.base} ». Choisis-le dans ⚙ Paramètres › Documents POI.`, boutons: [{ lib: "OK", v: 1, principal: true }] });
   if (r.etat === "sans-docs") {
     const v = await choisir({ titre: "Pas de dossier « docs GEDAFFAIRE »", texte: `Le dossier du projet existe, mais il n’a pas de sous-dossier « docs GEDAFFAIRE » :\n${r.chemin}`,
       boutons: [{ lib: "Annuler", v: null }, { lib: "Ouvrir le dossier du projet", v: "ouvrir" }, { lib: "Créer « docs GEDAFFAIRE »", v: "creer", principal: true }] });
     if (v === "ouvrir") return bureau.ouvrir(r.chemin);
-    if (v === "creer") { const c = await bureau.poiCreer({ type, chemin: r.chemin }); if (c.erreur) return alert(c.erreur); return bureau.ouvrir(r.chemin); }
+    if (v === "creer") { const c = await bureau.poiCreer({ type, chemin: r.chemin, nums }); if (c.erreur) return alert(c.erreur); return ouvrirProjet(c); }
     return;
   }
   if (r.etat === "plusieurs") {
@@ -155,9 +155,34 @@ export async function documentsPoi(type, nums, adresse) {
   const nom = await demander({ titre: "Créer le dossier du projet ?", texte: `Aucun dossier avec le N° POI ${nums.join(" ou ")} dans :\n${r.dossierType}\n\nIl sera créé avec son sous-dossier « docs GEDAFFAIRE ». Tu peux corriger le nom :`,
     valeur: nomDossierPoi(adresse, nums), ok: "Créer le dossier" });
   if (!nom) return;
-  const c = await bureau.poiCreer({ type, nom: nom.trim() });
+  const c = await bureau.poiCreer({ type, nom: nom.trim(), nums });
   if (c.erreur) return alert(c.erreur);
-  bureau.ouvrir(c.chemin);
+  ouvrirProjet(c);
+}
+// ouvre le dossier du projet ; signale d'abord une fiche préremplie qui n'a pas pu être ajoutée
+async function ouvrirProjet({ chemin, problemes }) {
+  if (problemes && problemes.length) await choisir({ titre: "Fiches préremplies", texte: problemes.join("\n\n") + "\n\nVérifie les modèles dans ⚙ Paramètres › Documents POI.", boutons: [{ lib: "OK", v: 1, principal: true }] });
+  bureau.ouvrir(chemin);
+}
+
+/* ═══ Boutons roses (logiciel) : la fiche préremplie du projet, dans <projet>\Fiches préremplies, ouverte dans Excel ═══ */
+export async function ouvrirFiche(type, n, nums, chemin) {
+  nums = nums.map(x => String(x || "").trim()).filter(Boolean);
+  const msg = texte => choisir({ titre: "Fiche préremplie", texte, boutons: [{ lib: "OK", v: 1, principal: true }] });
+  if (!nums.length && !chemin) return msg("Remplis le N° POI du projet : c’est lui qui permet de retrouver son dossier et ses fiches.");
+  const r = await bureau.ficheOuvrir({ type, n, nums, chemin });
+  if (r.etat === "ok") return;
+  if (r.etat === "modele") return msg(`Le modèle du Fichier ${n} n’est pas encore choisi : indique-le dans ⚙ Paramètres › Documents POI.`);
+  if (r.etat === "base") return msg("Indique d’abord ton dossier « POI » dans ⚙ Paramètres › Documents POI.");
+  if (r.etat === "type") return msg(`Le sous-dossier de ce type de dossier n’a pas été trouvé dans « ${r.base} ». Choisis-le dans ⚙ Paramètres › Documents POI.`);
+  if (r.etat === "aucun") return msg("Le dossier du projet n’existe pas encore. Clique sur « Documents POI » : il sera créé avec ses fiches préremplies.");
+  if (r.etat === "plusieurs") {
+    const v = await choisir({ titre: "Plusieurs dossiers trouvés", texte: "Dans lequel ouvrir la fiche ?", boutons: [{ lib: "Annuler", v: null }, ...r.liste.map(x => ({ lib: x.nom, v: x.chemin }))] });
+    if (v) ouvrirFiche(type, n, nums, v);
+    return;
+  }
+  if (r.etat === "absente") return msg(`La fiche n’est pas dans le dossier « Fiches préremplies » du projet :\n${r.chemin}\n\nClique sur « Documents POI » pour la remettre.`);
+  return msg(`La fiche n’a pas pu être ouverte : ${r.erreur || ""}`);
 }
 
 /* ═══ Petite fenêtre de saisie (window.prompt n'existe pas dans le logiciel) ═══ */
